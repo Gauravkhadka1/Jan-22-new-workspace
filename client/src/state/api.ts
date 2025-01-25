@@ -1,10 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
-export interface Project {
+export interface ProjectType {
   id: number;
   name: string;
-  description?: string;
+  description: string;
+  status: string;
   startDate?: string;
   endDate?: string;
 }
@@ -63,7 +64,7 @@ export interface Task {
 
 export interface SearchResults {
   tasks?: Task[];
-  projects?: Project[];
+  projects?: ProjectType[];
   users?: User[];
 }
 
@@ -107,11 +108,11 @@ export const api = createApi({
         }
       },
     }),
-    getProjects: build.query<Project[], void>({
+    getProjects: build.query<ProjectType[], { projectId: number }>({
       query: () => "projects",
       providesTags: ["Projects"],
     }),
-    createProject: build.mutation<Project, Partial<Project>>({
+    createProject: build.mutation<ProjectType, Partial<ProjectType>>({
       query: (project) => ({
         url: "projects",
         method: "POST",
@@ -151,6 +152,16 @@ export const api = createApi({
         { type: "Tasks", id: taskId },
       ],
     }),
+    updateProjectStatus: build.mutation<ProjectType, { projectId: number; status: string }>({
+      query: ({ projectId, status }) => ({
+        url: `projects/${projectId}/status`,
+        method: "PATCH",
+        body: { status },
+      }),
+      invalidatesTags: (result, error, { projectId }) => [
+        { type: "Projects", id: projectId },
+      ],
+    }),
     getUsers: build.query<User[], void>({
       query: () => "users",
       providesTags: ["Users"],
@@ -171,6 +182,7 @@ export const {
   useGetTasksQuery,
   useCreateTaskMutation,
   useUpdateTaskStatusMutation,
+  useUpdateProjectStatusMutation,
   useSearchQuery,
   useGetUsersQuery,
   useGetTeamsQuery,

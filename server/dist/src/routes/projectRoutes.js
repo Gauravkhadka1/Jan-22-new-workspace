@@ -5,4 +5,5 @@ const projectController_1 = require("../controllers/projectController");
 const router = (0, express_1.Router)();
 router.get("/", projectController_1.getProjects);
 router.post("/", projectController_1.createProject);
+router.patch("/:projectId/status", projectController_1.updateProjectStatus);
 exports.default = router;

@@ -98,7 +98,7 @@ const Sidebar = () => {
           <SidebarLink icon={Settings} label="Settings" href="/settings" />
           <SidebarLink icon={User} label="Users" href="/users" />
           <SidebarLink icon={Users} label="Teams" href="/teams" />
-          <SidebarLink icon={Users} label="Projects" href="/projectsboards" />
+          <SidebarLink icon={Users} label="Projects" href="/projects" />
         </nav>
 
         {/* PROJECTS LINKS */}

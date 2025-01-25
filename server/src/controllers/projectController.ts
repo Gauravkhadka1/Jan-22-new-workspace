@@ -39,3 +39,24 @@ export const createProject = async (
       .json({ message: `Error creating a project: ${error.message}` });
   }
 };
+
+export const updateProjectStatus = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { projectId } = req.params;
+  const { status } = req.body;
+  try {
+    const updatedProject = await prisma.project.update({
+      where: {
+        id: Number(projectId),
+      },
+      data: {
+        status: status,
+      },
+    });
+    res.json(updatedProject);
+  } catch (error: any) {
+    res.status(500).json({ message: `Error updating Project: ${error.message}` });
+  }
+};

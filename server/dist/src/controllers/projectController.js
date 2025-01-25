@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createProject = exports.getProjects = void 0;
+exports.updateProjectStatus = exports.createProject = exports.getProjects = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -45,3 +45,22 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.createProject = createProject;
+const updateProjectStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { projectId } = req.params;
+    const { status } = req.body;
+    try {
+        const updatedProject = yield prisma.project.update({
+            where: {
+                id: Number(projectId),
+            },
+            data: {
+                status: status,
+            },
+        });
+        res.json(updatedProject);
+    }
+    catch (error) {
+        res.status(500).json({ message: `Error updating Project: ${error.message}` });
+    }
+});
+exports.updateProjectStatus = updateProjectStatus;
