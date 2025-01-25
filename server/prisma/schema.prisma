@@ -41,7 +41,7 @@ model Team {
 model Project {
   id           Int           @id @default(autoincrement())
   name         String
-  status       String
+  status       String @default("New")
   description  String?
   startDate    DateTime?
   endDate      DateTime?

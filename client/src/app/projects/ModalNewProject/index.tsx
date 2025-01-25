@@ -30,6 +30,7 @@ const ModalNewProject = ({ isOpen, onClose }: Props) => {
       description,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
+      status: "New", 
     });
   };
 

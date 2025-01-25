@@ -25,7 +25,7 @@ const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.getProjects = getProjects;
 const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, description, startDate, endDate, status } = req.body;
+    const { name, description, startDate, endDate, status = "New" } = req.body;
     try {
         const newProject = yield prisma.project.create({
             data: {
@@ -39,9 +39,8 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(201).json(newProject);
     }
     catch (error) {
-        res
-            .status(500)
-            .json({ message: `Error creating a project: ${error.message}` });
+        console.error("Error creating project:", error); // Log the complete error
+        res.status(500).json({ message: `Error creating project: ${error.message}` });
     }
 });
 exports.createProject = createProject;

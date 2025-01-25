@@ -23,7 +23,7 @@ CREATE TABLE "Team" (
 CREATE TABLE "Project" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
-    "status" TEXT NOT NULL,
+    "status" TEXT,
     "description" TEXT,
     "startDate" TIMESTAMP(3),
     "endDate" TIMESTAMP(3),
