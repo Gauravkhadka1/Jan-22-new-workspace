@@ -15,11 +15,16 @@ const projectStatus: Array<"New" | "Design" | "Development" | "Content-Fillup" |
 ];
 
 const ProjectBoardView = ({ id, setIsModalNewProjectOpen }: BoardProps) => {
-  const { data: projects, isLoading, error } = useGetProjectsQuery({ projectId: Number(id) });
+  const { data: projects, isLoading, error, refetch } = useGetProjectsQuery({ projectId: Number(id) });
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
 
   const moveProject = (projectId: number, toStatus: string) => {
-    updateProjectStatus({ projectId, status: toStatus });
+    updateProjectStatus({ projectId, status: toStatus })
+      .unwrap()
+      .then(() => {
+        // Refetch the projects after the update
+        refetch();
+      });
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -41,6 +46,7 @@ const ProjectBoardView = ({ id, setIsModalNewProjectOpen }: BoardProps) => {
     </DndProvider>
   );
 };
+
 
 type ProjectColumnProps = {
   status: "New" | "Design" | "Development" | "Content-Fillup" | "Completed";
@@ -74,6 +80,7 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
 
   // Use type assertion to tell TypeScript that 'status' will be one of the keys of 'statusColor'
   const color = statusColor[status];
+  const projectCount = filteredProjects.length; // Project count based on status
 
   return (
     <div
@@ -86,7 +93,9 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
       <div className="mb-3 flex items-center justify-between bg-white dark:bg-dark-secondary p-4 rounded-md">
         <div className="flex items-center">
           <span className="block h-4 w-4 rounded-full" style={{ backgroundColor: color }}></span>
-          <h3 className="ml-2 font-semibold text-lg">{status}</h3>
+          <h3 className="ml-2 font-semibold text-lg">
+            {status} ({projectCount}) {/* Display the project count */}
+          </h3>
         </div>
         <button
           className="rounded bg-gray-200 p-2 dark:bg-dark-tertiary"
