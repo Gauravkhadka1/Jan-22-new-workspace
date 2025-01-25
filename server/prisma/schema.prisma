@@ -41,6 +41,7 @@ model Team {
 model Project {
   id           Int           @id @default(autoincrement())
   name         String
+  status       String
   description  String?
   startDate    DateTime?
   endDate      DateTime?
