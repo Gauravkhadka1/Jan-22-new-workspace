@@ -4,6 +4,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { EllipsisVertical, Plus, Calendar } from "lucide-react"; // Import Calendar icon
 import { format, differenceInDays } from "date-fns"; // Import differenceInDays to calculate the difference
+import Link from "next/link";
 
 type BoardProps = {
   id: string;
@@ -155,7 +156,11 @@ const Project = ({ projectData }: ProjectProps) => {
       ref={dragRef} // Attach the drag ref here
       className={`mb-4 p-4 rounded-md shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
     >
-      <h4 className="font-bold text-lg break-words">{projectData.name}</h4>
+      <h4 className="font-bold text-lg break-words">
+        <Link  href={`/projects/${projectData.id}`}>
+        {projectData.name}
+        </Link>
+        </h4>
       <div className="flex-col py-2">
         <div className="flex items-center">
           <Calendar size={16} className="text-green-600" />
