@@ -55,7 +55,6 @@ export interface Task {
   projectId: number;
   authorUserId?: number;
   assignedUserId?: number;
-
   author?: User;
   assignee?: User;
   comments?: Comment[];
@@ -90,6 +89,14 @@ export const api = createApi({
   reducerPath: "api",
   tagTypes: ["Projects", "Tasks", "Users", "Teams"],
   endpoints: (build) => ({
+    registerUser: build.mutation<{ message: string }, Partial<User>>({
+      query: (userData) => ({
+        url: "users",
+        method: "POST",
+        body: userData,
+      }),
+      invalidatesTags: ["Users"],
+    }),
     getAuthUser: build.query({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
         try {
@@ -188,4 +195,5 @@ export const {
   useGetTeamsQuery,
   useGetTasksByUserQuery,
   useGetAuthUserQuery,
+  useRegisterUserMutation,
 } = api;
