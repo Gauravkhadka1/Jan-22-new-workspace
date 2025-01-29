@@ -15,22 +15,11 @@ import { Props } from "recharts/types/container/Surface";
 const projectboard = (props: Props) => {
   const [showProjects, setShowProjects] = useState(true);
 
-  const { data: projects } = useGetProjectsQuery();
-  const dispatch = useAppDispatch();
-  const isSidebarCollapsed = useAppSelector(
-    (state) => state.global.isSidebarCollapsed,
-  );
+
 
   return (
     <div>
-     {showProjects &&
-              projects?.map((project) => (
-                <SidebarLink
-                  key={project.id}
-                  label={project.name}
-                  href={`/projects/${project.id}`}
-                />
-              ))}
+    hello
       </div>
       
   )
