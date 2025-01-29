@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc", 
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js",
     "dev": "npm run build && concurrently \"npx tsc -w\" \"nodemon --exec ts-node src/index.ts\"",
@@ -20,6 +20,7 @@
     "@types/node": "^22.10.5",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.9",
+    "prisma": "^6.3.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
@@ -31,7 +32,6 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "helmet": "^8.0.0",
-    "morgan": "^1.10.0",
-    "prisma": "^6.2.1"
+    "morgan": "^1.10.0"
   }
 }

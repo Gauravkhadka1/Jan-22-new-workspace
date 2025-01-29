@@ -12,6 +12,7 @@ const morgan_1 = __importDefault(require("morgan"));
 /* ROUTE IMPORTS */
 const projectRoutes_1 = __importDefault(require("./routes/projectRoutes"));
 const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
+const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 // import searchRoutes from "./routes/searchRoutes";
 /* CONFIGURATIONS */
 dotenv_1.default.config();
@@ -29,6 +30,11 @@ app.get("/", (req, res) => {
 });
 app.use("/projects", projectRoutes_1.default);
 app.use("/tasks", taskRoutes_1.default);
+app.use("/users", userRoutes_1.default);
+app.post("/api/users", (req, res) => {
+    console.log(req.body);
+    res.send(200);
+});
 // app.use("/search", searchRoutes);
 /* SERVER */
 const port = Number(process.env.PORT) || 3000;
