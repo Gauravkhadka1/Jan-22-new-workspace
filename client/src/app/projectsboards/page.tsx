@@ -8,27 +8,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
-import { Props } from "recharts/types/container/Surface";
- 
 
-
-const projectboard = (props: Props) => {
+const ProjectBoard = () => {
   const [showProjects, setShowProjects] = useState(true);
 
+  return <div>hello</div>;
+};
 
-
-  return (
-    <div>
-    hello
-      </div>
-      
-  )
-  
-}
 interface SidebarLinkProps {
   href: string;
   label: string;
 }
+
 const SidebarLink = ({ href, label }: SidebarLinkProps) => {
   const pathname = usePathname();
   const isActive =
@@ -45,7 +36,7 @@ const SidebarLink = ({ href, label }: SidebarLinkProps) => {
           <div className="absolute left-0 top-0 h-[100%] w-[5px] bg-blue-200" />
         )}
 
-        <span className={`font-medium text-gray-800 dark:text-gray-100`}>
+        <span className="font-medium text-gray-800 dark:text-gray-100">
           {label}
         </span>
       </div>
@@ -53,4 +44,4 @@ const SidebarLink = ({ href, label }: SidebarLinkProps) => {
   );
 };
 
-export default projectboard
+export default ProjectBoard;
