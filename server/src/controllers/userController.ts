@@ -1,27 +1,31 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
 /**
- * Create a new user
+ * Create a new user (Signup)
  */
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, profilePictureUrl, password } = req.body;
 
-    // Ensure email is provided
-    if (!email) {
-      res.status(400).json({ message: "Email is required" });
+    if (!email || !password) {
+      res.status(400).json({ message: "Email and password are required" });
       return;
     }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
-        profilePictureUrl: profilePictureUrl || "default.jpg", // Set default profile picture if not provided
-        password,
+        profilePictureUrl: profilePictureUrl || "default.jpg",
+        password: hashedPassword,
       },
     });
 
@@ -33,11 +37,54 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 };
 
 /**
+ * Login user
+ */
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400).json({ message: "Email and password are required" });
+      return;
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { userId: true, email: true, password: true, username: true, profilePictureUrl: true },
+    });
+
+    if (!user || !user.password) {
+      res.status(401).json({ message: "Invalid credentials" });
+      return;
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      res.status(401).json({ message: "Invalid credentials" });
+      return;
+    }
+
+    // Generate JWT Token
+    const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET as string, { expiresIn: "1h" });
+
+    res.json({ message: "Login successful", token, user: { id: user.userId, email: user.email } });
+  } catch (error: any) {
+    console.error("Error logging in:", error);
+    res.status(500).json({ message: `Error logging in: ${error.message}` });
+  }
+};
+
+/**
  * Get all users
  */
 export const getUsers = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      select: { userId: true, username: true, email: true, profilePictureUrl: true },
+    });
     res.json(users);
   } catch (error: any) {
     console.error("Error retrieving users:", error);
@@ -54,6 +101,7 @@ export const getUserByEmail = async (req: Request, res: Response): Promise<void>
 
     const user = await prisma.user.findUnique({
       where: { email },
+      select: { userId: true, username: true, email: true, profilePictureUrl: true },
     });
 
     if (!user) {

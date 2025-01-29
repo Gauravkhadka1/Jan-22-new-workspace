@@ -8,6 +8,8 @@ const userController_1 = require("../controllers/userController");
 const router = express_1.default.Router();
 // Create a new user
 router.post("/", userController_1.createUser);
+// Login user
+router.post("/login", userController_1.loginUser); // <-- Add this line
 // Get all users
 router.get("/", userController_1.getUsers);
 // Get a user by email

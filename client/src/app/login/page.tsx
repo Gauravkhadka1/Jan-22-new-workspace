@@ -21,7 +21,7 @@ const LoginForm = () => {
 
     try {
       console.log("API URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}auth/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
