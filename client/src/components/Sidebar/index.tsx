@@ -31,7 +31,7 @@ const Sidebar = () => {
   const [showProjects, setShowProjects] = useState(true);
   const [showPriority, setShowPriority] = useState(true);
 
-  const { data: projects } = useGetProjectsQuery();
+
   const dispatch = useAppDispatch();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed,
@@ -92,7 +92,7 @@ const Sidebar = () => {
         </div>
         {/* NAVBAR LINKS */}
         <nav className="z-10 w-full">
-          <SidebarLink icon={Home} label="Home" href="/" />
+          <SidebarLink icon={Home} label="Home" href="/dashboard" />
           <SidebarLink icon={Briefcase} label="Timeline" href="/timeline" />
           <SidebarLink icon={Search} label="Search" href="/search" />
           <SidebarLink icon={Settings} label="Settings" href="/settings" />
@@ -114,15 +114,7 @@ const Sidebar = () => {
           )}
         </button>
         {/* PROJECTS LIST */}
-        {showProjects &&
-          projects?.map((project) => (
-            <SidebarLink
-              key={project.id}
-              icon={Briefcase}
-              label={project.name}
-              href={`/projects/${project.id}`}
-            />
-          ))}
+       
 
         {/* PRIORITIES LINKS */}
         <button
