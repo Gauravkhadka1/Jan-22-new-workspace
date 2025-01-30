@@ -1,8 +1,8 @@
-import { Project } from "@/state/api";
+import { ProjectType } from "@/state/api";
 import React from "react";
 
 type Props = {
-  project: Project;
+  project: ProjectType;
 };
 
 const ProjectCard = ({ project }: Props) => {
