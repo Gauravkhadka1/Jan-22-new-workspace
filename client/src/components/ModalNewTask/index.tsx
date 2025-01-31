@@ -1,5 +1,10 @@
 import Modal from "@/components/Modal";
-import { Priority, Status, useCreateTaskMutation } from "@/state/api";
+import {
+  Priority,
+  Status,
+  useCreateTaskMutation,
+  useGetUsersQuery,
+} from "@/state/api";
 import React, { useState } from "react";
 import { formatISO } from "date-fns";
 
@@ -21,6 +26,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [authorUserId, setAuthorUserId] = useState("");
   const [assignedUserId, setAssignedUserId] = useState("");
   const [projectId, setProjectId] = useState("");
+  const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
 
   const handleSubmit = async () => {
     if (!title || !authorUserId || !(id !== null || projectId)) return;
@@ -72,26 +78,21 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <textarea
-          className={inputStyles}
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <select
+          className={selectStyles}
+          value={assignedUserId}
+          onChange={(e) => setAssignedUserId(e.target.value)}
+        >
+          <option value="">Assigned To</option>
+          {!isUsersLoading &&
+            users?.map((user) => (
+              <option key={user.userId} value={user.userId}>
+                {user.username}
+              </option>
+            ))}
+        </select>
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-          <select
-            className={selectStyles}
-            value={status}
-            onChange={(e) =>
-              setStatus(Status[e.target.value as keyof typeof Status])
-            }
-          >
-            <option value="">Select Status</option>
-            <option value={Status.ToDo}>To Do</option>
-            <option value={Status.WorkInProgress}>Work In Progress</option>
-            <option value={Status.UnderReview}>Under Review</option>
-            <option value={Status.Completed}>Completed</option>
-          </select>
           <select
             className={selectStyles}
             value={priority}
@@ -107,14 +108,6 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             <option value={Priority.Backlog}>Backlog</option>
           </select>
         </div>
-        <input
-          type="text"
-          className={inputStyles}
-          placeholder="Tags (comma separated)"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-        />
-
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
           <input
             type="date"
@@ -129,20 +122,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             onChange={(e) => setDueDate(e.target.value)}
           />
         </div>
-        <input
-          type="text"
-          className={inputStyles}
-          placeholder="Author User ID"
-          value={authorUserId}
-          onChange={(e) => setAuthorUserId(e.target.value)}
-        />
-        <input
-          type="text"
-          className={inputStyles}
-          placeholder="Assigned User ID"
-          value={assignedUserId}
-          onChange={(e) => setAssignedUserId(e.target.value)}
-        />
+
         {id === null && (
           <input
             type="text"
@@ -155,7 +135,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
         <button
           type="submit"
           className={`focus-offset-2 mt-4 flex w-full justify-center rounded-md border border-transparent bg-blue-primary px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
-           isLoading ? "cursor-not-allowed opacity-50" : ""
+            isLoading ? "cursor-not-allowed opacity-50" : ""
           }`}
           disabled={isLoading}
         >
