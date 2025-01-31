@@ -53,8 +53,8 @@ export interface Task {
   dueDate?: string;
   points?: number;
   projectId: number;
-  authorUserId?: number;
-  assignedUserId?: number;
+  assignedBy?: string;
+  assignedTo: string;
   author?: User;
   assignee?: User;
   comments?: Comment[];

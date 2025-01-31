@@ -57,10 +57,10 @@ const TaskCard = ({ task }: Props) => {
         <strong>Author:</strong>{" "}
         {task.author ? task.author.username : "Unknown"}
       </p>
-      <p>
+      {/* <p>
         <strong>Assignee:</strong>{" "}
-        {task.assignee ? task.assignee.username : "Unassigned"}
-      </p>
+        {task.assignedBy ? task.assignedBy.username : "Unassigned"}
+      </p> */}
     </div>
   );
 };

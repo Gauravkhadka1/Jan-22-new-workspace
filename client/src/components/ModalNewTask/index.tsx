@@ -23,13 +23,16 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [tags, setTags] = useState("");
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [authorUserId, setAuthorUserId] = useState("");
-  const [assignedUserId, setAssignedUserId] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
   const [projectId, setProjectId] = useState("");
+
   const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
 
+  // Directly set assignedBy to test@test
+  const assignedBy = "test@test";
+
   const handleSubmit = async () => {
-    if (!title || !authorUserId || !(id !== null || projectId)) return;
+    if (!title || !assignedBy || !(id !== null || projectId)) return;
 
     const formattedStartDate = formatISO(new Date(startDate), {
       representation: "complete",
@@ -46,21 +49,11 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
       tags,
       startDate: formattedStartDate,
       dueDate: formattedDueDate,
-      authorUserId: parseInt(authorUserId),
-      assignedUserId: parseInt(assignedUserId),
+      assignedTo,
       projectId: id !== null ? Number(id) : Number(projectId),
+      assignedBy, // Use test@test as assignedBy
     });
   };
-
-  const isFormValid = () => {
-    return title && authorUserId && !(id !== null || projectId);
-  };
-
-  const selectStyles =
-    "mb-4 block w-full rounded border border-gray-300 px-3 py-2 dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
-
-  const inputStyles =
-    "w-full rounded border border-gray-300 p-2 shadow-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} name="Create New Task">
@@ -73,15 +66,15 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
       >
         <input
           type="text"
-          className={inputStyles}
+          className="w-full rounded border p-2 shadow-sm"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <select
-          className={selectStyles}
-          value={assignedUserId}
-          onChange={(e) => setAssignedUserId(e.target.value)}
+          className="mb-4 block w-full rounded border px-3 py-2"
+          value={assignedTo}
+          onChange={(e) => setAssignedTo(e.target.value)}
         >
           <option value="">Assigned To</option>
           {!isUsersLoading &&
@@ -91,42 +84,22 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
               </option>
             ))}
         </select>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-          <select
-            className={selectStyles}
-            value={priority}
-            onChange={(e) =>
-              setPriority(Priority[e.target.value as keyof typeof Priority])
-            }
-          >
-            <option value="">Select Priority</option>
-            <option value={Priority.Urgent}>Urgent</option>
-            <option value={Priority.High}>High</option>
-            <option value={Priority.Medium}>Medium</option>
-            <option value={Priority.Low}>Low</option>
-            <option value={Priority.Backlog}>Backlog</option>
-          </select>
-        </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-          <input
-            type="date"
-            className={inputStyles}
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          <input
-            type="date"
-            className={inputStyles}
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-          />
-        </div>
-
+        <input
+          type="date"
+          className="w-full rounded border p-2"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <input
+          type="date"
+          className="w-full rounded border p-2"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
         {id === null && (
           <input
             type="text"
-            className={inputStyles}
+            className="w-full rounded border p-2"
             placeholder="ProjectId"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
@@ -134,9 +107,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
         )}
         <button
           type="submit"
-          className={`focus-offset-2 mt-4 flex w-full justify-center rounded-md border border-transparent bg-blue-primary px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
-            isLoading ? "cursor-not-allowed opacity-50" : ""
-          }`}
+          className={`mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-white ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
           disabled={isLoading}
         >
           {isLoading ? "Creating..." : "Create Task"}

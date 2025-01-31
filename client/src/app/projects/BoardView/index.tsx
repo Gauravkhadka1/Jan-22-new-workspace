@@ -1,4 +1,4 @@
-import { useGetTasksQuery, useUpdateTaskStatusMutation } from "@/state/api";
+import { useGetTasksQuery, useUpdateTaskStatusMutation, useCreateTaskMutation } from "@/state/api";
 import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -7,23 +7,46 @@ import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 
+// Define status types
+type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
+
 type BoardProps = {
   id: string;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
 };
 
-const taskStatus = ["To Do", "Work In Progress", "Under Review", "Completed"];
+const taskStatus: Status[] = ["To Do", "Work In Progress", "Under Review", "Completed"];
 
 const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const {
     data: tasks,
     isLoading,
     error,
+    refetch,
   } = useGetTasksQuery({ projectId: Number(id) });
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
+  const [createTask] = useCreateTaskMutation();
 
-  const moveTask = (taskId: number, toStatus: string) => {
+  const moveTask = (taskId: number, toStatus: Status) => {
     updateTaskStatus({ taskId, status: toStatus });
+  };
+
+  const handleCreateTask = async () => {
+    // Example task data
+    const newTask = {
+      title: "New Task",
+      description: "This is a newly created task",
+      status: "To Do", // Type-safe status
+      priority: "High",
+      tags: "tag1,tag2",
+      startDate: new Date(),
+      dueDate: new Date(),
+      assignedUserId: 1, // Assuming user with ID 1 is assigned
+      projectId: Number(id),
+    };
+
+    await createTask(newTask);
+    refetch(); // Refetch tasks after creation
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -41,15 +64,21 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
           />
         ))}
+        <button
+          onClick={handleCreateTask}
+          className="flex items-center justify-center gap-2 p-4 mt-4 bg-blue-500 text-white rounded-md"
+        >
+          <Plus size={16} /> Create Task
+        </button>
       </div>
     </DndProvider>
   );
 };
 
 type TaskColumnProps = {
-  status: string;
+  status: Status;
   tasks: TaskType[];
-  moveTask: (taskId: number, toStatus: string) => void;
+  moveTask: (taskId: number, toStatus: Status) => void;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
 };
 
@@ -69,7 +98,7 @@ const TaskColumn = ({
 
   const tasksCount = tasks.filter((task) => task.status === status).length;
 
-  const statusColor: any = {
+  const statusColor: Record<Status, string> = {
     "To Do": "#2563EB",
     "Work In Progress": "#059669",
     "Under Review": "#D97706",
@@ -151,12 +180,12 @@ const Task = ({ task }: TaskProps) => {
         priority === "Urgent"
           ? "bg-red-200 text-red-700"
           : priority === "High"
-            ? "bg-yellow-200 text-yellow-700"
-            : priority === "Medium"
-              ? "bg-green-200 text-green-700"
-              : priority === "Low"
-                ? "bg-blue-200 text-blue-700"
-                : "bg-gray-200 text-gray-700"
+          ? "bg-yellow-200 text-yellow-700"
+          : priority === "Medium"
+          ? "bg-green-200 text-green-700"
+          : priority === "Low"
+          ? "bg-blue-200 text-blue-700"
+          : "bg-gray-200 text-gray-700"
       }`}
     >
       {priority}
@@ -204,11 +233,6 @@ const Task = ({ task }: TaskProps) => {
 
         <div className="my-3 flex justify-between">
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
-          {typeof task.points === "number" && (
-            <div className="text-xs font-semibold dark:text-white">
-              {task.points} pts
-            </div>
-          )}
         </div>
 
         <div className="text-xs text-gray-500 dark:text-neutral-500">
