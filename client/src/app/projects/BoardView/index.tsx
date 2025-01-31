@@ -31,24 +31,7 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
     updateTaskStatus({ taskId, status: toStatus });
   };
 
-  const handleCreateTask = async () => {
-    // Example task data
-    const newTask = {
-      title: "New Task",
-      description: "This is a newly created task",
-      status: "To Do", // Type-safe status
-      priority: "High",
-      tags: "tag1,tag2",
-      startDate: new Date(),
-      dueDate: new Date(),
-      assignedUserId: 1, // Assuming user with ID 1 is assigned
-      projectId: Number(id),
-    };
-
-    await createTask(newTask);
-    refetch(); // Refetch tasks after creation
-  };
-
+  
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching tasks</div>;
 
@@ -64,12 +47,7 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
           />
         ))}
-        <button
-          onClick={handleCreateTask}
-          className="flex items-center justify-center gap-2 p-4 mt-4 bg-blue-500 text-white rounded-md"
-        >
-          <Plus size={16} /> Create Task
-        </button>
+        
       </div>
     </DndProvider>
   );
