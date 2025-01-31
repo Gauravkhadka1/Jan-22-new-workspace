@@ -1,6 +1,8 @@
 import Header from "@/components/Header";
 import React from "react";
 
+
+
 const Settings = () => {
   const userSettings = {
     username: "johndoe",

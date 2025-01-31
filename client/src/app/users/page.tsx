@@ -3,6 +3,7 @@ import { useGetUsersQuery } from "@/state/api";
 import React from "react";
 import { useAppSelector } from "../redux";
 import Header from "@/components/Header";
+import withAuth from "../../hoc/withAuth";
 import {
   DataGrid,
   GridColDef,
@@ -70,4 +71,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default withAuth(Users);

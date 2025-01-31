@@ -1,4 +1,6 @@
+"use client";
 import React from 'react'
+import withAuth from "../../hoc/withAuth";
 
 type Props = {}
 
@@ -8,4 +10,4 @@ const dashboard = (props: Props) => {
   )
 }
 
-export default dashboard
+export default withAuth(dashboard);

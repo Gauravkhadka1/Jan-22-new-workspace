@@ -1,8 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "../../context/AuthContext";
 
+ // Get login function
 const LoginForm = () => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -15,35 +18,29 @@ const LoginForm = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+
     e.preventDefault();
     setError("");
     setLoading(true);
-
+  
     try {
-      console.log("API URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         setError(errorData.message || "Invalid credentials");
         setLoading(false);
         return;
       }
-
+  
       const data = await response.json();
-      console.log("Login Successful:", data);
-
-      // Save token to local storage or cookies
-      localStorage.setItem("token", data.token);
-
-      // Redirect user after successful login
-      window.location.href = "/dashboard";
+      login(data.token); // Use AuthContext login
     } catch (err) {
-      setError("Failed to connect to the server. Please check your network or API URL.");
+      setError("Failed to connect to the server.");
     } finally {
       setLoading(false);
     }

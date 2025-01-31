@@ -11,6 +11,7 @@ import {
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
 import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+import withAuth from "../../hoc/withAuth";
 
 const CustomToolbar = () => (
   <GridToolbarContainer className="toolbar flex gap-2">
@@ -56,4 +57,4 @@ const Teams = () => {
   );
 };
 
-export default Teams;
+export default withAuth(Teams);
