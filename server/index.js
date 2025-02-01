@@ -1,8 +1,9 @@
-const express = require('express')
-const app = express()
+const express = require("express");
+const app = express();
 
-app.use("/", (req, res) => {
-    res.send("server is running");
+app.get("/users", (req, res) => {
+    res.json([{ userId: 1, username: "test@test", email: "test@test", profilePictureUrl: "default.jpg" }]);
 });
 
-app.listen(5000, console.log("server started on port 5000"));
+// Remove app.listen() because Vercel handles it automatically
+module.exports = app;
