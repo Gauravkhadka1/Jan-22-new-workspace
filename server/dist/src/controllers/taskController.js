@@ -13,19 +13,15 @@ exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { projectId } = req.query;
+    const { projectId, assignedTo } = req.query;
     try {
         const tasks = yield prisma.task.findMany({
-            where: {
-                projectId: Number(projectId),
-            },
+            where: Object.assign(Object.assign({}, (projectId ? { projectId: Number(projectId) } : {})), (assignedTo ? { assignedTo: String(assignedTo) } : {})),
         });
         res.json(tasks);
     }
     catch (error) {
-        res
-            .status(500)
-            .json({ message: `Error retrieving tasks: ${error.message}` });
+        res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
     }
 });
 exports.getTasks = getTasks;
