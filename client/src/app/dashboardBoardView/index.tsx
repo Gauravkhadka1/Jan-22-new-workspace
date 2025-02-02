@@ -24,12 +24,14 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
 
 
-useEffect(() => {
-  console.log("Fetching tasks for user ID:", userId);
-  if (tasks) {
-    console.log("Fetched tasks:", tasks);
-  }
-}, [tasks]);
+  useEffect(() => {
+    console.log("User ID:", userId);
+    if (tasks) {
+      tasks.forEach((task) => {
+        console.log("Task assignedTo:", task.assignedTo);
+      });
+    }
+  }, [tasks, userId]);
 
   
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
@@ -43,7 +45,10 @@ useEffect(() => {
   if (error) return <div>An error occurred while fetching tasks</div>;
 
   // Filter tasks assigned to the logged-in user
-  const userTasks = tasks?.filter((task) => task.assignee?.userId === userId) || [];
+  const userTasks = tasks?.filter((task) => String(task.assignedTo) === String(userId)) || [];
+
+
+
 
   return (
     <DndProvider backend={HTML5Backend}>
