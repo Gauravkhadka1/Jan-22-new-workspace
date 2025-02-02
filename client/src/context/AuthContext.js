@@ -1,5 +1,4 @@
 "use client";
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -11,21 +10,25 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
-    if (token) {
-      setUser({ token }); // Store token in state
+
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
     }
     setLoading(false);
   }, []);
 
-  const login = (token) => {
+  const login = (token, userData) => {
     localStorage.setItem("token", token);
-    setUser({ token });
+    localStorage.setItem("user", JSON.stringify(userData)); // ✅ Store user info
+    setUser(userData);
     router.push("/dashboard");
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     router.push("/");
   };

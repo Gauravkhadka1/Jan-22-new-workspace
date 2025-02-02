@@ -12,6 +12,7 @@ const Navbar = () => {
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
   const { user, logout } = useAuth(); // Get user & logout function
+  console.log("User Data:", user);
 
   return (
     <div className="flex items-center justify-between bg-white px-4 py-3 dark:bg-black dark:px-4 dark:py-3">
@@ -47,17 +48,16 @@ const Navbar = () => {
         <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
 
         {user ? (
-          
-            <Link href="/profile" className="text-sm font-medium text-blue-500 hover:underline">
-            <User/>
-            </Link>
-         
-        ) : (
-          
-          <button onClick={logout} className="text-sm font-medium text-red-500 hover:underline">
-             </button>
-      
-        )}
+  <Link href="/profile" className="text-sm font-medium text-blue-500 hover:underline">
+    {user.username} {/* Display username */}
+  </Link>
+) : (
+  <button onClick={logout} className="text-sm font-medium text-red-500 hover:underline">
+    Logout
+  </button>
+)}
+
+
       </div>
     </div>
   );

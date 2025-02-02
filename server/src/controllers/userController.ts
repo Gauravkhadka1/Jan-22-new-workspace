@@ -53,6 +53,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       where: { email },
       select: { userId: true, email: true, password: true, username: true, profilePictureUrl: true },
     });
+    
 
     if (!user || !user.password) {
       res.status(401).json({ message: "Invalid credentials" });
@@ -70,7 +71,12 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     // Generate JWT Token
     const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET as string, { expiresIn: "1h" });
 
-    res.json({ message: "Login successful", token, user: { id: user.userId, email: user.email } });
+    res.json({ 
+      message: "Login successful", 
+      token, 
+      user: { id: user.userId, email: user.email, username: user.username } 
+    });
+    
   } catch (error: any) {
     console.error("Error logging in:", error);
     res.status(500).json({ message: `Error logging in: ${error.message}` });

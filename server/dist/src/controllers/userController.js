@@ -72,7 +72,11 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         // Generate JWT Token
         const token = jsonwebtoken_1.default.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
-        res.json({ message: "Login successful", token, user: { id: user.userId, email: user.email } });
+        res.json({
+            message: "Login successful",
+            token,
+            user: { id: user.userId, email: user.email, username: user.username }
+        });
     }
     catch (error) {
         console.error("Error logging in:", error);

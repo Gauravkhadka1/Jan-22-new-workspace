@@ -18,7 +18,6 @@ const LoginForm = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -38,13 +37,16 @@ const LoginForm = () => {
       }
   
       const data = await response.json();
-      login(data.token); // Use AuthContext login
+  
+      // ✅ Pass token and user info to the login function
+      login(data.token, data.user); 
     } catch (err) {
       setError("Failed to connect to the server.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
