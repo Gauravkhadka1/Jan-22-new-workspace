@@ -13,6 +13,7 @@ import {
 } from "@mui/x-data-grid";
 import Image from "next/image";
 import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+import Link from "next/link";
 
 const CustomToolbar = () => (
   <GridToolbarContainer className="toolbar flex gap-2">
@@ -23,7 +24,16 @@ const CustomToolbar = () => (
 
 const columns: GridColDef[] = [
   { field: "userId", headerName: "ID", width: 100 },
-  { field: "username", headerName: "Username", width: 150 },
+  {
+    field: "username",
+    headerName: "Username",
+    width: 150,
+    renderCell: (params) => (
+      <Link href={`/usertasks/${params.row.userId}`} className="text-blue-500 hover:underline">
+        {params.value}  {/* Displaying the username */}
+      </Link>
+    ),
+  },
   {
     field: "profilePictureUrl",
     headerName: "Profile Picture",
