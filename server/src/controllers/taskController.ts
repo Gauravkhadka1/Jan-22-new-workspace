@@ -94,4 +94,21 @@ export const getTasksByUser = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
   }
 };
+export const getTasksByUserIdForUserTasks = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params; // Fetch the userId from the params
+
+  try {
+    // Fetch tasks assigned to the specific user by userId
+    const tasks = await prisma.task.findMany({
+      where: {
+        assignedTo: userId, // Use the userId to fetch tasks
+      },
+    });
+
+    res.json(tasks);
+  } catch (error: any) {
+    res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
+  }
+};
+
 

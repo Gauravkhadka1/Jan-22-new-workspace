@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
+exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -84,3 +84,19 @@ const getTasksByUser = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getTasksByUser = getTasksByUser;
+const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params; // Fetch the userId from the params
+    try {
+        // Fetch tasks assigned to the specific user by userId
+        const tasks = yield prisma.task.findMany({
+            where: {
+                assignedTo: userId, // Use the userId to fetch tasks
+            },
+        });
+        res.json(tasks);
+    }
+    catch (error) {
+        res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
+    }
+});
+exports.getTasksByUserIdForUserTasks = getTasksByUserIdForUserTasks;
