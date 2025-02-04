@@ -15,7 +15,7 @@ type UserTasksProps = {
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
 };
 
-const UserTasks = ({ setIsModalNewTaskOpen }: UserTasksProps) => {
+const usertasks = ({ setIsModalNewTaskOpen }: UserTasksProps) => {
   const params = useParams();
   const userId = params?.userId; 
   const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
@@ -125,4 +125,4 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen }: TaskColu
   );
 };
 
-export default UserTasks;
+export default usertasks;
