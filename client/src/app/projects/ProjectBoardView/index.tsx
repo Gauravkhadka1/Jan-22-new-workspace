@@ -5,6 +5,15 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { EllipsisVertical, Plus, Calendar } from "lucide-react"; // Import Calendar icon
 import { format, differenceInDays } from "date-fns"; // Import differenceInDays to calculate the difference
 import Link from "next/link";
+import {
+  Clock,
+  Filter,
+  Grid3x3,
+  List,
+  PlusSquare,
+  Share2,
+  Table,
+} from "lucide-react";
 
 type BoardProps = {
   id: string;
@@ -92,16 +101,11 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
       <div className="mb-3 flex items-center justify-between bg-white dark:bg-dark-secondary p-4 rounded-md">
         <div className="flex items-center">
           <span className="block h-4 w-4 rounded-full" style={{ backgroundColor: color }}></span>
-          <h3 className="ml-2 font-semibold text-lg">
+          <h3 className="ml-2 font-semibold text-lg dark:text-gray-200">
             {status} ({projectCount}) {/* Display the project count */}
           </h3>
         </div>
-        {/* <button
-          className="rounded bg-gray-200 p-2 dark:bg-dark-tertiary"
-          onClick={() => setIsModalNewProjectOpen(true)}
-        >
-          <Plus size={16} />
-        </button> */}
+        
       </div>
       {filteredProjects.map((project) => (
         <Project key={project.id} projectData={project} />
@@ -156,7 +160,7 @@ const Project = ({ projectData }: ProjectProps) => {
       ref={dragRef} // Attach the drag ref here
       className={`mb-4 p-4 rounded-md shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
     >
-      <h4 className="font-bold text-lg break-words">
+      <h4 className="font-bold text-lg break-words dark:text-gray-200">
         <Link  href={`/projects/${projectData.id}`}>
         {projectData.name}
         </Link>
@@ -164,16 +168,16 @@ const Project = ({ projectData }: ProjectProps) => {
       <div className="flex-col py-2">
         <div className="flex items-center">
           <Calendar size={16} className="text-green-600" />
-          <p className="ml-2 text-green-600">{formattedStartDate}</p>
+          <p className="ml-2 text-green-600 dark:text-gray-200">{formattedStartDate}</p>
         </div>
         <div className="flex items-center mt-2">
           <Calendar size={16} className="text-red-800" />
-          <p className="ml-2 text-red-800">{formattedEndDate}</p>
+          <p className="ml-2 text-red-800 dark:text-gray-200">{formattedEndDate}</p>
         </div>
       </div>
       <p className="text-gray-600">
         {statusText && (
-          <span style={{ color: textColor }} className="font-medium">
+          <span style={{ color: textColor }} className="font-medium ">
             {statusText}
           </span>
         )}

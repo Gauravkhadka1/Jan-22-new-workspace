@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
 import { useAuth } from "@/context/AuthContext"; // Import AuthContext
+import {
+ 
+  X,
+} from "lucide-react";
+
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
@@ -22,6 +27,16 @@ const Navbar = () => {
             <Menu className="h-8 w-8 dark:text-white" />
           </button>
         )}
+         {isSidebarCollapsed ? null : (
+            <button
+              className="-mr-4 ml-2"
+              onClick={() => {
+                dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
+              }}
+            >
+              <Menu className="h-8 w-8 dark:text-white" />
+            </button>
+          )}
 
         <div className="relative flex h-min w-[200px]">
           <Search className="absolute left-[4px] top-1/2 mr-2 h-5 w-5 -translate-y-1/2 transform cursor-pointer dark:text-white" />
@@ -41,9 +56,7 @@ const Navbar = () => {
           {isDarkMode ? <Sun className="h-6 w-6 cursor-pointer dark:text-white" /> : <Moon className="h-6 w-6 cursor-pointer dark:text-white" />}
         </button>
 
-        <Link href="/settings" className="h-min w-min rounded p-2 hover:bg-gray-100">
-          <Settings className="h-6 w-6 cursor-pointer dark:text-white" />
-        </Link>
+      
 
         <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
 

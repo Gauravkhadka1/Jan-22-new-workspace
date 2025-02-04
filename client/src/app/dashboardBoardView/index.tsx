@@ -164,6 +164,40 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
       const formattedDueDate = task.dueDate
         ? format(new Date(task.dueDate), "P")
         : "";
+
+        // Calculate time left
+        const getTimeLeft = () => {
+          if (!task.dueDate) return null;
+          
+          const now = new Date();
+          const dueDate = new Date(task.dueDate);
+          const diffMs = dueDate.getTime() - now.getTime(); // Time difference in milliseconds
+        
+          const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+          const daysLeft = Math.floor(hoursLeft / 24);
+          const remainingHours = hoursLeft % 24;
+        
+          if (diffMs < 0) {
+            // Task is overdue
+            const overdueHours = Math.abs(hoursLeft);
+            const overdueDays = Math.floor(overdueHours / 24);
+            const overdueRemainingHours = overdueHours % 24;
+        
+            return overdueHours < 24
+              ? `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`
+              : `Overdue by ${overdueDays} day${overdueDays !== 1 ? "s" : ""} & ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""}`;
+          }
+        
+          if (hoursLeft < 24) {
+            return `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`;
+          } else {
+            return `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`;
+          }
+        };
+        
+
+  const timeLeft = getTimeLeft();
+
     
       const numberOfComments = (task.comments && task.comments.length) || 0;
     
@@ -232,42 +266,12 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
               {formattedStartDate && <span>{formattedStartDate} - </span>}
               {formattedDueDate && <span>{formattedDueDate}</span>}
             </div>
-            <p className="text-sm text-gray-600 dark:text-neutral-500">
-              {task.description}
-            </p>
-            <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" />
-    
-            {/* Users */}
-            <div className="mt-3 flex items-center justify-between">
-              <div className="flex -space-x-[6px] overflow-hidden">
-                {task.assignee && (
-                  <Image
-                    key={task.assignee.userId}
-                    src={`https://pm-s3-images.s3.us-east-2.amazonaws.com/${task.assignee.profilePictureUrl!}`}
-                    alt={task.assignee.username}
-                    width={30}
-                    height={30}
-                    className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
-                  />
-                )}
-                {task.author && (
-                  <Image
-                    key={task.author.userId}
-                    src={`https://pm-s3-images.s3.us-east-2.amazonaws.com/${task.author.profilePictureUrl!}`}
-                    alt={task.author.username}
-                    width={30}
-                    height={30}
-                    className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
-                  />
-                )}
-              </div>
-              <div className="flex items-center text-gray-500 dark:text-neutral-500">
-                <MessageSquareMore size={20} />
-                <span className="ml-1 text-sm dark:text-neutral-400">
-                  {numberOfComments}
-                </span>
-              </div>
-            </div>
+             {/* Show time left */}
+        {timeLeft && (
+          <div className="mt-2 text-sm font-semibold text-red-500">
+            {timeLeft}
+          </div>
+        )}
           </div>
         </div>
       );

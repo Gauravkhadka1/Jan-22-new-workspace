@@ -58,20 +58,13 @@ const Sidebar = () => {
       <div className="flex h-[100%] w-full flex-col justify-start">
         {/* TOP LOGO */}
         <div className="z-50 flex min-h-[56px] w-64 items-center justify-between bg-white px-6 pt-3 dark:bg-black">
+        <Link href="/dashboard" className="text-sm font-medium text-blue-500 hover:underline">
           <div className="text-xl font-bold text-gray-800 dark:text-white">
-          <Image src={"wtn-logo-black.svg"} alt="logo" width={250} height={15}/>
+          <Image src={"wtn-logo-black.svg"} alt="logo" width={300} height={20}/>
           </div>
-          {isSidebarCollapsed ? null : (
-            <button
-              className="py-3"
-              onClick={() => {
-                dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
-              }}
-            >
-              <X className="h-6 w-6 text-gray-800 hover:text-gray-500 dark:text-white" />
-            </button>
-          )}
+          </Link>
         </div>
+       
         {/* TEAM */}
         {/* <div className="flex items-center gap-5 border-y-[1.5px] border-gray-200 px-8 py-4 dark:border-gray-700">
           <Image
@@ -85,7 +78,7 @@ const Sidebar = () => {
           </div>
         </div> */}
         {/* NAVBAR LINKS */}
-        <nav className="z-10 w-full">
+        <nav className="z-10 w-full mt-6">
           <SidebarLink icon={Home} label="Home" href="/dashboard" />
           <SidebarLink icon={Users} label="Projects" href="/projects" />
           <SidebarLink icon={Home} label="My Tasks" href="/dashboard" />

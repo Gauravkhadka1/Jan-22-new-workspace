@@ -6,6 +6,8 @@ import {
   useGetUsersQuery,
 } from "@/state/api";
 import React, { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { formatISO } from "date-fns";
 
 type Props = {
@@ -21,8 +23,8 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [status, setStatus] = useState<Status>(Status.ToDo);
   const [priority, setPriority] = useState<Priority>(Priority.Backlog);
   const [tags, setTags] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   const [assignedTo, setAssignedTo] = useState("");
   const [projectId, setProjectId] = useState("");
 
@@ -32,14 +34,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const assignedBy = "test@test";
 
   const handleSubmit = async () => {
-    if (!title || !assignedBy || !(id !== null || projectId)) return;
-
-    const formattedStartDate = formatISO(new Date(startDate), {
-      representation: "complete",
-    });
-    const formattedDueDate = formatISO(new Date(dueDate), {
-      representation: "complete",
-    });
+    if (!title || !assignedBy || !(id !== null || projectId) || !startDate || !dueDate) return;
 
     await createTask({
       title,
@@ -47,8 +42,8 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
       status,
       priority,
       tags,
-      startDate: formattedStartDate,
-      dueDate: formattedDueDate,
+      startDate: formatISO(startDate, { representation: "complete" }),
+      dueDate: formatISO(dueDate, { representation: "complete" }),
       assignedTo,
       projectId: id !== null ? Number(id) : Number(projectId),
       assignedBy, // Use test@test as assignedBy
@@ -84,18 +79,35 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
               </option>
             ))}
         </select>
-        <input
-          type="date"
+        
+        <div className="flex align-center justify-start">
+        <div className="mr-4">
+            {/* Start Date Picker */}
+        <DatePicker
+          selected={startDate}
+          onChange={(date) => setStartDate(date)}
+          showTimeSelect
+          dateFormat="yyyy-MM-dd HH:mm"
           className="w-full rounded border p-2"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
+          placeholderText="Select Start Date"
         />
-        <input
-          type="date"
+        </div>
+        <div className="duedate">
+ {/* Due Date Picker */}
+ <DatePicker
+          selected={dueDate}
+          onChange={(date) => setDueDate(date)}
+          showTimeSelect
+          dateFormat="yyyy-MM-dd HH:mm"
           className="w-full rounded border p-2"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
+          placeholderText="Select Due Date"
         />
+        </div>
+        
+        </div>
+
+       
+
         {id === null && (
           <input
             type="text"
