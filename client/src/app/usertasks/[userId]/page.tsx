@@ -1,12 +1,11 @@
 "use client";
+
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useGetTasksByUserQuery, useUpdateTaskStatusMutation } from "@/state/api";
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { EllipsisVertical, Plus } from "lucide-react";
-import { format } from "date-fns";
-import Image from "next/image";
 
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
 
@@ -17,10 +16,11 @@ type UserTasksProps = {
 };
 
 const UserTasks = ({ setIsModalNewTaskOpen }: UserTasksProps) => {
-  const { userId } = useParams();
-  const userIdNumber = typeof userId === "string" ? Number(userId) : undefined;
+  const params = useParams();
+  const userId = params?.userId; 
+  const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
 
-  if (userIdNumber === undefined) {
+  if (!userIdNumber) {
     return <div>Invalid User ID</div>;
   }
 
@@ -43,7 +43,6 @@ const UserTasks = ({ setIsModalNewTaskOpen }: UserTasksProps) => {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching tasks</div>;
 
-  // Filter tasks based on userId
   const userTasks = tasks?.filter((task) => String(task.assignedTo) === String(userIdNumber)) || [];
 
   return (
@@ -65,7 +64,7 @@ const UserTasks = ({ setIsModalNewTaskOpen }: UserTasksProps) => {
 
 type TaskColumnProps = {
   status: Status;
-  tasks: any[]; // Replace 'any[]' with the correct type of your tasks
+  tasks: any[];
   moveTask: (taskId: number, toStatus: Status) => void;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
 };
@@ -91,9 +90,9 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen }: TaskColu
   return (
     <div ref={(instance) => {
       drop(instance);
-    }}className={`rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}>
+    }} className={`rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}>
       <div className="mb-3 flex w-full">
-        <div className={`w-2 !bg-[${statusColor[status]}] rounded-s-lg`} style={{ backgroundColor: statusColor[status] }} />
+        <div className={`w-2`} style={{ backgroundColor: statusColor[status] }} />
         <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-5 py-4 dark:bg-dark-secondary">
           <h3 className="flex items-center text-lg font-semibold dark:text-white">
             {status}{" "}
