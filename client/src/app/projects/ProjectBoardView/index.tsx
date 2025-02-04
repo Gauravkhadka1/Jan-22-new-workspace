@@ -96,12 +96,12 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
             {status} ({projectCount}) {/* Display the project count */}
           </h3>
         </div>
-        <button
+        {/* <button
           className="rounded bg-gray-200 p-2 dark:bg-dark-tertiary"
           onClick={() => setIsModalNewProjectOpen(true)}
         >
           <Plus size={16} />
-        </button>
+        </button> */}
       </div>
       {filteredProjects.map((project) => (
         <Project key={project.id} projectData={project} />

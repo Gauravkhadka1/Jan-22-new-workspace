@@ -115,10 +115,11 @@ export const api = createApi({
         }
       },
     }),
-    getProjects: build.query<ProjectType[], { projectId: number }>({
+    getProjects: build.query<ProjectType[], { projectId?: number }>({
       query: () => "projects",
       providesTags: ["Projects"],
     }),
+    
     createProject: build.mutation<ProjectType, Partial<ProjectType>>({
       query: (project) => ({
         url: "projects",
