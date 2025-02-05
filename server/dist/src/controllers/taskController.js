@@ -8,10 +8,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
 const client_1 = require("@prisma/client");
+const nodemailer_1 = __importDefault(require("nodemailer"));
 const prisma = new client_1.PrismaClient();
+const transporter = nodemailer_1.default.createTransport({
+    secure: true,
+    host: "smtp.gmail.com",
+    port: 465,
+    auth: {
+        user: "gauravkhadka111111@gmail.com",
+        pass: "catgfxsmwkqrdknh", // It is recommended to use environment variables for sensitive data like passwords
+    },
+});
+function sendMail(to, sub, msg) {
+    transporter.sendMail({
+        to: to,
+        subject: sub,
+        html: msg,
+    });
+    console.log("Email Sent");
+}
 const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { projectId, assignedTo } = req.query;
     try {
@@ -41,12 +62,29 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 assignedBy,
             },
         });
+        // Fetch the assigned user's email
+        const assignedUser = yield prisma.user.findUnique({
+            where: { userId: Number(assignedTo) }, // Correct field name
+        });
+        // Fetch the assigning user (assignedBy is an email)
+        const assigningUser = yield prisma.user.findUnique({
+            where: { email: assignedBy }, // Look up by email instead of userId
+        });
+        if (assignedUser && assignedUser.email && assigningUser) {
+            const emailSubject = `New Task Assigned: ${newTask.title}`;
+            const emailMessage = `
+        <p><strong>${assigningUser.username}</strong> assigned you a new task: <strong>${newTask.title}</strong></p>
+        <p><strong>Start Date:</strong> ${newTask.startDate}</p>
+        <p><strong>Due Date:</strong> ${newTask.dueDate}</p>
+        <p><strong>Description:</strong> ${newTask.description}</p>
+        <p><strong>Priority:</strong> ${newTask.priority}</p>
+      `;
+            sendMail(assignedUser.email, emailSubject, emailMessage);
+        }
         res.status(201).json(newTask);
     }
     catch (error) {
-        res
-            .status(500)
-            .json({ message: `Error creating a task: ${error.message}` });
+        res.status(500).json({ message: `Error creating a task: ${error.message}` });
     }
 });
 exports.createTask = createTask;
