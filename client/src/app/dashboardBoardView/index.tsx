@@ -52,7 +52,7 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="mt-2 mx-6 text-xl font-medium">
+      <div className="mt-2 mx-6 text-sm font-semibold">
       {user.username} Task's
       </div>
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
@@ -111,7 +111,7 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
               style={{ backgroundColor: statusColor[status] }}
             />
             <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-5 py-4 dark:bg-dark-secondary">
-              <h3 className="flex items-center text-lg font-semibold dark:text-white">
+              <h3 className="flex items-center text-sm font-semibold dark:text-white">
                 {status}{" "}
                 <span
                   className="ml-2 inline-block rounded-full bg-gray-200 p-1 text-center text-sm leading-none dark:bg-dark-tertiary"
