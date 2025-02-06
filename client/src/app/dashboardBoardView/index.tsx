@@ -22,6 +22,8 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const { user } = useAuth(); // Assuming the hook returns the logged-in user
   const userId = user?.id; // Adjust this based on how your user data is structured
   const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
+  const [updateTaskStatus] = useUpdateTaskStatusMutation();
+  const [createTask] = useCreateTaskMutation();
 
 
   useEffect(() => {
@@ -33,14 +35,16 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
     }
   }, [tasks, userId]);
 
-  
-  const [updateTaskStatus] = useUpdateTaskStatusMutation();
-  const [createTask] = useCreateTaskMutation();
 
+  // Move task and update its status
   const moveTask = (taskId: number, toStatus: Status) => {
-    updateTaskStatus({ taskId, status: toStatus });
-  };
+    if (!userId) {
+      console.error("No authenticated user found");
+      return;
+    }
 
+    updateTaskStatus({ taskId, status: toStatus, updatedBy: userId });
+  };
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching tasks</div>;
 
@@ -52,7 +56,7 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="mt-2 mx-6 text-sm font-semibold">
+      <div className="mt-2 mx-6 text-xl font-medium">
       {user.username} Task's
       </div>
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">

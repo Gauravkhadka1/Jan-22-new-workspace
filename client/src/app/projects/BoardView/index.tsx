@@ -6,6 +6,7 @@ import { Task as TaskType } from "@/state/api";
 import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import { useAuth } from "../../../context/AuthContext"; // Import authentication context
 
 // Define status types
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
@@ -18,19 +19,26 @@ type BoardProps = {
 const taskStatus: Status[] = ["To Do", "Work In Progress", "Under Review", "Completed"];
 
 const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
+  const { user } = useAuth(); // Get authenticated user
+  const userId = user?.id; 
   const {
     data: tasks,
     isLoading,
     error,
     refetch,
   } = useGetTasksQuery({ projectId: Number(id) });
+
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
   const [createTask] = useCreateTaskMutation();
 
   const moveTask = (taskId: number, toStatus: Status) => {
-    updateTaskStatus({ taskId, status: toStatus });
-  };
+    if (!userId) {
+      console.error("No authenticated user found");
+      return;
+    }
 
+    updateTaskStatus({ taskId, status: toStatus, updatedBy: userId });
+  };
   
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching tasks</div>;

@@ -90,16 +90,40 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createTask = createTask;
 const updateTaskStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { taskId } = req.params;
-    const { status } = req.body;
+    const { status, updatedBy } = req.body; // Ensure the frontend sends `updatedBy` (userId)
     try {
-        const updatedTask = yield prisma.task.update({
-            where: {
-                id: Number(taskId),
-            },
-            data: {
-                status: status,
-            },
+        // Fetch the task before updating to get previous status
+        const existingTask = yield prisma.task.findUnique({
+            where: { id: Number(taskId) },
+            include: { project: true }, // Assuming there's a relation to fetch project details
         });
+        if (!existingTask) {
+            res.status(404).json({ message: "Task not found" });
+            return;
+        }
+        const previousStatus = existingTask.status;
+        const taskName = existingTask.title;
+        const projectName = existingTask.project ? existingTask.project.name : "Unknown Project";
+        // Fetch the user who is updating the task
+        const updatingUser = yield prisma.user.findUnique({
+            where: { userId: Number(updatedBy) }, // Ensure `updatedBy` is passed from frontend
+        });
+        if (!updatingUser) {
+            res.status(400).json({ message: "Invalid user updating the task" });
+            return;
+        }
+        // Update the task status
+        const updatedTask = yield prisma.task.update({
+            where: { id: Number(taskId) },
+            data: { status },
+        });
+        // Send email notification
+        const emailSubject = `Task Status Updated: ${taskName}`;
+        const emailMessage = `
+      <p><strong>${updatingUser.username}</strong> updated the task <strong>${taskName}</strong> of project <strong>${projectName}</strong>.</p>
+      <p>Status changed from <strong>${previousStatus}</strong> to <strong>${status}</strong>.</p>
+    `;
+        sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
         res.json(updatedTask);
     }
     catch (error) {
