@@ -92,7 +92,7 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
       <div className="mb-3 flex items-center justify-between bg-white dark:bg-dark-secondary p-4 rounded-md">
         <div className="flex items-center">
           <span className="block h-4 w-4 rounded-full" style={{ backgroundColor: color }}></span>
-          <h3 className="ml-2 font-semibold text-sm">
+          <h3 className="ml-2 font-semibold text-sm dark:text-gray-200">
             {status} ({projectCount}) {/* Display the project count */}
           </h3>
         </div>
@@ -156,7 +156,7 @@ const Project = ({ projectData }: ProjectProps) => {
       ref={dragRef} // Attach the drag ref here
       className={`mb-4 p-4 rounded-md shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
     >
-      <h4 className="font-bold text-sm break-words">
+      <h4 className="font-bold text-sm break-words dark:text-gray-200">
         <Link  href={`/projects/${projectData.id}`}>
         {projectData.name}
         </Link>
