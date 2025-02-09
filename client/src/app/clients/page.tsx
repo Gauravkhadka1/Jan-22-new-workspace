@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { ArrowUpDown } from 'lucide-react';
+import ClientHeader from '../projects/ClientHeader';
 
 type Client = {
   id: number;
@@ -32,6 +33,7 @@ const ClientPage = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
+<ClientHeader/>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="w-full border-collapse">
           <thead className="bg-gray-200">

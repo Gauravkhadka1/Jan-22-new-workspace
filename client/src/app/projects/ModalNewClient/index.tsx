@@ -8,7 +8,7 @@ type Props = {
   onClose: () => void;
 };
 
-const ModalNewClient = ({ isOpen, onClose }: Props) => {
+const ModalNewProject = ({ isOpen, onClose }: Props) => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
@@ -91,4 +91,4 @@ const ModalNewClient = ({ isOpen, onClose }: Props) => {
   );
 };
 
-export default ModalNewClient;
+export default ModalNewProject;
