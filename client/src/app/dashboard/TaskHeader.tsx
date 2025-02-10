@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import {
+  Calendar,
   Clock,
   Filter,
   Grid3x3,
@@ -37,8 +38,8 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
             activeTab={activeTab}
           />
           <TabButton
-            name="List"
-            icon={<List className="h-5 w-5" />}
+            name="Calendar"
+            icon={<Calendar className="h-5 w-5" />}
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
