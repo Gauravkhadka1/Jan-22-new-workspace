@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import TaskHeader from "@/app/projects/TaskHeader";
-import Board from "../dashboardBoardView";
+import TaskHeader from "@/app/dashboard/TaskHeader";
+import Board from "./DashboardBoardView";
+import List from "./DashboardListView";
+import CalendarView from "../projects/ListView";
 import ModalNewTask from "@/components/ModalNewTask";
 import { useAuth } from "../../context/AuthContext"; // Import the custom hook
 import { useGetTasksQuery, useGetTasksByUserQuery, useUpdateTaskStatusMutation, useCreateTaskMutation } from "@/state/api";
+import { Clock } from "lucide-react";
 
 
 type Props = {
@@ -31,6 +34,12 @@ const Project = ({ params }: Props) => {
       {activeTab === "Board" && (
         <Board id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
       )}
+      {activeTab === "List" && (
+        <List id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
+      )}
+      {/* {activeTab === "Board" && (
+        <CalendarView id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
+      )} */}
     </div>
   );
 };

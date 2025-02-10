@@ -9,7 +9,7 @@ import {
   Table,
 } from "lucide-react";
 import React, { useState } from "react";
-import ModalNewProject from "./ModalNewProject";
+import ModalNewProject from "../projects/ModalNewProject";
 
 type Props = {
   activeTab: string;
@@ -37,7 +37,7 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
             activeTab={activeTab}
           />
           <TabButton
-            name="Calendar"
+            name="List"
             icon={<List className="h-5 w-5" />}
             setActiveTab={setActiveTab}
             activeTab={activeTab}
