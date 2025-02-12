@@ -104,12 +104,16 @@ export default function DayView() {
                 height: `${height}%`,
               }}
             >
-              {task.title}
+              <div>{task.title}</div>
+              <div className="text-xxs">
+                {taskStart.format("HH:mm")} - {taskEnd.format("HH:mm")}
+              </div>
             </div>
           );
         })}
     </div>
   ))}
+
 
 
             {/* Current time indicator */}

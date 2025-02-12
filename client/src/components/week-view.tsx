@@ -91,35 +91,39 @@ export default function WeekView() {
                   >
                     {/* Render tasks for each hour */}
                     {filteredTasksForWeek
-                      .filter(task => {
-                        const taskStart = dayjs(task.startDate);
-                        const taskEnd = dayjs(task.dueDate);
+  .filter(task => {
+    const taskStart = dayjs(task.startDate);
+    const taskEnd = dayjs(task.dueDate);
 
-                        return (
-                          taskStart.isSame(dayDate, "day") &&
-                          taskStart.hour() === hour.hour() &&
-                          taskEnd.isAfter(taskStart)
-                        );
-                      })
-                      .map(task => {
-                        const taskStart = dayjs(task.startDate);
-                        const taskEnd = dayjs(task.dueDate);
-                        const top = (taskStart.minute() / 60) * 100;
-                        const height = ((taskEnd.diff(taskStart, "minutes")) / 60) * 100;
+    return (
+      taskStart.isSame(dayDate, "day") &&
+      taskStart.hour() === hour.hour() &&
+      taskEnd.isAfter(taskStart)
+    );
+  })
+  .map(task => {
+    const taskStart = dayjs(task.startDate);
+    const taskEnd = dayjs(task.dueDate);
+    const top = (taskStart.minute() / 60) * 100;
+    const height = ((taskEnd.diff(taskStart, "minutes")) / 60) * 100;
 
-                        return (
-                          <div
-                            key={task.id}
-                            className="absolute left-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
-                            style={{
-                              top: `${top}%`,
-                              height: `${height}%`,
-                            }}
-                          >
-                            {task.title}
-                          </div>
-                        );
-                      })}
+    return (
+      <div
+        key={task.id}
+        className="absolute left-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
+        style={{
+          top: `${top}%`,
+          height: `${height}%`,
+        }}
+      >
+        <div>{task.title}</div>
+        <div className="text-xxs">
+          {taskStart.format("HH:mm")} - {taskEnd.format("HH:mm")}
+        </div>
+      </div>
+    );
+  })}
+
                   </div>
                 ))}
 
