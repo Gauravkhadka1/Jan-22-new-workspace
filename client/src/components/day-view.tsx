@@ -66,44 +66,51 @@ export default function DayView() {
 
           {/* Day View Grid with Tasks */}
           <div className="relative border-r border-gray-300">
-            {getHours
-              .filter(hour => hour.hour() >= 10 && hour.hour() <= 18)
-              .map((hour, i) => (
-                <div
-                  key={i}
-                  className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
-                  onClick={() => {
-                    setDate(userSelectedDate.hour(hour.hour()));
-                    openPopover();
-                  }}
-                >
-                  {/* Render tasks that fall within this hour */}
-                  {filteredTasks
-  .filter(task => {
-    const taskStart = dayjs(task.startDate);
-    const taskEnd = dayjs(task.dueDate);
-    return (
-      taskStart.hour() <= hour.hour() &&
-      taskEnd.hour() > hour.hour()
-    );
-  })
-  .map(task => (
+          {getHours
+  .filter(hour => hour.hour() >= 10 && hour.hour() <= 18)
+  .map((hour, i) => (
     <div
-      key={task.id}
-      className="absolute left-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
-      style={{
-        top: `${(dayjs(task.startDate).minute() / 60) * 100}%`,
-        height: `${
-          ((dayjs(task.dueDate).diff(dayjs(task.startDate), "minutes")) / 60) * 100
-        }%`,
+      key={i}
+      className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
+      onClick={() => {
+        setDate(userSelectedDate.hour(hour.hour()));
+        openPopover();
       }}
     >
-      {task.title}
+      {/* Render tasks that start in this hour and end in this hour */}
+      {filteredTasks
+        .filter(task => {
+          const taskStart = dayjs(task.startDate);
+          const taskEnd = dayjs(task.dueDate);
+
+          // Check if the task's start time is within the current hour and the task's end time is after the hour
+          return (
+            taskStart.hour() === hour.hour() && // Task starts in this hour
+            taskEnd.isAfter(taskStart) // Ensure task has a valid duration
+          );
+        })
+        .map(task => {
+          const taskStart = dayjs(task.startDate);
+          const taskEnd = dayjs(task.dueDate);
+          const top = (taskStart.minute() / 60) * 100;
+          const height = ((taskEnd.diff(taskStart, "minutes")) / 60) * 100;
+
+          return (
+            <div
+              key={task.id}
+              className="absolute left-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
+              style={{
+                top: `${top}%`,
+                height: `${height}%`,
+              }}
+            >
+              {task.title}
+            </div>
+          );
+        })}
     </div>
   ))}
 
-                </div>
-              ))}
 
             {/* Current time indicator */}
             {isToday && (
