@@ -3,22 +3,33 @@ import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { ScrollArea } from "./ui/scroll-area";
-import { getHours, isCurrentDay } from "@/lib/getTime";
+import { getHours } from "@/lib/getTime";
+import { useAuth } from "@/context/AuthContext";
+import { useGetTasksByUserQuery } from "@/state/api";
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
-  const { openPopover, events } = useEventStore();
+  const { openPopover } = useEventStore();
   const { userSelectedDate, setDate } = useDateStore();
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  // Fetch user-specific tasks
+  const { data: tasks, isLoading } = useGetTasksByUserQuery(userId);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(dayjs());
-    }, 60000); // Update every minute
+    }, 60000);
     return () => clearInterval(interval);
   }, []);
 
-  const isToday =
-    userSelectedDate.format("DD-MM-YY") === dayjs().format("DD-MM-YY");
+  const isToday = userSelectedDate.isSame(dayjs(), "day");
+
+  // Filter tasks for the selected date
+  const filteredTasks = tasks?.filter(task =>
+    dayjs(task.startDate).isSame(userSelectedDate, "day")
+  ) || [];
 
   return (
     <>
@@ -26,15 +37,13 @@ export default function DayView() {
         <div className="w-16 border-r border-gray-300 text-xs">GMT +2</div>
         <div className="flex w-16 flex-col items-center">
           <div className={cn("text-xs", isToday && "text-blue-600")}>
-            {userSelectedDate.format("ddd")}{" "}
-          </div>{" "}
-          <div
-            className={cn(
-              "h-12 w-12 rounded-full p-2 text-2xl",
-              isToday && "bg-blue-600 text-white",
-            )}
-          >
-            {userSelectedDate.format("DD")}{" "}
+            {userSelectedDate.format("ddd")}
+          </div>
+          <div className={cn(
+            "h-12 w-12 rounded-full p-2 text-2xl",
+            isToday && "bg-blue-600 text-white"
+          )}>
+            {userSelectedDate.format("DD")}
           </div>
         </div>
         <div></div>
@@ -45,7 +54,7 @@ export default function DayView() {
           {/* Time Column */}
           <div className="w-16 border-r border-gray-300">
             {getHours
-              .filter((hour) => hour.hour() >= 10 && hour.hour() <= 18) // Filter hours between 10 AM - 6 PM
+              .filter(hour => hour.hour() >= 10 && hour.hour() <= 18)
               .map((hour, index) => (
                 <div key={index} className="relative h-16">
                   <div className="absolute -top-2 text-xs text-gray-600">
@@ -55,10 +64,10 @@ export default function DayView() {
               ))}
           </div>
 
-          {/* Day/Boxes Column */}
+          {/* Day View Grid with Tasks */}
           <div className="relative border-r border-gray-300">
             {getHours
-              .filter((hour) => hour.hour() >= 10 && hour.hour() <= 18) // Filter hours between 10 AM - 6 PM
+              .filter(hour => hour.hour() >= 10 && hour.hour() <= 18)
               .map((hour, i) => (
                 <div
                   key={i}
@@ -67,18 +76,44 @@ export default function DayView() {
                     setDate(userSelectedDate.hour(hour.hour()));
                     openPopover();
                   }}
-                ></div>
+                >
+                  {/* Render tasks that fall within this hour */}
+                  {filteredTasks
+  .filter(task => {
+    const taskStart = dayjs(task.startDate);
+    const taskEnd = dayjs(task.dueDate);
+    return (
+      taskStart.hour() <= hour.hour() &&
+      taskEnd.hour() > hour.hour()
+    );
+  })
+  .map(task => (
+    <div
+      key={task.id}
+      className="absolute left-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
+      style={{
+        top: `${(dayjs(task.startDate).minute() / 60) * 100}%`,
+        height: `${
+          ((dayjs(task.dueDate).diff(dayjs(task.startDate), "minutes")) / 60) * 100
+        }%`,
+      }}
+    >
+      {task.title}
+    </div>
+  ))}
+
+                </div>
               ))}
 
             {/* Current time indicator */}
-            {/* {isCurrentDay(userSelectedDate) && (
+            {isToday && (
               <div
-                className={cn("absolute h-0.5 w-full bg-red-500")}
+                className="absolute h-0.5 w-full bg-red-500"
                 style={{
-                  top: `${(currentTime.hour() / 24) * 100}%`,
+                  top: `${(currentTime.hour() - 10) * 100 / 9}%`,
                 }}
               />
-            )} */}
+            )}
           </div>
         </div>
       </ScrollArea>
