@@ -1,11 +1,9 @@
-import { useDateStore, useEventStore  } from "@/lib/store";
+import { useDateStore, useEventStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { ScrollArea } from "./ui/scroll-area";
 import { getHours, isCurrentDay } from "@/lib/getTime";
-
-
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
@@ -46,39 +44,41 @@ export default function DayView() {
         <div className="grid grid-cols-[auto_1fr] p-4">
           {/* Time Column */}
           <div className="w-16 border-r border-gray-300">
-            {getHours.map((hour, index) => (
-              <div key={index} className="relative h-16">
-                <div className="absolute -top-2 text-xs text-gray-600">
-                  {hour.format("HH:mm")}
+            {getHours
+              .filter((hour) => hour.hour() >= 10 && hour.hour() <= 18) // Filter hours between 10 AM - 6 PM
+              .map((hour, index) => (
+                <div key={index} className="relative h-16">
+                  <div className="absolute -top-2 text-xs text-gray-600">
+                    {hour.format("HH:mm")}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
 
           {/* Day/Boxes Column */}
           <div className="relative border-r border-gray-300">
-            {getHours.map((hour, i) => (
-              <div
-                key={i}
-                className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
-
-                onClick={() => {
-                  setDate(userSelectedDate.hour(hour.hour()));
-                  openPopover();
-                }}
-              >
-              </div>
-            ))}
+            {getHours
+              .filter((hour) => hour.hour() >= 10 && hour.hour() <= 18) // Filter hours between 10 AM - 6 PM
+              .map((hour, i) => (
+                <div
+                  key={i}
+                  className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
+                  onClick={() => {
+                    setDate(userSelectedDate.hour(hour.hour()));
+                    openPopover();
+                  }}
+                ></div>
+              ))}
 
             {/* Current time indicator */}
-            {isCurrentDay(userSelectedDate) && (
+            {/* {isCurrentDay(userSelectedDate) && (
               <div
                 className={cn("absolute h-0.5 w-full bg-red-500")}
                 style={{
                   top: `${(currentTime.hour() / 24) * 100}%`,
                 }}
               />
-            )}
+            )} */}
           </div>
         </div>
       </ScrollArea>
