@@ -12,7 +12,7 @@ import {
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
 import Image from "next/image";
-import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+// import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
 import Link from "next/link";
 
 const CustomToolbar = () => (
@@ -73,8 +73,8 @@ const Users = () => {
           slots={{
             toolbar: CustomToolbar,
           }}
-          className={dataGridClassNames}
-          sx={dataGridSxStyles(isDarkMode)}
+          // className={dataGridClassNames}
+          // sx={dataGridSxStyles(isDarkMode)}
         />
       </div>
     </div>

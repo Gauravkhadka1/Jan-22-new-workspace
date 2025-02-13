@@ -9,7 +9,7 @@ import { useGetTasksByUserQuery } from "@/state/api";
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
-  const { openPopover } = useEventStore();
+  // const { openPopover } = useEventStore();
   const { userSelectedDate, setDate } = useDateStore();
   const { user } = useAuth();
   const userId = user?.id;
@@ -72,10 +72,10 @@ export default function DayView() {
     <div
       key={i}
       className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
-      onClick={() => {
-        setDate(userSelectedDate.hour(hour.hour()));
-        openPopover();
-      }}
+      // onClick={() => {
+      //   setDate(userSelectedDate.hour(hour.hour()));
+      //   openPopover();
+      // }}
     >
       {/* Render tasks that start in this hour and end in this hour */}
       {filteredTasks
