@@ -68,40 +68,33 @@ export default function DayView() {
           <div className="relative border-r border-gray-300">
           {getHours
   .filter(hour => hour.hour() >= 10 && hour.hour() <= 18)
-  .map((hour, i) => (
-    <div
-      key={i}
-      className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
-      // onClick={() => {
-      //   setDate(userSelectedDate.hour(hour.hour()));
-      //   openPopover();
-      // }}
-    >
-      {/* Render tasks that start in this hour and end in this hour */}
-      {filteredTasks
-        .filter(task => {
-          const taskStart = dayjs(task.startDate);
-          const taskEnd = dayjs(task.dueDate);
+  .map((hour, i) => {
+    const tasksInHour = filteredTasks.filter(task => {
+      const taskStart = dayjs(task.startDate);
+      return taskStart.hour() === hour.hour();
+    });
 
-          // Check if the task's start time is within the current hour and the task's end time is after the hour
-          return (
-            taskStart.hour() === hour.hour() && // Task starts in this hour
-            taskEnd.isAfter(taskStart) // Ensure task has a valid duration
-          );
-        })
-        .map(task => {
+    const taskCount = tasksInHour.length || 1; // Avoid division by zero
+    const margin = 0.5; // Adjust margin (in percentage or px, here in px)
+
+    return (
+      <div
+        key={i}
+        className="relative flex h-16 border-b border-gray-300 hover:bg-gray-100"
+      >
+        {tasksInHour.map((task, index) => {
           const taskStart = dayjs(task.startDate);
           const taskEnd = dayjs(task.dueDate);
-          const top = (taskStart.minute() / 60) * 100;
-          const height = ((taskEnd.diff(taskStart, "minutes")) / 60) * 100;
+          const widthPercentage = (100 - (margin * (taskCount - 1))) / taskCount; // Adjust width to accommodate margin
+          const leftPercentage = index * (widthPercentage + margin); // Position with margin
 
           return (
             <div
               key={task.id}
-              className="absolute left-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
+              className="absolute top-1/2 transform -translate-y-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
               style={{
-                top: `${top}%`,
-                height: `${height}%`,
+                width: `${widthPercentage}%`,
+                left: `${leftPercentage}%`,
               }}
             >
               <div>{task.title}</div>
@@ -111,8 +104,11 @@ export default function DayView() {
             </div>
           );
         })}
-    </div>
-  ))}
+      </div>
+    );
+  })}
+
+
 
 
 
