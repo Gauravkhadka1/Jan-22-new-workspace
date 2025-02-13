@@ -21,12 +21,12 @@ const { setView } = useViewStore();
     {/* <SearchComponent /> */}
     <Select onValueChange={(v) => setView(v)}>
       <SelectTrigger className="w-24 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0">
-        <SelectValue placeholder="Month" />
+        <SelectValue placeholder="Day" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="month">Month</SelectItem>
+       <SelectItem value="day">Day</SelectItem>
         <SelectItem value="week">Week</SelectItem>
-        <SelectItem value="day">Day</SelectItem>
+        <SelectItem value="month">Month</SelectItem>
       </SelectContent>
     </Select>
 

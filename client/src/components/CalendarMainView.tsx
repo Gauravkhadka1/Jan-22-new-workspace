@@ -26,9 +26,9 @@ export default function CalendarMainView() {
     <div className='flex'>
         <SideBar/>
        <div className="w-full flex-1">
-        { selectedView === "month" && <MonthView/>}
-        { selectedView === "week" && <WeekView/>}
         { selectedView === "day" && <DayView/>}
+        { selectedView === "week" && <WeekView/>}
+        { selectedView === "month" && <MonthView/>}
        </div>
        {isPopoverOpen && (
         <EventPopover
