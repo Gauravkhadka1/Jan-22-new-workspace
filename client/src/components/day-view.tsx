@@ -94,21 +94,25 @@ export default function DayView() {
 
                       return (
                         <div
-                          key={task.id}
-                          className="absolute bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-md"
-                          style={{
-                            top: `${top}%`,
-                            height: `${height}%`,
-                            width: `${width}%`,
-                            left: `${left}%`,
-                            marginRight: "2px",
-                          }}
-                        >
-                          <div>{task.title}</div>
-                          <div className="text-xxs">
-                            {taskStart.format("HH:mm")} - {taskEnd.format("HH:mm")}
-                          </div>
+                        key={task.id}
+                        className={cn(
+                          "absolute text-white text-xs px-2 py-1 rounded-md shadow-md",
+                          task.status === "Completed" ? "bg-green-500" : "bg-blue-500"
+                        )}
+                        style={{
+                          top: `${top}%`,
+                          height: `${height}%`,
+                          width: `${width}%`,
+                          left: `${left}%`,
+                          marginRight: "2px",
+                        }}
+                      >
+                        <div>{task.title}</div>
+                        <div className="text-xxs">
+                          {taskStart.format("HH:mm")} - {taskEnd.format("HH:mm")}
                         </div>
+                      </div>
+                      
                       );
                     })}
                   </div>
