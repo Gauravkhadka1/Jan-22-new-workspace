@@ -97,7 +97,7 @@ export default function DayView() {
                         key={task.id}
                         className={cn(
                           "absolute text-white text-xs px-2 py-1 rounded-md shadow-md",
-                          task.status === "Completed" ? "bg-green-500" : "bg-blue-500"
+                          task.status === "Completed" ? "bg-green-600" : "bg-blue-500"
                         )}
                         style={{
                           top: `${top}%`,

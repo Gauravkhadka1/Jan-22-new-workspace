@@ -10,7 +10,7 @@ import {
   Table,
 } from "lucide-react";
 import React, { useState } from "react";
-import ModalNewProject from "../projects/ModalNewProject";
+import ModalNewProject from "./projects/ModalNewProject";
 
 type Props = {
   activeTab: string;
