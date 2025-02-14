@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import TaskHeader from "@/app/dashboard/TaskHeader";
+import TaskHeader from "../TaskHeader";
 import Board from "../mytaskBoardView";
 import ModalNewTask from "@/components/ModalNewTask";
 import { useAuth } from "../../context/AuthContext"; // Import the custom hook
