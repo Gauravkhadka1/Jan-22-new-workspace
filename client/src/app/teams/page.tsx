@@ -10,7 +10,7 @@ import {
   GridToolbarExport,
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
-import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
+
 import withAuth from "../../hoc/withAuth";
 
 const CustomToolbar = () => (
@@ -49,8 +49,7 @@ const Teams = () => {
           slots={{
             toolbar: CustomToolbar,
           }}
-          className={dataGridClassNames}
-          sx={dataGridSxStyles(isDarkMode)}
+          
         />
       </div>
     </div>
