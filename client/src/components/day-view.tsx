@@ -105,6 +105,7 @@ export default function DayView() {
                           width: `${width}%`,
                           left: `${left}%`,
                           marginRight: "2px",
+                          zIndex: 10, 
                         }}
                       >
                         <div>{task.title}</div>
