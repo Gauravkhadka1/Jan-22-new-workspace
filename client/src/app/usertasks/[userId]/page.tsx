@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useGetTasksByUserQuery, useUpdateTaskStatusMutation } from "@/state/api";
 import { DndProvider, useDrop } from "react-dnd";
@@ -11,14 +11,11 @@ type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
 
 const taskStatus: Status[] = ["To Do", "Work In Progress", "Under Review", "Completed"];
 
-type UserTasksProps = {
-  setIsModalNewTaskOpen: (isOpen: boolean) => void;
-};
-
-const usertasks = ({ setIsModalNewTaskOpen }: UserTasksProps) => {
+const UserTasks = () => {
   const params = useParams();
   const userId = params?.userId; 
   const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
+  const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
 
   if (!userIdNumber) {
     return <div>Invalid User ID</div>;
@@ -125,4 +122,4 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen }: TaskColu
   );
 };
 
-export default usertasks;
+export default UserTasks;
