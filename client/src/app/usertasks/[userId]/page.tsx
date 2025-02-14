@@ -37,7 +37,7 @@ const usertasks = ({ setIsModalNewTaskOpen }: UserTasksProps) => {
   }, [tasks, userIdNumber]);
 
   const moveTask = (taskId: number, toStatus: Status) => {
-    updateTaskStatus({ taskId, status: toStatus });
+    // updateTaskStatus({ taskId, status: toStatus });
   };
 
   if (isLoading) return <div>Loading...</div>;
