@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import ProjectHeader from "@/app/projects/ProjectHeader";
 import Board from "./ProjectBoardView";
 import ModalNewTask from "@/components/ModalNewTask";
-
+import withAuth from "../../hoc/withAuth";
 
 type Props = {
   params: { id: string };
@@ -31,4 +31,4 @@ const Project = ({ params }: Props) => {
   );
 };
 
-export default Project;
+export default withAuth(Project);

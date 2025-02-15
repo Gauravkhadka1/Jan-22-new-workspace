@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext"; // Import the custom hook
 import { useGetTasksQuery, useGetTasksByUserQuery, useUpdateTaskStatusMutation, useCreateTaskMutation } from "@/state/api";
 import { Clock } from "lucide-react";
 import DashboardCalendarView from "../DashboardCalendarView";
+import withAuth from "../../hoc/withAuth";
 
 
 type Props = {
@@ -44,4 +45,4 @@ const Project = ({ params }: Props) => {
   );
 };
 
-export default Project;
+export default withAuth(Project);
