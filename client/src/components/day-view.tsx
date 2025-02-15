@@ -1,4 +1,4 @@
-import { useDateStore, useEventStore } from "@/lib/store";
+import { useDateStore, useEventStore } from "@/lib/store"; 
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
@@ -89,31 +89,51 @@ export default function DayView() {
                       const taskEnd = dayjs(task.dueDate);
                       const top = (taskStart.minute() / 60) * 100;
                       const height = ((taskEnd.diff(taskStart, "minutes")) / 60) * 100;
-                      const width = 100 / tasksInHour.length;
-                      const left = index * width;
-
+                      
+                      
+                      const nestedLevel = filteredTasks.reduce((level, otherTask) => {
+                        if (
+                          taskStart.isAfter(dayjs(otherTask.startDate)) &&
+                          taskEnd.isBefore(dayjs(otherTask.dueDate))
+                        ) {
+                          return level + 1; // Increase nesting level
+                        }
+                        return level;
+                      }, 0);
+                      
+                      const maxNestedMargin = 20; // Maximum left margin to avoid excessive shifts
+                      const left = Math.min(nestedLevel * 50, maxNestedMargin + 200); // Adjust left margin safely
+                      
+                      const baseWidth = 100 / tasksInHour.length; // Standard width
+                      const adjustedWidth = baseWidth - (left / 2); // Reduce width slightly when left margin is applied
+                      
+                      
+                      
+                      
                       return (
                         <div
-                        key={task.id}
-                        className={cn(
-                          "absolute text-white text-xs px-2 py-1 rounded-md shadow-md",
-                          task.status === "Completed" ? "bg-green-600" : "bg-blue-500"
-                        )}
-                        style={{
-                          top: `${top}%`,
-                          height: `${height}%`,
-                          width: `${width}%`,
-                          left: `${left}%`,
-                          marginRight: "2px",
-                          zIndex: 10, 
-                        }}
-                      >
-                        <div>{task.title}</div>
-                        <div className="text-xxs">
-                          {taskStart.format("HH:mm")} - {taskEnd.format("HH:mm")}
+                          key={task.id}
+                          className={cn(
+                            "absolute text-white text-xs px-2 py-1 rounded-md shadow-md border border-white",
+                            task.status === "Completed" ? "bg-green-600" : "bg-blue-500"
+                          )}
+                          style={{
+                            top: `${top}%`,
+                            height: `${height}%`,
+                            width: `calc(100% - ${left}px)`, // Ensure it doesn't overflow
+                            marginLeft: `${left}px`, // Prevent overflow while keeping alignment
+                            maxWidth: "100%", // Make sure it doesn't exceed parent width
+                            zIndex: 10,
+                          }}
+                          
+                          
+                          
+                        >
+                          <div>{task.title}</div>
+                          <div className="text-xxs">
+                            {taskStart.format("HH:mm")} - {taskEnd.format("HH:mm")}
+                          </div>
                         </div>
-                      </div>
-                      
                       );
                     })}
                   </div>
