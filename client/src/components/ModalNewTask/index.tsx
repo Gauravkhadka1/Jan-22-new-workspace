@@ -5,7 +5,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatISO } from "date-fns";
 import { Status, Priority } from "@/state/api"; 
-
+import { setHours } from "date-fns/setHours";
+import { setMinutes } from "date-fns/setMinutes";
 
 type Props = {
   isOpen: boolean;
@@ -21,13 +22,14 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<Status>(Status.ToDo);
-
   const [priority, setPriority] = useState("Backlog");
   const [tags, setTags] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [assignedTo, setAssignedTo] = useState("");
   const [projectId, setProjectId] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false); // Track if dropdown is open
 
   const assignedBy = "test@test";
 
@@ -48,6 +50,13 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
     });
   };
 
+  // Filter and sort projects based on search keyword
+  const filteredProjects = projects
+    ?.filter((project) =>
+      project.name.toLowerCase().includes(searchKeyword.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} name="Create New Task">
       <form
@@ -67,20 +76,45 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
         
         {/* Project Selection Dropdown */}
         {id === null && (
-          <select
-            className="w-full rounded border p-2"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            disabled={isProjectsLoading}
-          >
-            <option value="">Select a Project</option>
-            {!isProjectsLoading &&
-              projects?.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-          </select>
+          <div>
+            <div
+              className="w-full rounded border p-2 cursor-pointer"
+              onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+            >
+              {projectId ? (
+                projects?.find((project) => project.id === Number(projectId))?.name || "Select a Project"
+              ) : (
+                "Select a Project"
+              )}
+            </div>
+
+            {/* Search and Project List (Conditional Rendering) */}
+            {isProjectDropdownOpen && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  className="w-full rounded border p-2 mb-2"
+                  placeholder="Search projects..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
+                <div className="max-h-40 overflow-y-auto">
+                  {filteredProjects?.map((project) => (
+                    <div
+                      key={project.id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setProjectId(project.id.toString());
+                        setIsProjectDropdownOpen(false); // Close dropdown after selection
+                      }}
+                    >
+                      {project.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Assigned User Selection */}
@@ -107,7 +141,10 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             dateFormat="yyyy-MM-dd HH:mm"
             className="w-full rounded border p-2"
             placeholderText="Start Date"
+            minTime={setHours(setMinutes(new Date(), 0), 9)} // 10:00 AM
+            maxTime={setHours(setMinutes(new Date(), 0), 18)} // 6:00 PM
           />
+
           <DatePicker
             selected={dueDate}
             onChange={(date) => setDueDate(date)}
@@ -115,6 +152,8 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             dateFormat="yyyy-MM-dd HH:mm"
             className="w-full rounded border p-2"
             placeholderText="Due Date"
+            minTime={setHours(setMinutes(new Date(), 0), 9)} // 10:00 AM
+            maxTime={setHours(setMinutes(new Date(), 0), 18)} // 6:00 PM
           />
         </div>
 
