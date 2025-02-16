@@ -25,8 +25,8 @@ const { setView } = useViewStore();
       </SelectTrigger>
       <SelectContent>
        <SelectItem value="day">Day</SelectItem>
-        <SelectItem value="week">Week</SelectItem>
-        <SelectItem value="month">Month</SelectItem>
+        {/* <SelectItem value="week">Week</SelectItem> */}
+        {/* <SelectItem value="month">Month</SelectItem> */}
       </SelectContent>
     </Select>
 
