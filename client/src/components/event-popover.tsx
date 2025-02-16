@@ -1,190 +1,140 @@
-import React, { useEffect, useRef, useState, useTransition } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import dayjs from "dayjs";
-import {
-  HiOutlineMenuAlt2,
-  HiOutlineMenuAlt4,
-  HiOutlineUsers,
-} from "react-icons/hi";
-import { IoCloseSharp } from "react-icons/io5";
-import { IoMdCalendar } from "react-icons/io";
-import { FiClock } from "react-icons/fi";
-import AddTime from "./add-time";
-// import { createEvent } from "@/app/actions/event-actions";
-import { cn } from "@/lib/utils";
+import { useGetProjectsQuery, useCreateTaskMutation, useGetUsersQuery } from "@/state/api";
+import Modal from "@/components/Modal";
+import React, { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { formatISO } from "date-fns";
+import { Status, Priority } from "@/state/api"; 
+import { setHours } from "date-fns/setHours";
+import { setMinutes } from "date-fns/setMinutes";
 
-interface EventPopoverProps {
+
+type Props = {
   isOpen: boolean;
   onClose: () => void;
-  date: string;
-}
+  id?: string | null;
+};
 
-export default function EventPopover({
-  isOpen,
-  onClose,
-  date,
-}: EventPopoverProps) {
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [selectedTime, setSelectedTime] = useState("00:00");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean | null>(null);
-  const [isPending, startTransition] = useTransition();
+const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
+  const [createTask, { isLoading }] = useCreateTaskMutation();
+  const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
+  const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    };
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<Status>(Status.ToDo);
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+  const [priority, setPriority] = useState("Backlog");
+  const [tags, setTags] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [assignedTo, setAssignedTo] = useState("");
+  const [projectId, setProjectId] = useState("");
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen, onClose]);
+  const assignedBy = "test@test";
 
-  const handleClose = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onClose();
+  const handleSubmit = async () => {
+    if (!title || !assignedBy || !(id !== null || projectId) || !startDate || !dueDate) return;
+
+    await createTask({
+      title,
+      description,
+      status: status as Status,
+      priority: priority as Priority,
+      tags,
+      startDate: formatISO(startDate, { representation: "complete" }),
+      dueDate: formatISO(dueDate, { representation: "complete" }),
+      assignedTo,
+      projectId: id !== null ? Number(id) : Number(projectId),
+      assignedBy,
+    });
   };
-
-  const handlePopoverClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-//   async function onSubmit(formData: FormData) {
-//     setError(null);
-//     setSuccess(null);
-//     startTransition(async () => {
-//       try {
-//         const result = await createEvent(formData);
-//         if ("error" in result) {
-//           setError(result.error);
-//         } else if (result.success) {
-//           setSuccess(result.success);
-//           setTimeout(() => {
-//             onClose();
-//           }, 2000);
-//         }
-//       } catch {
-//         setError("An unexpected error occurred. Please try again.");
-//       }
-//     });
-//   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      onClick={handleClose}
-    >
-      <div
-        ref={popoverRef}
-        className="w-full max-w-md rounded-lg bg-white shadow-lg"
-        onClick={handlePopoverClick}
+    <Modal isOpen={isOpen} onClose={onClose} name="Create New Task">
+      <form
+        className="mt-4 space-y-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <div className="mb-2 flex items-center justify-between rounded-md bg-slate-100 p-1">
-          <HiOutlineMenuAlt4 />
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            onClick={handleClose}
+        <input
+          type="text"
+          className="w-full rounded border p-2 shadow-sm"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        
+        {/* Project Selection Dropdown */}
+        {id === null && (
+          <select
+            className="w-full rounded border p-2"
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            disabled={isProjectsLoading}
           >
-            <IoCloseSharp className="h-4 w-4" />
-          </Button>
+            <option value="">Select a Project</option>
+            {!isProjectsLoading &&
+              projects?.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+          </select>
+        )}
+
+        {/* Assigned User Selection */}
+        <select
+          className="w-full rounded border p-2"
+          value={assignedTo}
+          onChange={(e) => setAssignedTo(e.target.value)}
+        >
+          <option value="">Assign To</option>
+          {!isUsersLoading &&
+            users?.map((user) => (
+              <option key={user.userId} value={user.userId}>
+                {user.username}
+              </option>
+            ))}
+        </select>
+
+        {/* Date Pickers */}
+        <div className="flex space-x-4">
+        <DatePicker
+  selected={startDate}
+  onChange={(date) => setStartDate(date)}
+  showTimeSelect
+  dateFormat="yyyy-MM-dd HH:mm"
+  className="w-full rounded border p-2"
+  placeholderText="Start Date"
+  minTime={setHours(setMinutes(new Date(), 0), 9)} // 10:00 AM
+  maxTime={setHours(setMinutes(new Date(), 0), 18)} // 6:00 PM
+/>
+
+<DatePicker
+  selected={dueDate}
+  onChange={(date) => setDueDate(date)}
+  showTimeSelect
+  dateFormat="yyyy-MM-dd HH:mm"
+  className="w-full rounded border p-2"
+  placeholderText="Due Date"
+  minTime={setHours(setMinutes(new Date(), 0), 9)} // 10:00 AM
+  maxTime={setHours(setMinutes(new Date(), 0), 18)} // 6:00 PM
+/>
         </div>
-        <form className="space-y-4 p-6" >
-          <div>
-            <Input
-              type="text"
-              name="title"
-              placeholder="Add title"
-              className="my-4 rounded-none border-0 border-b text-2xl focus-visible:border-b-2 focus-visible:border-b-blue-600 focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Button className="bg-blue-100 text-blue-700 hover:bg-blue-100 hover:text-blue-700">
-              Event
-            </Button>
-            <Button type="button" variant="ghost">
-              Task
-            </Button>
-            <Button type="button" variant="ghost">
-              Appointmet Schedule <sup className="bg-blue-500">new</sup>
-            </Button>
-          </div>
 
-          <div className="flex items-center space-x-3">
-            <FiClock className="size-5 text-gray-600" />
-            <div className="flex items-center space-x-3 text-sm">
-              <p>{dayjs(date).format("dddd, MMMM D")}</p>
-              <AddTime onTimeSelect={setSelectedTime} />
-              <input type="hidden" name="date" value={date} />
-              <input type="hidden" name="time" value={selectedTime} />
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <HiOutlineUsers className="size-5 text-slate-600" />
-            <Input
-              type="text"
-              name="guests"
-              placeholder="Add guests"
-              className={cn(
-                "w-full rounded-lg border-0 bg-slate-100 pl-7 placeholder:text-slate-600",
-                "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0",
-              )}
-            />
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <HiOutlineMenuAlt2 className="size-5 text-slate-600" />
-            <Input
-              type="text"
-              name="description"
-              placeholder="Add description"
-              className={cn(
-                "w-full rounded-lg border-0 bg-slate-100 pl-7 placeholder:text-slate-600",
-                "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-ring focus-visible:ring-offset-0",
-              )}
-            />
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <IoMdCalendar className="size-5 text-slate-600" />
-            <div className="">
-              <div className="flex items-center space-x-3 text-sm">
-                {" "}
-                <p>De Mawo</p>{" "}
-                <div className="h-4 w-4 rounded-full bg-violet-500"></div>{" "}
-              </div>
-              <div className="flex items-center space-x-1 text-xs">
-                <span>Busy</span>
-                <div className="h-1 w-1 rounded-full bg-gray-500"></div>
-                <span>Default visibility</span>{" "}
-                <div className="h-1 w-1 rounded-full bg-gray-500"></div>
-                <span>Notify 30 minutes before</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : "Save"}
-            </Button>
-          </div>
-
-          {error && <p className="mt-2 px-6 text-red-500">{error}</p>}
-          {success && <p className="mt-2 px-6 text-green-500">Success</p>}
-        </form>
-      </div>
-    </div>
+        <button
+          type="submit"
+          className={`mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-white ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
+          disabled={isLoading}
+        >
+          {isLoading ? "Creating..." : "Create Task"}
+        </button>
+      </form>
+    </Modal>
   );
-}
+};
+
+export default ModalNewTask;

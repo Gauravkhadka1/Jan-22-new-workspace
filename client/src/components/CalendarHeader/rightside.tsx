@@ -9,13 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useViewStore } from "@/lib/store";
-
-
-
 export default function HeaderRight() {
 const { setView } = useViewStore();
-
-
   return (
     <div className="flex items-center space-x-4">
     {/* <SearchComponent /> */}

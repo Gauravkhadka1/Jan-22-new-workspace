@@ -14,7 +14,7 @@ type Props = {
 
 const Project = ({ params }: Props) => {
   const { id } = params;
-  const [activeTab, setActiveTab] = useState("Calendar");
+  const [activeTab, setActiveTab] = useState("Board");
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
     const { user } = useAuth(); // Assuming the hook returns the logged-in user
     const userId = user?.id; // Adjust this based on how your user data is structured

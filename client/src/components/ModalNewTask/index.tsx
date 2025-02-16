@@ -1,14 +1,11 @@
+import { useGetProjectsQuery, useCreateTaskMutation, useGetUsersQuery } from "@/state/api";
 import Modal from "@/components/Modal";
-import {
-  Priority,
-  Status,
-  useCreateTaskMutation,
-  useGetUsersQuery,
-} from "@/state/api";
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatISO } from "date-fns";
+import { Status, Priority } from "@/state/api"; 
+
 
 type Props = {
   isOpen: boolean;
@@ -18,19 +15,20 @@ type Props = {
 
 const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [createTask, { isLoading }] = useCreateTaskMutation();
+  const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
+  const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<Status>(Status.ToDo);
-  const [priority, setPriority] = useState<Priority>(Priority.Backlog);
+
+  const [priority, setPriority] = useState("Backlog");
   const [tags, setTags] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [assignedTo, setAssignedTo] = useState("");
   const [projectId, setProjectId] = useState("");
 
-  const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
-
-  // Directly set assignedBy to test@test
   const assignedBy = "test@test";
 
   const handleSubmit = async () => {
@@ -39,14 +37,14 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
     await createTask({
       title,
       description,
-      status,
-      priority,
+      status: status as Status,
+      priority: priority as Priority,
       tags,
       startDate: formatISO(startDate, { representation: "complete" }),
       dueDate: formatISO(dueDate, { representation: "complete" }),
       assignedTo,
       projectId: id !== null ? Number(id) : Number(projectId),
-      assignedBy, // Use test@test as assignedBy
+      assignedBy,
     });
   };
 
@@ -66,12 +64,32 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
+        
+        {/* Project Selection Dropdown */}
+        {id === null && (
+          <select
+            className="w-full rounded border p-2"
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            disabled={isProjectsLoading}
+          >
+            <option value="">Select a Project</option>
+            {!isProjectsLoading &&
+              projects?.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+          </select>
+        )}
+
+        {/* Assigned User Selection */}
         <select
-          className="mb-4 block w-full rounded border px-3 py-2"
+          className="w-full rounded border p-2"
           value={assignedTo}
           onChange={(e) => setAssignedTo(e.target.value)}
         >
-          <option value="">Assigned To</option>
+          <option value="">Assign To</option>
           {!isUsersLoading &&
             users?.map((user) => (
               <option key={user.userId} value={user.userId}>
@@ -79,44 +97,27 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
               </option>
             ))}
         </select>
-        
-        <div className="flex align-center justify-start">
-        <div className="mr-4">
-            {/* Start Date Picker */}
-        <DatePicker
-          selected={startDate}
-          onChange={(date) => setStartDate(date)}
-          showTimeSelect
-          dateFormat="yyyy-MM-dd HH:mm"
-          className="w-full rounded border p-2"
-          placeholderText="Select Start Date"
-        />
-        </div>
-        <div className="duedate">
- {/* Due Date Picker */}
- <DatePicker
-          selected={dueDate}
-          onChange={(date) => setDueDate(date)}
-          showTimeSelect
-          dateFormat="yyyy-MM-dd HH:mm"
-          className="w-full rounded border p-2"
-          placeholderText="Select Due Date"
-        />
-        </div>
-        
-        </div>
 
-       
-
-        {id === null && (
-          <input
-            type="text"
+        {/* Date Pickers */}
+        <div className="flex space-x-4">
+          <DatePicker
+            selected={startDate}
+            onChange={(date) => setStartDate(date)}
+            showTimeSelect
+            dateFormat="yyyy-MM-dd HH:mm"
             className="w-full rounded border p-2"
-            placeholder="ProjectId"
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
+            placeholderText="Start Date"
           />
-        )}
+          <DatePicker
+            selected={dueDate}
+            onChange={(date) => setDueDate(date)}
+            showTimeSelect
+            dateFormat="yyyy-MM-dd HH:mm"
+            className="w-full rounded border p-2"
+            placeholderText="Due Date"
+          />
+        </div>
+
         <button
           type="submit"
           className={`mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-white ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}

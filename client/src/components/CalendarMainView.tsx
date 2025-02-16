@@ -27,14 +27,14 @@ export default function CalendarMainView() {
         <SideBar/>
        <div className="w-full flex-1">
         { selectedView === "day" && <DayView/>}
-        { selectedView === "week" && <WeekView/>}
-        { selectedView === "month" && <MonthView/>}
+        {/* { selectedView === "week" && <WeekView/>} */}
+        {/* { selectedView === "month" && <MonthView/>} */}
        </div>
        {isPopoverOpen && (
         <EventPopover
           isOpen={isPopoverOpen}
           onClose={closePopover}
-          date={userSelectedDate.format("YYYY-MM-DD")}
+          // date={userSelectedDate.format("YYYY-MM-DD")}
         />
       )}
         {isEventSummaryOpen && selectedEvent && (
