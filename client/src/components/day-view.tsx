@@ -134,6 +134,7 @@ export default function DayView() {
                       const top = (taskStart.minute() / 60) * 100;
                       const height = ((taskEnd.diff(taskStart, "minutes")) / 60) * 100;
                       
+                      // Calculate nesting level for overlapping tasks
                       const nestedLevel = filteredTasks.reduce((level, otherTask) => {
                         if (
                           taskStart.isAfter(dayjs(otherTask.startDate)) &&
@@ -145,8 +146,13 @@ export default function DayView() {
                       }, 0);
                       
                       const maxNestedMargin = 20; // Maximum left margin to avoid excessive shifts
-                      const left = Math.min(nestedLevel * 50, maxNestedMargin + 200); // Adjust left margin safely
+                      const leftMargin = Math.min(nestedLevel * 50, maxNestedMargin + 200); // Adjust left margin safely
                       
+                      // Calculate the width and left position for tasks in the same time range
+                      const taskCount = tasksInHour.length;
+                      const taskWidth = `calc(${100 / taskCount}% - ${leftMargin}px)`; // Divide width equally with margins
+                      const taskLeft = `calc(${(100 / taskCount) * index}% + ${leftMargin}px)`; // Position each task with margins and nesting
+
                       return (
                         <div
                           key={task.id}
@@ -157,9 +163,8 @@ export default function DayView() {
                           style={{
                             top: `${top}%`,
                             height: `${height}%`,
-                            width: `calc(100% - ${left}px)`, // Ensure it doesn't overflow
-                            marginLeft: `${left}px`, // Prevent overflow while keeping alignment
-                            maxWidth: "100%", // Make sure it doesn't exceed parent width
+                            width: taskWidth,
+                            left: taskLeft,
                             zIndex: 10,
                           }}
                         >
