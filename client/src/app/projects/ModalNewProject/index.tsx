@@ -57,12 +57,12 @@ const ModalNewClient = ({ isOpen, onClose }: Props) => {
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
         />
-        {/* <textarea
+        <textarea
           className={inputStyles}
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-        /> */}
+        />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
           <input
             type="date"

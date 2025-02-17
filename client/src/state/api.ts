@@ -4,7 +4,7 @@ import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 export interface ProjectType {
   id: number;
   name: string;
-  description: string;
+  description?: string;
   status: string;
   startDate?: string;
   endDate?: string;
