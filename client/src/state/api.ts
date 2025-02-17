@@ -150,6 +150,14 @@ export const api = createApi({
       }),
       invalidatesTags: ["Tasks"],
     }),
+    updateTask: build.mutation<Task, { taskId: number; taskData: Partial<Task> }>({
+      query: ({ taskId, taskData }) => ({
+        url: `tasks/${taskId}`,
+        method: "PUT",
+        body: taskData,
+      }),
+      invalidatesTags: (result, error, { taskId }) => [{ type: "Tasks", id: taskId }],
+    }),
     updateTaskStatus: build.mutation<Task, { taskId: number; status: string; updatedBy: number }>({
       query: ({ taskId, status, updatedBy }) => ({
         url: `tasks/${taskId}/status`,
@@ -189,6 +197,7 @@ export const {
   useCreateProjectMutation,
   useGetTasksQuery,
   useCreateTaskMutation,
+  useUpdateTaskMutation, 
   useUpdateTaskStatusMutation,
   useUpdateProjectStatusMutation,
   useSearchQuery,

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
+exports.updateTask = exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
 const client_1 = require("@prisma/client");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const prisma = new client_1.PrismaClient();
@@ -162,3 +162,54 @@ const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, voi
     }
 });
 exports.getTasksByUserIdForUserTasks = getTasksByUserIdForUserTasks;
+const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { taskId } = req.params;
+    const { title, description, status, priority, startDate, dueDate, assignedTo, assignedBy, projectId, } = req.body;
+    try {
+        // Fetch the existing task before updating
+        const existingTask = yield prisma.task.findUnique({
+            where: { id: Number(taskId) },
+            include: { project: true },
+        });
+        if (!existingTask) {
+            res.status(404).json({ message: "Task not found" });
+            return;
+        }
+        // Update the task
+        const updatedTask = yield prisma.task.update({
+            where: { id: Number(taskId) },
+            data: {
+                title,
+                description,
+                status,
+                priority,
+                startDate,
+                dueDate,
+                assignedTo,
+                assignedBy,
+                projectId,
+            },
+        });
+        // If assigned user has changed, send an email notification
+        if (assignedTo && assignedTo !== existingTask.assignedTo) {
+            const assignedUser = yield prisma.user.findUnique({
+                where: { userId: Number(assignedTo) },
+            });
+            if (assignedUser && assignedUser.email) {
+                const emailSubject = `Task Updated: ${updatedTask.title}`;
+                const emailMessage = `
+          <p>You have been assigned a task: <strong>${updatedTask.title}</strong></p>
+          <p><strong>Status:</strong> ${updatedTask.status}</p>
+          <p><strong>Due Date:</strong> ${updatedTask.dueDate}</p>
+          <p><strong>Priority:</strong> ${updatedTask.priority}</p>
+        `;
+                sendMail(assignedUser.email, emailSubject, emailMessage);
+            }
+        }
+        res.json(updatedTask);
+    }
+    catch (error) {
+        res.status(500).json({ message: `Error updating task: ${error.message}` });
+    }
+});
+exports.updateTask = updateTask;

@@ -1,21 +1,23 @@
-import { useGetProjectsQuery, useCreateTaskMutation, useGetUsersQuery } from "@/state/api";
+import { useGetProjectsQuery, useCreateTaskMutation, useGetUsersQuery, useUpdateTaskMutation } from "@/state/api"; // Add useUpdateTaskMutation
 import Modal from "@/components/Modal";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatISO } from "date-fns";
-import { Status, Priority } from "@/state/api"; 
+import { Status, Priority } from "@/state/api";
 import { setHours } from "date-fns/setHours";
 import { setMinutes } from "date-fns/setMinutes";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  id?: string | null;
+  id?: string | null; // Project ID
+  task?: any; // Task data for editing
 };
 
-const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
-  const [createTask, { isLoading }] = useCreateTaskMutation();
+const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
+  const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
+  const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation(); // Add mutation for updating tasks
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
   const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
 
@@ -29,28 +31,75 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [assignedTo, setAssignedTo] = useState("");
   const [projectId, setProjectId] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false); // Track if dropdown is open
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
 
-  const assignedBy = "test@test";
+  const assignedBy = "test@test"; // Replace with actual user data if available
+
+  // Prefill the form with task data when editing
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title || "");
+      setDescription(task.description || "");
+      setStatus(task.status || Status.ToDo);
+      setPriority(task.priority || "Backlog");
+      setTags(task.tags || "");
+      setStartDate(task.startDate ? new Date(task.startDate) : null);
+      setDueDate(task.dueDate ? new Date(task.dueDate) : null);
+      setAssignedTo(task.assignedTo || "");
+      setProjectId(task.projectId?.toString() || "");
+    } else {
+      // Reset form when creating a new task
+      setTitle("");
+      setDescription("");
+      setStatus(Status.ToDo);
+      setPriority("Backlog");
+      setTags("");
+      setStartDate(null);
+      setDueDate(null);
+      setAssignedTo("");
+      setProjectId("");
+    }
+  }, [task]);
 
   const handleSubmit = async () => {
     if (!title || !assignedBy || !(id !== null || projectId) || !startDate || !dueDate) return;
 
-    await createTask({
-      title,
-      description,
-      status: status as Status,
-      priority: priority as Priority,
-      tags,
-      startDate: formatISO(startDate, { representation: "complete" }),
-      dueDate: formatISO(dueDate, { representation: "complete" }),
-      assignedTo,
-      projectId: id !== null ? Number(id) : Number(projectId),
-      assignedBy,
-    });
+    if (task) {
+      // Update existing task
+      await updateTask({
+        taskId: task.id, // ✅ Ensure it matches the expected structure
+        taskData: {
+          title,
+          description,
+          status: status as Status,
+          priority: priority as Priority,
+          tags,
+          startDate: formatISO(startDate, { representation: "complete" }),
+          dueDate: formatISO(dueDate, { representation: "complete" }),
+          assignedTo,
+          projectId: Number(projectId),
+          assignedBy,
+        },
+      });
+      
+    } else {
+      // Create new task
+      await createTask({
+        title,
+        description,
+        status: status as Status,
+        priority: priority as Priority,
+        tags,
+        startDate: formatISO(startDate, { representation: "complete" }),
+        dueDate: formatISO(dueDate, { representation: "complete" }),
+        assignedTo,
+        projectId: id !== null ? Number(id) : Number(projectId),
+        assignedBy,
+      });
+    }
+    onClose(); // Close the modal after submission
   };
 
-  // Filter and sort projects based on search keyword
   const filteredProjects = projects
     ?.filter((project) =>
       project.name.toLowerCase().includes(searchKeyword.toLowerCase())
@@ -58,7 +107,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} name="Create New Task">
+    <Modal isOpen={isOpen} onClose={onClose} name={task ? "Edit Task" : "Create New Task"}>
       <form
         className="mt-4 space-y-6"
         onSubmit={(e) => {
@@ -73,22 +122,19 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        
+
         {/* Project Selection Dropdown */}
-        {id === null && (
+        {id === null && !task && (
           <div>
             <div
               className="w-full rounded border p-2 cursor-pointer"
               onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
             >
-              {projectId ? (
-                projects?.find((project) => project.id === Number(projectId))?.name || "Select a Project"
-              ) : (
-                "Select a Project"
-              )}
+              {projectId
+                ? projects?.find((project) => project.id === Number(projectId))?.name || "Select a Project"
+                : "Select a Project"}
             </div>
 
-            {/* Search and Project List (Conditional Rendering) */}
             {isProjectDropdownOpen && (
               <div className="mt-2">
                 <input
@@ -105,7 +151,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
                       className="p-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
                         setProjectId(project.id.toString());
-                        setIsProjectDropdownOpen(false); // Close dropdown after selection
+                        setIsProjectDropdownOpen(false);
                       }}
                     >
                       {project.name}
@@ -141,8 +187,8 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             dateFormat="yyyy-MM-dd HH:mm"
             className="w-full rounded border p-2"
             placeholderText="Start Date"
-            minTime={setHours(setMinutes(new Date(), 0), 9)} // 10:00 AM
-            maxTime={setHours(setMinutes(new Date(), 0), 18)} // 6:00 PM
+            minTime={setHours(setMinutes(new Date(), 0), 9)}
+            maxTime={setHours(setMinutes(new Date(), 0), 18)}
           />
 
           <DatePicker
@@ -152,17 +198,17 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             dateFormat="yyyy-MM-dd HH:mm"
             className="w-full rounded border p-2"
             placeholderText="Due Date"
-            minTime={setHours(setMinutes(new Date(), 0), 9)} // 10:00 AM
-            maxTime={setHours(setMinutes(new Date(), 0), 18)} // 6:00 PM
+            minTime={setHours(setMinutes(new Date(), 0), 9)}
+            maxTime={setHours(setMinutes(new Date(), 0), 18)}
           />
         </div>
 
         <button
           type="submit"
-          className={`mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-white ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
-          disabled={isLoading}
+          className={`mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-white ${isCreating || isUpdating ? "cursor-not-allowed opacity-50" : ""}`}
+          disabled={isCreating || isUpdating}
         >
-          {isLoading ? "Creating..." : "Create Task"}
+          {isCreating || isUpdating ? "Processing..." : task ? "Update Task" : "Create Task"}
         </button>
       </form>
     </Modal>

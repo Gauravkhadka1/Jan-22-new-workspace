@@ -179,4 +179,70 @@ export const getTasksByUserIdForUserTasks = async (req: Request, res: Response):
   }
 };
 
+export const updateTask = async (req: Request, res: Response): Promise<void> => {
+  const { taskId } = req.params;
+  const {
+    title,
+    description,
+    status,
+    priority,
+    startDate,
+    dueDate,
+    assignedTo,
+    assignedBy,
+    projectId,
+  } = req.body;
+
+  try {
+    // Fetch the existing task before updating
+    const existingTask = await prisma.task.findUnique({
+      where: { id: Number(taskId) },
+      include: { project: true },
+    });
+
+    if (!existingTask) {
+      res.status(404).json({ message: "Task not found" });
+      return;
+    }
+
+    // Update the task
+    const updatedTask = await prisma.task.update({
+      where: { id: Number(taskId) },
+      data: {
+        title,
+        description,
+        status,
+        priority,
+        startDate,
+        dueDate,
+        assignedTo,
+        assignedBy,
+        projectId,
+      },
+    });
+
+    // If assigned user has changed, send an email notification
+    if (assignedTo && assignedTo !== existingTask.assignedTo) {
+      const assignedUser = await prisma.user.findUnique({
+        where: { userId: Number(assignedTo) },
+      });
+
+      if (assignedUser && assignedUser.email) {
+        const emailSubject = `Task Updated: ${updatedTask.title}`;
+        const emailMessage = `
+          <p>You have been assigned a task: <strong>${updatedTask.title}</strong></p>
+          <p><strong>Status:</strong> ${updatedTask.status}</p>
+          <p><strong>Due Date:</strong> ${updatedTask.dueDate}</p>
+          <p><strong>Priority:</strong> ${updatedTask.priority}</p>
+        `;
+        sendMail(assignedUser.email, emailSubject, emailMessage);
+      }
+    }
+
+    res.json(updatedTask);
+  } catch (error: any) {
+    res.status(500).json({ message: `Error updating task: ${error.message}` });
+  }
+};
+
 

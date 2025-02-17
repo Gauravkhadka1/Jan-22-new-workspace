@@ -6,6 +6,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { getHours } from "@/lib/getTime";
 import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery } from "@/state/api";
+import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
@@ -14,10 +15,12 @@ export default function DayView() {
   const { user } = useAuth();
   const userId = user?.id;
 
-  const [taskOptionsVisible, setTaskOptionsVisible] = useState<Record<string | number, boolean>>({});
-
   const { data: tasks, isLoading: isTasksLoading } = useGetTasksByUserQuery(userId);
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
+
+  const [taskOptionsVisible, setTaskOptionsVisible] = useState<Record<string | number, boolean>>({});
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for modal visibility
+  const [selectedTask, setSelectedTask] = useState<any>(null); // State to store the task being edited
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -87,6 +90,11 @@ export default function DayView() {
 
   // Define the hours to display (10 AM to 6 PM)
   const displayHours = getHours.filter((hour) => hour.hour() >= 10 && hour.hour() <= 18);
+
+  const handleEditClick = (task: any) => {
+    setSelectedTask(task);
+    setIsEditModalOpen(true);
+  };
 
   return (
     <>
@@ -197,7 +205,7 @@ export default function DayView() {
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Implement edit functionality
+                                handleEditClick(task); // Open the edit modal with the current task
                               }}
                             >
                               Edit
@@ -231,6 +239,16 @@ export default function DayView() {
           </div>
         </div>
       </ScrollArea>
+
+        {/* Edit Modal */}
+        {isEditModalOpen && (
+        <ModalNewTask
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          id={selectedTask?.projectId?.toString()} // Pass the projectId
+          task={selectedTask} // Pass the task data for editing
+        />
+      )}
     </>
   );
 }
