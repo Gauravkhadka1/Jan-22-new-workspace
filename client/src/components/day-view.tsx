@@ -100,7 +100,7 @@ export default function DayView() {
               .map((hour, index) => (
                 <div key={index} className="relative h-16">
                   <div className="absolute -top-2 text-xs text-gray-600">
-                    {hour.format("HH:mm")}
+                    {hour.format("hh:mm A")} {/* Updated to 12-hour format */}
                   </div>
                 </div>
               ))}
@@ -172,7 +172,7 @@ export default function DayView() {
                           <div>in {projectMap[task.projectId] || 'Unknown Project'}</div>
                           
                           <div className="text-xxs">
-                            {taskStart.format("HH:mm")} - {taskEnd.format("HH:mm")}
+                            {taskStart.format("hh:mm A")} - {taskEnd.format("hh:mm A")} {/* Updated to 12-hour format */}
                           </div>
                         </div>
                       );
