@@ -26,51 +26,65 @@ export default function DayView() {
 
   const isToday = userSelectedDate.isSame(dayjs(), "day");
 
-  // Memoize the split tasks to avoid recalculating on every render
+  // Memoize the split tasks to handle the new time constraints
   const splitTasks = useMemo(() => {
-    return tasks?.flatMap((task) => {
+    if (!tasks) return [];
+
+    return tasks.flatMap((task) => {
       const taskStart = dayjs(task.startDate);
       const taskEnd = dayjs(task.dueDate);
 
-      if (taskStart.isSame(taskEnd, "day")) {
-        return [task]; // Task does not span multiple days
-      } else {
-        const tasks = [];
-        let currentStart = taskStart;
+      const splitTask = [];
+      let currentDay = taskStart.clone();
 
-        while (currentStart.isBefore(taskEnd)) {
-          const endOfDay = currentStart.endOf("day");
-          const startOfNextDay = currentStart.add(1, "day").startOf("day").hour(10).minute(0); // Set to 10 AM
+      while (currentDay.isBefore(taskEnd) || currentDay.isSame(taskEnd, "day")) {
+        let startOfDay = currentDay.clone().startOf("day").hour(10); // 10 AM
+        let endOfDay = currentDay.clone().startOf("day").hour(18); // 6 PM
 
-          tasks.push({
+        let segmentStart = startOfDay.isAfter(taskStart) ? startOfDay : taskStart;
+        let segmentEnd = endOfDay.isBefore(taskEnd) ? endOfDay : taskEnd;
+
+        if (segmentStart.isBefore(segmentEnd)) {
+          splitTask.push({
             ...task,
-            startDate: currentStart.toISOString(),
-            dueDate: endOfDay.isBefore(taskEnd) ? endOfDay.toISOString() : taskEnd.toISOString(),
+            startDate: segmentStart.toISOString(),
+            dueDate: segmentEnd.toISOString(),
           });
-
-          currentStart = startOfNextDay;
         }
 
-        return tasks;
+        currentDay = currentDay.add(1, "day");
       }
-    }) || [];
+
+      return splitTask;
+    });
   }, [tasks]);
 
-  // Memoize the filtered tasks to avoid recalculating on every render
+  // Filter tasks for the selected day and within 10 AM - 6 PM
   const filteredTasks = useMemo(() => {
     return splitTasks.filter((task) => {
       const taskStart = dayjs(task.startDate);
-      return taskStart.isSame(userSelectedDate, "day");
+      const taskEnd = dayjs(task.dueDate);
+      const dayStart = userSelectedDate.clone().hour(10).minute(0);
+      const dayEnd = userSelectedDate.clone().hour(18).minute(0);
+
+      return (
+        taskStart.isSame(userSelectedDate, "day") &&
+        taskStart.isBefore(dayEnd) &&
+        taskEnd.isAfter(dayStart)
+      );
     });
   }, [splitTasks, userSelectedDate]);
 
-  // Create a map of project IDs to project names
+  // Project mapping remains the same
   const projectMap = useMemo(() => {
     return projects?.reduce((map, project) => {
       map[project.id] = project.name;
       return map;
-    }, {} as Record<number, string>) || {}; // Fallback to an empty object if projects is undefined
+    }, {} as Record<number, string>) || {};
   }, [projects]);
+
+  // Define the hours to display (10 AM to 6 PM)
+  const displayHours = getHours.filter((hour) => hour.hour() >= 10 && hour.hour() <= 18);
 
   return (
     <>
@@ -95,97 +109,86 @@ export default function DayView() {
       <ScrollArea className="h-[70vh]">
         <div className="grid grid-cols-[auto_1fr] p-4">
           <div className="w-16 border-r border-gray-300">
-            {getHours
-              .filter((hour) => hour.hour() >= 0 && hour.hour() <= 23)
-              .map((hour, index) => (
-                <div key={index} className="relative h-16">
-                  <div className="absolute -top-2 text-xs text-gray-600">
-                    {hour.format("hh:mm A")} {/* Updated to 12-hour format */}
-                  </div>
+            {displayHours.map((hour, index) => (
+              <div key={index} className="relative h-16">
+                <div className="absolute -top-2 text-xs text-gray-600">
+                  {hour.format("hh:mm A")}
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
 
           <div className="relative border-r border-gray-300">
-            {getHours
-              .filter((hour) => hour.hour() >= 0 && hour.hour() <= 23)
-              .map((hour, i) => {
-                const tasksInHour = filteredTasks.filter((task) => {
-                  const taskStart = dayjs(task.startDate);
-                  const taskEnd = dayjs(task.dueDate);
-                  return (
-                    taskStart.hour() === hour.hour() &&
-                    taskEnd.isAfter(taskStart)
-                  );
-                });
-
+            {displayHours.map((hour, i) => {
+              const tasksInHour = filteredTasks.filter((task) => {
+                const taskStart = dayjs(task.startDate);
+                const taskEnd = dayjs(task.dueDate);
                 return (
-                  <div
-                    key={i}
-                    className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
-                    onClick={() => {
-                      setDate(userSelectedDate.hour(hour.hour()));
-                      openPopover();
-                    }}
-                  >
-                    {tasksInHour.map((task, index) => {
-                      const taskStart = dayjs(task.startDate);
-                      const taskEnd = dayjs(task.dueDate);
-                      const top = (taskStart.minute() / 60) * 100;
-                      const height = ((taskEnd.diff(taskStart, "minutes")) / 60) * 100;
-                      
-                      // Calculate nesting level for overlapping tasks
-                      const nestedLevel = filteredTasks.reduce((level, otherTask) => {
-                        if (
-                          taskStart.isAfter(dayjs(otherTask.startDate)) &&
-                          taskEnd.isBefore(dayjs(otherTask.dueDate))
-                        ) {
-                          return level + 1; // Increase nesting level
-                        }
-                        return level;
-                      }, 0);
-                      
-                      const maxNestedMargin = 20; // Maximum left margin to avoid excessive shifts
-                      const leftMargin = Math.min(nestedLevel * 50, maxNestedMargin + 200); // Adjust left margin safely
-                      
-                      // Calculate the width and left position for tasks in the same time range
-                      const taskCount = tasksInHour.length;
-                      const taskWidth = `calc(${100 / taskCount}% - ${leftMargin}px)`; // Divide width equally with margins
-                      const taskLeft = `calc(${(100 / taskCount) * index}% + ${leftMargin}px)`; // Position each task with margins and nesting
-
-                      return (
-                        <div
-                          key={task.id}
-                          className={cn(
-                            "absolute text-white text-xs px-2 py-1 rounded-md shadow-md border border-white",
-                            task.status === "Completed" ? "bg-green-600" : "bg-blue-500"
-                          )}
-                          style={{
-                            top: `${top}%`,
-                            height: `${height}%`,
-                            width: taskWidth,
-                            left: taskLeft,
-                            zIndex: 10,
-                          }}
-                        >
-                          <div>{task.title}</div>
-                          <div>in {projectMap[task.projectId] || 'Unknown Project'}</div>
-                          
-                          <div className="text-xxs">
-                            {taskStart.format("hh:mm A")} - {taskEnd.format("hh:mm A")} {/* Updated to 12-hour format */}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  taskStart.hour() === hour.hour() &&
+                  taskEnd.isAfter(taskStart)
                 );
-              })}
+              });
 
-            {isToday && (
+              return (
+                <div
+                  key={i}
+                  className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
+                  onClick={() => {
+                    setDate(userSelectedDate.hour(hour.hour()));
+                    openPopover();
+                  }}
+                >
+                  {tasksInHour.map((task, index) => {
+                    const taskStart = dayjs(task.startDate);
+                    const taskEnd = dayjs(task.dueDate);
+                    const top = ((taskStart.minute() / 60) * 100);
+                    const height = ((taskEnd.diff(taskStart, "minutes") / 60) * 100);
+
+                    const nestedLevel = filteredTasks.reduce((level, otherTask) => {
+                      if (
+                        taskStart.isAfter(dayjs(otherTask.startDate)) &&
+                        taskEnd.isBefore(dayjs(otherTask.dueDate))
+                      ) {
+                        return level + 1;
+                      }
+                      return level;
+                    }, 0);
+
+                    const maxNestedMargin = 20;
+                    const leftMargin = Math.min(nestedLevel * 50, maxNestedMargin + 200);
+                    const taskCount = tasksInHour.length;
+                    const taskWidth = `calc(${100 / taskCount}% - ${leftMargin}px)`;
+                    const taskLeft = `calc(${(100 / taskCount) * index}% + ${leftMargin}px)`;
+
+                    return (
+                      <div
+                        key={task.id}
+                        className={cn(
+                          "absolute text-white text-xs px-2 py-1 rounded-md shadow-md border border-white",
+                          task.status === "Completed" ? "bg-green-600" : "bg-blue-500"
+                        )}
+                        style={{
+                          top: `${top}%`,
+                          height: `${height}%`,
+                          width: taskWidth,
+                          left: taskLeft,
+                          zIndex: 10,
+                        }}
+                      >
+                        <div>{task.title}</div>
+                        <div>in {projectMap[task.projectId] || "Unknown Project"}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            {isToday && currentTime.hour() >= 10 && currentTime.hour() < 18 && (
               <div
                 className="absolute h-0.5 w-full bg-red-500"
                 style={{
-                  top: `${((currentTime.hour() - 10) * 100) / 9.5}%`,
+                  top: `${((currentTime.hour() + currentTime.minute() / 60 - 10) / 8) * 100}%`,
                 }}
               />
             )}
