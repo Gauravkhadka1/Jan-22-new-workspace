@@ -14,6 +14,8 @@ export default function DayView() {
   const { user } = useAuth();
   const userId = user?.id;
 
+  const [taskOptionsVisible, setTaskOptionsVisible] = useState<Record<string | number, boolean>>({});
+
   const { data: tasks, isLoading: isTasksLoading } = useGetTasksByUserQuery(userId);
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
 
@@ -175,8 +177,42 @@ export default function DayView() {
                           zIndex: 10,
                         }}
                       >
-                        <div>{task.title}</div>
+                        <div className="flex justify-between">
+                          <span>{task.title}</span>
+                          <span 
+                            className="cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTaskOptionsVisible(prev => ({ ...prev, [task.id]: !prev[task.id] }));
+                            }}
+                          >
+                            ...
+                          </span>
+                        </div>
                         <div>in {projectMap[task.projectId] || "Unknown Project"}</div>
+                        
+                        {taskOptionsVisible[task.id] && (
+                          <div className="absolute right-0 mt-1 bg-white shadow-lg rounded">
+                            <button 
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Implement edit functionality
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Implement delete functionality
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
