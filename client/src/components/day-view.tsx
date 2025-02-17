@@ -40,7 +40,7 @@ export default function DayView() {
 
         while (currentStart.isBefore(taskEnd)) {
           const endOfDay = currentStart.endOf("day");
-          const startOfNextDay = currentStart.add(1, "day").startOf("day");
+          const startOfNextDay = currentStart.add(1, "day").startOf("day").hour(10).minute(0); // Set to 10 AM
 
           tasks.push({
             ...task,
@@ -185,7 +185,7 @@ export default function DayView() {
               <div
                 className="absolute h-0.5 w-full bg-red-500"
                 style={{
-                  top: `${((currentTime.hour() - 10) * 100) / 9}%`,
+                  top: `${((currentTime.hour() - 10) * 100) / 9.5}%`,
                 }}
               />
             )}
