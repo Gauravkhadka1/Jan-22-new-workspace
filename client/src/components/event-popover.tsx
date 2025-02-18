@@ -36,7 +36,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const handleSubmit = async () => {
     if (!title || !assignedBy || !(id !== null || projectId) || !startDate || !dueDate) return;
 
-    await createTask({
+    const newTask = await createTask({
       title,
       description,
       status: status as Status,
@@ -48,6 +48,10 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
       projectId: id !== null ? Number(id) : Number(projectId),
       assignedBy,
     });
+    if (newTask) {
+      // Assuming `onClose` closes the modal, and you can optionally pass the new task to a parent component or update the local state
+      onClose();
+    }
   };
 
   // Filter and sort projects based on search keyword
