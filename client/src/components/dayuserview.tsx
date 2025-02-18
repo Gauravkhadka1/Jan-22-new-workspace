@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery } from "@/state/api";
 import ModalNewTask from "./ModalNewTask";
 import { useParams } from "next/navigation";
+import { SquarePen, Trash2 } from "lucide-react";
 
 interface DayViewProps {
   userId: string | null; // Define userId as string or null, adjust as necessary
@@ -202,7 +203,7 @@ export default function DayView({ userId: propUserId }: DayViewProps) {
                    
                           <span>{task.title}</span>
                           <span 
-                            className="cursor-pointer"
+                            className="cursor-pointer text-lg"
                             onClick={(e) => {
                               e.stopPropagation();
                               setTaskOptionsVisible(prev => ({ ...prev, [task.id]: !prev[task.id] }));
@@ -222,7 +223,7 @@ export default function DayView({ userId: propUserId }: DayViewProps) {
                                 handleEditClick(task);
                               }}
                             >
-                              Edit
+                              <SquarePen className="w-4 h-4"/>
                             </button>
                             <button 
                               className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -231,7 +232,7 @@ export default function DayView({ userId: propUserId }: DayViewProps) {
                                 // Implement delete functionality
                               }}
                             >
-                              Delete
+                             <Trash2 className="w-4 h-4"/>
                             </button>
                           </div>
                         )}

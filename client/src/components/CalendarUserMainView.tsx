@@ -9,6 +9,7 @@ import { useGetTasksByUserQuery, useGetProjectsQuery } from "@/state/api";
 import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
 import { useParams } from "next/navigation"; // Import useParams to get userId from URL
 import EventPopover from './event-popover'
+import { SquarePen, Trash2 } from "lucide-react";
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
@@ -213,7 +214,7 @@ export default function DayView() {
                         <div className="flex justify-between">
                           <span>{task.title}</span>
                           <span 
-                            className="cursor-pointer"
+                            className="cursor-pointer text-lg"
                             onClick={(e) => {
                               e.stopPropagation();
                               setTaskOptionsVisible(prev => ({ ...prev, [task.id]: !prev[task.id] }));
@@ -233,7 +234,7 @@ export default function DayView() {
                                 handleEditClick(task); // Open the edit modal with the current task
                               }}
                             >
-                              Edit
+                              <SquarePen className="w-4 h-4"/>
                             </button>
                             <button 
                               className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -242,7 +243,7 @@ export default function DayView() {
                                 // Implement delete functionality
                               }}
                             >
-                              Delete
+                           <Trash2 className="w-4 h-4"/>
                             </button>
                           </div>
                         )}

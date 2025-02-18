@@ -7,6 +7,7 @@ import { getHours } from "@/lib/getTime";
 import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
 import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
+import { Delete, DeleteIcon, Pencil, SquarePen, Trash2 } from "lucide-react";
 
 
 export default function DayView() {
@@ -205,7 +206,7 @@ export default function DayView() {
                         <div className="flex justify-between">
                           <span>{task.title}</span>
                           <span 
-                            className="cursor-pointer"
+                            className="cursor-pointer text-lg"
                             onClick={(e) => {
                               e.stopPropagation();
                               setTaskOptionsVisible(prev => ({ ...prev, [task.id]: !prev[task.id] }));
@@ -219,13 +220,13 @@ export default function DayView() {
                         {taskOptionsVisible[task.id] && (
                           <div className="absolute right-0 mt-1 bg-white shadow-lg rounded">
                             <button 
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className="block px-4 py-2  text-gray-700 hover:bg-gray-100"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleEditClick(task); // Open the edit modal with the current task
                               }}
                             >
-                              Edit
+                              <SquarePen className="w-4 h-4"/>
                             </button>
                             <button 
               className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -235,7 +236,7 @@ export default function DayView() {
               }}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Deleting...' : <Trash2 className="w-4 h-4"/>}
             </button>
                           </div>
                         )}
