@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery } from "@/state/api";
 import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
 import { useParams } from "next/navigation"; // Import useParams to get userId from URL
+import EventPopover from './event-popover'
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
@@ -20,6 +21,14 @@ export default function DayView() {
   const userId = params?.userId;
   const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
 
+   const {
+      isPopoverOpen,
+      closePopover,
+      isEventSummaryOpen,
+      closeEventSummary,
+      selectedEvent,
+      setEvents,
+    } = useEventStore();
 
   // Fetch tasks for the specific user
   const { data: tasks, isLoading: isTasksLoading } = 
@@ -255,7 +264,13 @@ export default function DayView() {
           </div>
         </div>
       </ScrollArea>
-
+      {isPopoverOpen && (
+        <EventPopover
+          isOpen={isPopoverOpen}
+          onClose={closePopover}
+          // date={userSelectedDate.format("YYYY-MM-DD")}
+        />
+      )}
       {/* Edit Modal */}
       {isEditModalOpen && (
         <ModalNewTask
