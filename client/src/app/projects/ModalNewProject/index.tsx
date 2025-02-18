@@ -11,7 +11,7 @@ type Props = {
 const ModalNewClient = ({ isOpen, onClose }: Props) => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
   const [projectName, setProjectName] = useState("");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState<string | undefined>(""); 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -27,15 +27,16 @@ const ModalNewClient = ({ isOpen, onClose }: Props) => {
 
     await createProject({
       name: projectName,
-      description,
+      description: description || undefined, 
       startDate: formattedStartDate,
       endDate: formattedEndDate,
       status: "New", 
     });
+    onClose();
   };
 
   const isFormValid = () => {
-    return projectName && description && startDate && endDate;
+    return projectName && startDate && endDate;
   };
 
   const inputStyles =
@@ -57,12 +58,7 @@ const ModalNewClient = ({ isOpen, onClose }: Props) => {
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
         />
-        <textarea
-          className={inputStyles}
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
           <input
             type="date"
