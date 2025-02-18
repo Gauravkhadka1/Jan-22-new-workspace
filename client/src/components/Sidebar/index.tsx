@@ -11,6 +11,7 @@ import {
   Briefcase,
   ChevronDown,
   ChevronUp,
+  FolderCode,
   Home,
   Layers3,
   LockIcon,
@@ -80,12 +81,12 @@ const Sidebar = () => {
         {/* NAVBAR LINKS */}
         <nav className="z-10 w-full mt-6">
           <SidebarLink icon={Home} label="Home" href="/dashboard" />
-          <SidebarLink icon={Users} label="Projects" href="/projects" />
-          <SidebarLink icon={Home} label="My Tasks" href="/mytasks" />
+          <SidebarLink icon={FolderCode} label="Projects" href="/projects" />
+          <SidebarLink icon={User} label="My Tasks" href="/mytasks" />
           {/* <SidebarLink icon={Briefcase} label="Timeline" href="/timeline" /> */}
           {/* <SidebarLink icon={Search} label="Search" href="/search" /> */}
           {/* <SidebarLink icon={Settings} label="Settings" href="/settings" /> */}
-          <SidebarLink icon={User} label="Teams" href="/users" />
+          <SidebarLink icon={Users} label="Teams" href="/users" />
           {/* <SidebarLink icon={Users} label="Teams" href="/teams" /> */}
          
         </nav>
