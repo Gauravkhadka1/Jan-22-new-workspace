@@ -245,4 +245,40 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+export const deleteTask = async (req: Request, res: Response): Promise<void> => {
+  const { taskId } = req.params;
 
+  try {
+    // Find the task to get details before deletion
+    const taskToDelete = await prisma.task.findUnique({
+      where: { id: Number(taskId) },
+    });
+
+    if (!taskToDelete) {
+      res.status(404).json({ message: "Task not found" });
+      return;
+    }
+
+    // Delete the task
+    await prisma.task.delete({
+      where: { id: Number(taskId) }
+    });
+
+    // Send an email notification to the assigned user
+    const user = await prisma.user.findUnique({
+      where: { email: taskToDelete.assignedTo } // Use assignedTo as it contains the email
+    });
+
+    if (user) {
+      const emailSubject = `Task Deleted: ${taskToDelete.title}`;
+      const emailMessage = `
+        <p>Your task <strong>${taskToDelete.title}</strong> has been deleted.</p>
+      `;
+      sendMail(user.email, emailSubject, emailMessage);
+    }
+
+    res.status(200).json({ message: "Task successfully deleted" });
+  } catch (error: any) {
+    res.status(500).json({ message: `Error deleting task: ${error.message}` });
+  }
+};

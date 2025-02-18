@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateTask = exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
+exports.deleteTask = exports.updateTask = exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
 const client_1 = require("@prisma/client");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const prisma = new client_1.PrismaClient();
@@ -213,3 +213,36 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.updateTask = updateTask;
+const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { taskId } = req.params;
+    try {
+        // Find the task to get details before deletion
+        const taskToDelete = yield prisma.task.findUnique({
+            where: { id: Number(taskId) },
+        });
+        if (!taskToDelete) {
+            res.status(404).json({ message: "Task not found" });
+            return;
+        }
+        // Delete the task
+        yield prisma.task.delete({
+            where: { id: Number(taskId) }
+        });
+        // Send an email notification to the assigned user
+        const user = yield prisma.user.findUnique({
+            where: { email: taskToDelete.assignedTo } // Use assignedTo as it contains the email
+        });
+        if (user) {
+            const emailSubject = `Task Deleted: ${taskToDelete.title}`;
+            const emailMessage = `
+        <p>Your task <strong>${taskToDelete.title}</strong> has been deleted.</p>
+      `;
+            sendMail(user.email, emailSubject, emailMessage);
+        }
+        res.status(200).json({ message: "Task successfully deleted" });
+    }
+    catch (error) {
+        res.status(500).json({ message: `Error deleting task: ${error.message}` });
+    }
+});
+exports.deleteTask = deleteTask;

@@ -8,5 +8,6 @@ router.get("/user/:userId", taskController_1.getTasksByUser);
 router.get("/usertasks/:userId", taskController_1.getTasksByUserIdForUserTasks); // New route for user tasks
 router.post("/", taskController_1.createTask);
 router.put("/:taskId", taskController_1.updateTask);
+router.delete("/:taskId", taskController_1.deleteTask);
 router.patch("/:taskId/status", taskController_1.updateTaskStatus);
 exports.default = router;

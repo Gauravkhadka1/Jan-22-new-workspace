@@ -5,8 +5,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import { ScrollArea } from "./ui/scroll-area";
 import { getHours } from "@/lib/getTime";
 import { useAuth } from "@/context/AuthContext";
-import { useGetTasksByUserQuery, useGetProjectsQuery } from "@/state/api";
+import { useGetTasksByUserQuery, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
 import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
+
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
@@ -90,10 +91,24 @@ export default function DayView() {
 
   // Define the hours to display (10 AM to 6 PM)
   const displayHours = getHours.filter((hour) => hour.hour() >= 10 && hour.hour() <= 18);
+  const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
 
   const handleEditClick = (task: any) => {
     setSelectedTask(task);
     setIsEditModalOpen(true);
+  };
+  const handleDeleteClick = async (task: any) => {
+    // Confirm deletion with the user
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        await deleteTask(task.id).unwrap();
+        // You might want to refresh the tasks list or update the UI here
+        // For example, you could reload the tasks or update local state
+      } catch (error) {
+        console.error('Failed to delete the task:', error);
+        // Handle error (e.g., show an error message to the user)
+      }
+    }
   };
 
   return (
@@ -213,14 +228,15 @@ export default function DayView() {
                               Edit
                             </button>
                             <button 
-                              className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Implement delete functionality
-                              }}
-                            >
-                              Delete
-                            </button>
+              className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(task);
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </button>
                           </div>
                         )}
                       </div>
