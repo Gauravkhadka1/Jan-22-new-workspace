@@ -59,9 +59,9 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="mt-2 mx-6 text-xl font-medium">
+      {/* <div className="mt-2 mx-6 text-xl font-medium">
         {user.username} Task's
-      </div>
+      </div> */}
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
         {taskStatus.map((status) => (
           <TaskColumn

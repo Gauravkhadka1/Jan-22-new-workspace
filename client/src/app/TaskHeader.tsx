@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import ModalNewProject from "./projects/ModalNewProject";
+import { useAuth } from "../context/AuthContext";
 
 type Props = {
   activeTab: string;
@@ -19,6 +20,7 @@ type Props = {
 
 const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
   const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <div className="px-4 xl:px-6">
@@ -26,12 +28,23 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
         isOpen={isModalNewProjectOpen}
         onClose={() => setIsModalNewProjectOpen(false)}
       />
-     
 
       {/* TABS */}
-      <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark md:items-center">
-        <div className="flex flex-1 items-center gap-2 md:gap-4">
-        <TabButton
+      <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark md:items-center justify-between">
+        
+        <div className="flex items-center gap-2">
+          {/* <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
+            <Filter className="h-5 w-5" />
+          </button>
+          <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
+            <Share2 className="h-5 w-5" />
+          </button> */}
+          <div className="mx-2 mt-2 text-lg font-medium">
+            {user.username} Task's
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-end gap-2 md:gap-4">
+          <TabButton
             name="Calendar"
             icon={<Calendar className="h-5 w-5" />}
             setActiveTab={setActiveTab}
@@ -43,22 +56,6 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
-        </div>
-        <div className="flex items-center gap-2">
-          {/* <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
-            <Filter className="h-5 w-5" />
-          </button>
-          <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
-            <Share2 className="h-5 w-5" />
-          </button> */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search Task"
-              className="rounded-md border py-1 pl-10 pr-4 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-white"
-            />
-            <Grid3x3 className="absolute left-3 top-2 h-4 w-4 text-gray-400 dark:text-neutral-500" />
-          </div>
         </div>
       </div>
     </div>

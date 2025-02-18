@@ -71,7 +71,7 @@ export default function Headerleft() {
     <div className='flex items-center gap-3'>
    <div className="hidden items-center lg:flex">
   <Button variant="ghost" className='rounded-full p-2'  onClick={() => setSideBarOpen()}>
-    <Menu className="size-6"/>
+    {/* <Menu className="size-6"/> */}
   </Button>
   {/* <Image
   src={'wtn-logo-black.svg'} width={40} height={30} alt='icon'/> */}
