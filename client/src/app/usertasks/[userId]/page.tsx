@@ -35,7 +35,7 @@ const Project = ({ params }: Props) => {
         <DashboardCalendarView/>
       )}
      {activeTab === "Board" && (
-        <Board  />
+        <Board id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen}/>
       )}
     
       {/* {activeTab === "Board" && (

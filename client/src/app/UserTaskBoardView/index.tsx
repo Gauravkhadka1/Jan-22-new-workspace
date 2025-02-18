@@ -10,13 +10,19 @@ import { format } from "date-fns";
 
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
 
+type BoardProps = {
+  id: string;
+  setIsModalNewTaskOpen: (isOpen: boolean) => void;
+};
+
+
 const taskStatus: Status[] = ["To Do", "Work In Progress", "Under Review", "Completed"];
 
-const UserTasks = () => {
+const UserTasks = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const params = useParams();
   const userId = params?.userId; 
   const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
-  const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
+
 
   const { data: projects } = useGetProjectsQuery({});
 
