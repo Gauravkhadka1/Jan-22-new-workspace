@@ -7,15 +7,23 @@ import { getHours } from "@/lib/getTime";
 import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery } from "@/state/api";
 import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
+import { useParams } from "next/navigation"; // Import useParams to get userId from URL
 
 export default function DayView() {
   const [currentTime, setCurrentTime] = useState(dayjs());
   const { openPopover } = useEventStore();
   const { userSelectedDate, setDate } = useDateStore();
   const { user } = useAuth();
-  const userId = user?.id;
 
-  const { data: tasks, isLoading: isTasksLoading } = useGetTasksByUserQuery(userId);
+  // Get userId from URL
+  const params = useParams();
+  const userId = params?.userId;
+  const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
+
+
+  // Fetch tasks for the specific user
+  const { data: tasks, isLoading: isTasksLoading } = 
+  userIdNumber !== null ? useGetTasksByUserQuery(userIdNumber) : { data: [], isLoading: false };
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
 
   const [taskOptionsVisible, setTaskOptionsVisible] = useState<Record<string | number, boolean>>({});
@@ -31,11 +39,17 @@ export default function DayView() {
 
   const isToday = userSelectedDate.isSame(dayjs(), "day");
 
+  // Filter tasks for the specific user
+  const userTasks = useMemo(() => {
+    if (!tasks) return [];
+    return tasks.filter((task) => String(task.assignedTo) === String(userIdNumber));
+  }, [tasks, userIdNumber]);
+
   // Memoize the split tasks to handle the new time constraints
   const splitTasks = useMemo(() => {
-    if (!tasks) return [];
+    if (!userTasks) return [];
 
-    return tasks.flatMap((task) => {
+    return userTasks.flatMap((task) => {
       const taskStart = dayjs(task.startDate);
       const taskEnd = dayjs(task.dueDate);
 
@@ -62,7 +76,7 @@ export default function DayView() {
 
       return splitTask;
     });
-  }, [tasks]);
+  }, [userTasks]);
 
   // Filter tasks for the selected day and within 10 AM - 6 PM
   const filteredTasks = useMemo(() => {
@@ -172,21 +186,21 @@ export default function DayView() {
 
                     return (
                       <div
-                      key={task.id}
-                      className={cn(
-                        "absolute text-white text-xs px-2 py-1 rounded-md shadow-md border border-white",
-                        task.status === "Completed" ? "bg-green-600" :
-                          task.status === "Work In Progress" ? "bg-orange-500" :
-                            task.status === "Under Review" ? "bg-purple-600" : "bg-blue-500"
-                      )}
-                      style={{
-                        top: `${top}%`,
-                        height: `${height}%`,
-                        width: taskWidth,
-                        left: taskLeft,
-                        zIndex: 10,
-                      }}
-                    >
+                        key={task.id}
+                        className={cn(
+                          "absolute text-white text-xs px-2 py-1 rounded-md shadow-md border border-white",
+                          task.status === "Completed" ? "bg-green-600" :
+                            task.status === "Work In Progress" ? "bg-orange-500" :
+                              task.status === "Under Review" ? "bg-purple-600" : "bg-blue-500"
+                        )}
+                        style={{
+                          top: `${top}%`,
+                          height: `${height}%`,
+                          width: taskWidth,
+                          left: taskLeft,
+                          zIndex: 10,
+                        }}
+                      >
                         <div className="flex justify-between">
                           <span>{task.title}</span>
                           <span 
@@ -242,8 +256,8 @@ export default function DayView() {
         </div>
       </ScrollArea>
 
-        {/* Edit Modal */}
-        {isEditModalOpen && (
+      {/* Edit Modal */}
+      {isEditModalOpen && (
         <ModalNewTask
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}

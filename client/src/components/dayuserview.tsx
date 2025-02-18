@@ -6,21 +6,33 @@ import { ScrollArea } from "./ui/scroll-area";
 import { getHours } from "@/lib/getTime";
 import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery } from "@/state/api";
-import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
+import ModalNewTask from "./ModalNewTask";
+import { useParams } from "next/navigation";
 
-export default function DayView() {
+interface DayViewProps {
+  userId: string | null; // Define userId as string or null, adjust as necessary
+}
+
+export default function DayView({ userId: propUserId }: DayViewProps) {
   const [currentTime, setCurrentTime] = useState(dayjs());
   const { openPopover } = useEventStore();
   const { userSelectedDate, setDate } = useDateStore();
   const { user } = useAuth();
-  const userId = user?.id;
 
-  const { data: tasks, isLoading: isTasksLoading } = useGetTasksByUserQuery(userId);
+    // Fetch user ID from route params if not provided
+    const params = useParams();
+  const routeUserId = params.userId as string | undefined;  // Type assertion here
+  const actualUserId = propUserId || routeUserId || user?.id;
+  const actualUserIdNumber = actualUserId ? Number(actualUserId) : 0;
+
+  const { data: tasks, isLoading: isTasksLoading } = useGetTasksByUserQuery(actualUserIdNumber);
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
 
   const [taskOptionsVisible, setTaskOptionsVisible] = useState<Record<string | number, boolean>>({});
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for modal visibility
-  const [selectedTask, setSelectedTask] = useState<any>(null); // State to store the task being edited
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -140,6 +152,7 @@ export default function DayView() {
               });
 
               return (
+             
                 <div
                   key={i}
                   className="relative flex h-16 cursor-pointer flex-col items-center gap-y-2 border-b border-gray-300 hover:bg-gray-100"
@@ -172,22 +185,21 @@ export default function DayView() {
 
                     return (
                       <div
-                      key={task.id}
-                      className={cn(
-                        "absolute text-white text-xs px-2 py-1 rounded-md shadow-md border border-white",
-                        task.status === "Completed" ? "bg-green-600" :
-                          task.status === "Work In Progress" ? "bg-orange-500" :
-                            task.status === "Under Review" ? "bg-purple-600" : "bg-blue-500"
-                      )}
-                      style={{
-                        top: `${top}%`,
-                        height: `${height}%`,
-                        width: taskWidth,
-                        left: taskLeft,
-                        zIndex: 10,
-                      }}
-                    >
+                        key={task.id}
+                        className={cn(
+                          "absolute text-white text-xs px-2 py-1 rounded-md shadow-md border border-white",
+                          task.status === "Completed" ? "bg-green-600" : "bg-blue-500"
+                        )}
+                        style={{
+                          top: `${top}%`,
+                          height: `${height}%`,
+                          width: taskWidth,
+                          left: taskLeft,
+                          zIndex: 10,
+                        }}
+                      >
                         <div className="flex justify-between">
+                   
                           <span>{task.title}</span>
                           <span 
                             className="cursor-pointer"
@@ -207,7 +219,7 @@ export default function DayView() {
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleEditClick(task); // Open the edit modal with the current task
+                                handleEditClick(task);
                               }}
                             >
                               Edit
@@ -242,13 +254,13 @@ export default function DayView() {
         </div>
       </ScrollArea>
 
-        {/* Edit Modal */}
-        {isEditModalOpen && (
+      {/* Edit Modal */}
+      {isEditModalOpen && (
         <ModalNewTask
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          id={selectedTask?.projectId?.toString()} // Pass the projectId
-          task={selectedTask} // Pass the task data for editing
+          id={selectedTask?.projectId?.toString()}
+          task={selectedTask}
         />
       )}
     </>
