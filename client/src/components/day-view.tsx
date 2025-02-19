@@ -45,8 +45,8 @@ export default function DayView() {
       let currentDay = taskStart.clone();
 
       while (currentDay.isBefore(taskEnd) || currentDay.isSame(taskEnd, "day")) {
-        let startOfDay = currentDay.clone().startOf("day").hour(10); // 10 AM
-        let endOfDay = currentDay.clone().startOf("day").hour(18); // 6 PM
+        let startOfDay = currentDay.clone().startOf("day").hour(9); // 10 AM
+        let endOfDay = currentDay.clone().startOf("day").hour(19); // 6 PM
 
         let segmentStart = startOfDay.isAfter(taskStart) ? startOfDay : taskStart;
         let segmentEnd = endOfDay.isBefore(taskEnd) ? endOfDay : taskEnd;
@@ -71,8 +71,8 @@ export default function DayView() {
     return splitTasks.filter((task) => {
       const taskStart = dayjs(task.startDate);
       const taskEnd = dayjs(task.dueDate);
-      const dayStart = userSelectedDate.clone().hour(10).minute(0);
-      const dayEnd = userSelectedDate.clone().hour(18).minute(0);
+      const dayStart = userSelectedDate.clone().hour(9).minute(0);
+      const dayEnd = userSelectedDate.clone().hour(19).minute(0);
 
       return (
         taskStart.isSame(userSelectedDate, "day") &&
@@ -91,7 +91,7 @@ export default function DayView() {
   }, [projects]);
 
   // Define the hours to display (10 AM to 6 PM)
-  const displayHours = getHours.filter((hour) => hour.hour() >= 10 && hour.hour() <= 18);
+  const displayHours = getHours.filter((hour) => hour.hour() >= 9 && hour.hour() <= 19);
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
 
   const handleEditClick = (task: any) => {
@@ -247,7 +247,7 @@ export default function DayView() {
               );
             })}
 
-            {isToday && currentTime.hour() >= 10 && currentTime.hour() < 18 && (
+            {isToday && currentTime.hour() >= 9 && currentTime.hour() < 19 && (
               <div
                 className="absolute h-0.5 w-full bg-red-500"
                 style={{

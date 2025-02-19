@@ -187,8 +187,8 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
             dateFormat="yyyy-MM-dd HH:mm"
             className="w-full rounded border p-2"
             placeholderText="Start Date"
-            minTime={setHours(setMinutes(new Date(), 0), 9)}
-            maxTime={setHours(setMinutes(new Date(), 0), 18)}
+            minTime={setHours(setMinutes(new Date(), 0), 8)}
+            maxTime={setHours(setMinutes(new Date(), 0), 19)}
           />
 
           <DatePicker
@@ -198,8 +198,8 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
             dateFormat="yyyy-MM-dd HH:mm"
             className="w-full rounded border p-2"
             placeholderText="Due Date"
-            minTime={setHours(setMinutes(new Date(), 0), 9)}
-            maxTime={setHours(setMinutes(new Date(), 0), 18)}
+            minTime={setHours(setMinutes(new Date(), 0), 8)}
+            maxTime={setHours(setMinutes(new Date(), 0), 19)}
           />
         </div>
 
