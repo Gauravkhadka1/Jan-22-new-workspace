@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTask = exports.updateTask = exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
 const client_1 = require("@prisma/client");
 const nodemailer_1 = __importDefault(require("nodemailer"));
+const date_fns_tz_1 = require("date-fns-tz");
 const prisma = new client_1.PrismaClient();
 const transporter = nodemailer_1.default.createTransport({
     secure: true,
@@ -74,12 +75,32 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             where: { id: Number(projectId) },
             select: { name: true }, // Only fetch the project name
         });
+        const formatNepalTime = (dateValue) => {
+            if (!dateValue)
+                return "N/A"; // Return "N/A" or an empty string if the date is null
+            return (0, date_fns_tz_1.format)(dateValue, "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
+        };
         if (assignedUser && assignedUser.email && assigningUser && project) {
             const emailSubject = `New Task Assigned: ${newTask.title}`;
             const emailMessage = `
-        <p><strong>${assigningUser.username}</strong> assigned you a new task: <strong>${newTask.title}</strong> in <strong>${project.name}</strong></p>
-        <p><strong>Start Date:</strong> ${newTask.startDate}</p>
-        <p><strong>Due Date:</strong> ${newTask.dueDate}</p>  
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+          
+          <!-- Header with Gradient -->
+          <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
+            <h2 style="margin: 0;">New Task Assigned</h2>
+          </div>
+    
+          <div style="padding: 20px;">
+            <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned you a new task:</p>
+    
+            <div style="padding: 15px; background: #fff; border-radius: 6px; border-left: 4px solid #3498db; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);">
+              <h3 style="margin: 0; color: #3498db;">${newTask.title}</h3>
+              <p style="margin: 5px 0;"><strong>Project:</strong> ${project.name}</p>
+              <p style="margin: 5px 0;"><strong>Start Date:</strong> ${formatNepalTime(newTask.startDate)}</p>
+              <p style="margin: 5px 0;"><strong>Due Date:</strong> ${formatNepalTime(newTask.dueDate)}</p>
+            </div>
+          </div>
+        </div>
       `;
             sendMail(assignedUser.email, emailSubject, emailMessage);
         }

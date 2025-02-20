@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
+import { format } from 'date-fns-tz';
 
 const prisma = new PrismaClient();
+
 const transporter = nodemailer.createTransport({
   secure: true,
   host: "smtp.gmail.com",
@@ -80,17 +82,38 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
       where: { id: Number(projectId) },
       select: { name: true }, // Only fetch the project name
     });
+    const formatNepalTime = (dateValue: Date | null) => {
+      if (!dateValue) return "N/A"; // Return "N/A" or an empty string if the date is null
+      return format(dateValue, "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
+    };
+    
 
     if (assignedUser && assignedUser.email && assigningUser && project) {
       const emailSubject = `New Task Assigned: ${newTask.title}`;
       const emailMessage = `
-        <p><strong>${assigningUser.username}</strong> assigned you a new task: <strong>${newTask.title}</strong> in <strong>${project.name}</strong></p>
-        <p><strong>Start Date:</strong> ${newTask.startDate}</p>
-        <p><strong>Due Date:</strong> ${newTask.dueDate}</p>  
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+          
+          <!-- Header with Gradient -->
+          <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
+            <h2 style="margin: 0;">New Task Assigned</h2>
+          </div>
+    
+          <div style="padding: 20px;">
+            <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned you a new task:</p>
+    
+            <div style="padding: 15px; background: #fff; border-radius: 6px; border-left: 4px solid #3498db; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);">
+              <h3 style="margin: 0; color: #3498db;">${newTask.title}</h3>
+              <p style="margin: 5px 0;"><strong>Project:</strong> ${project.name}</p>
+              <p style="margin: 5px 0;"><strong>Start Date:</strong> ${formatNepalTime(newTask.startDate)}</p>
+              <p style="margin: 5px 0;"><strong>Due Date:</strong> ${formatNepalTime(newTask.dueDate)}</p>
+            </div>
+          </div>
+        </div>
       `;
-
+    
       sendMail(assignedUser.email, emailSubject, emailMessage);
     }
+    
 
     res.status(201).json(newTask);
   } catch (error: any) {
