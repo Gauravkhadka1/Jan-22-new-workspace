@@ -82,4 +82,17 @@ body,
   body {
     @apply bg-background text-foreground;
   }
+/* Custom Scrollbar Styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px; /* Makes the scrollbar thinner */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6; /* Light gray track */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #c1c3c9; /* Darker thumb */
+  border-radius: 10px;
+}
 }

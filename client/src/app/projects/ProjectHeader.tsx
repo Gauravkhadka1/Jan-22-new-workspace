@@ -25,7 +25,7 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
         isOpen={isModalNewProjectOpen}
         onClose={() => setIsModalNewProjectOpen(false)}
       />
-      <div className="pb-6 pt-6 lg:pb-4 lg:pt-8">
+      <div className="flex pb-6 pt-6 lg:pb-4 lg:pt-8">
         <Header
           name="Projects"
           buttonComponent={
@@ -37,52 +37,14 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
             </button>
           }
         />
-      </div>
-
-      {/* TABS */}
-      <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark md:items-center">
-        <div className="flex flex-1 items-center gap-2 md:gap-4">
-          <TabButton
-            name="Board"
-            icon={<Grid3x3 className="h-5 w-5" />}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-          />
-          {/* <TabButton
-            name="List"
-            icon={<List className="h-5 w-5" />}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-          />
-          <TabButton
-            name="Timeline"
-            icon={<Clock className="h-5 w-5" />}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-          />
-          <TabButton
-            name="Table"
-            icon={<Table className="h-5 w-5" />}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-          /> */}
-        </div>
-        <div className="flex items-center gap-2">
-          {/* <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
-            <Filter className="h-5 w-5" />
-          </button>
-          <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
-            <Share2 className="h-5 w-5" />
-          </button> */}
-          <div className="relative">
+        <div className="relative mx-3">
             <input
               type="text"
               placeholder="Search Project"
-              className="rounded-md border py-1 pl-10 pr-4 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-white"
+              className="rounded-md border py-2 pl-6 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-white"
             />
-            <Grid3x3 className="absolute left-3 top-2 h-4 w-4 text-gray-400 dark:text-neutral-500" />
+            {/* <Grid3x3 className="absolute left-3 top-2 h-4 w-4 text-gray-400 dark:text-neutral-500" /> */}
           </div>
-        </div>
       </div>
     </div>
   );

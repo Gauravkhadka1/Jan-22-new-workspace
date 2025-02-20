@@ -87,7 +87,7 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
         drop(node); // Pass the node to react-dnd drop target
         if (typeof ref === "function") ref(node); // Allow the ref forwarding
       }}
-      className="flex-1 w-1/5 h-[69vh] rounded-lg py-4 xl:px-2"  // Fixed width for equal distribution
+      className="flex-1 w-1/5 h-[69vh] rounded-lg py-4 xl:px-2 -mt-10"  // Fixed width for equal distribution
     >
       <div className="mb-3 flex items-center justify-between bg-white dark:bg-dark-secondary p-4 rounded-md">
         <div className="flex items-center">
@@ -103,9 +103,11 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
           <Plus size={16} />
         </button> */}
       </div>
+      <div className="h-[65vh] overflow-y-auto custom-scrollbar">
       {filteredProjects.map((project) => (
         <Project key={project.id} projectData={project} />
       ))}
+      </div>
     </div>
   );
 });
