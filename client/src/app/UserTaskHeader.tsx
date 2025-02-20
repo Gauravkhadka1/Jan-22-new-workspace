@@ -40,7 +40,7 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
             <Share2 className="h-5 w-5" />
           </button> */}
           <div className="mx-2 mt-2 text-lg font-medium">
-            {user.username} Task's
+            ... Task's
           </div>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2 md:gap-4">
