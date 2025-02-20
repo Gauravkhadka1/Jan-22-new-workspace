@@ -70,14 +70,16 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const assigningUser = yield prisma.user.findUnique({
             where: { email: assignedBy }, // Look up by email instead of userId
         });
-        if (assignedUser && assignedUser.email && assigningUser) {
+        const project = yield prisma.project.findUnique({
+            where: { id: Number(projectId) },
+            select: { name: true }, // Only fetch the project name
+        });
+        if (assignedUser && assignedUser.email && assigningUser && project) {
             const emailSubject = `New Task Assigned: ${newTask.title}`;
             const emailMessage = `
-        <p><strong>${assigningUser.username}</strong> assigned you a new task: <strong>${newTask.title}</strong></p>
+        <p><strong>${assigningUser.username}</strong> assigned you a new task: <strong>${newTask.title}</strong> in <strong>${project.name}</strong></p>
         <p><strong>Start Date:</strong> ${newTask.startDate}</p>
-        <p><strong>Due Date:</strong> ${newTask.dueDate}</p>
-        <p><strong>Description:</strong> ${newTask.description}</p>
-        <p><strong>Priority:</strong> ${newTask.priority}</p>
+        <p><strong>Due Date:</strong> ${newTask.dueDate}</p>  
       `;
             sendMail(assignedUser.email, emailSubject, emailMessage);
         }
