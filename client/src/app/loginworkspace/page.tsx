@@ -51,6 +51,7 @@ const LoginForm = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 shadow-lg rounded-2xl">
+        <img src="wtn-logo-black.svg" alt="" />
         <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
           Login to Your Account
         </h2>
@@ -95,9 +96,9 @@ const LoginForm = () => {
               <input type="checkbox" className="w-4 h-4 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600" />
               <span className="ml-2">Remember Me</span>
             </label>
-            <Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">
+            {/* <Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">
               Forgot Password?
-            </Link>
+            </Link> */}
           </div>
 
           {/* Login Button */}
