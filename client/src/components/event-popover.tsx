@@ -1,12 +1,13 @@
 import { useGetProjectsQuery, useCreateTaskMutation, useGetUsersQuery } from "@/state/api";
 import Modal from "@/components/Modal";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { formatISO } from "date-fns";
 import { Status, Priority } from "@/state/api"; 
 import { setHours } from "date-fns/setHours";
 import { setMinutes } from "date-fns/setMinutes";
+import { useAuth } from "@/context/AuthContext";
 
 type Props = {
   isOpen: boolean;
@@ -15,6 +16,8 @@ type Props = {
 };
 
 const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
+  const { user } = useAuth(); // Get logged-in user from AuthContext
+  const loggedInUserEmail = user?.email || ""; // Extract email
   const [createTask, { isLoading }] = useCreateTaskMutation();
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
   const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
@@ -31,7 +34,13 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false); // Track if dropdown is open
 
-  const assignedBy = "test@test";
+  const assignedBy = loggedInUserEmail; 
+
+  useEffect(() => {
+    if (loggedInUserEmail) {
+      setAssignedTo(loggedInUserEmail);
+    }
+  }, [loggedInUserEmail]);
 
   const handleSubmit = async () => {
     if (!title || !assignedBy || !(id !== null || projectId) || !startDate || !dueDate) return;

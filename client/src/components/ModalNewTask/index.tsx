@@ -7,6 +7,7 @@ import { formatISO } from "date-fns";
 import { Status, Priority } from "@/state/api";
 import { setHours } from "date-fns/setHours";
 import { setMinutes } from "date-fns/setMinutes";
+import { useAuth } from "@/context/AuthContext";
 
 type Props = {
   isOpen: boolean;
@@ -16,6 +17,7 @@ type Props = {
 };
 
 const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
+  const { user } = useAuth();
   const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation(); // Add mutation for updating tasks
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
@@ -33,7 +35,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
 
-  const assignedBy = "test@test"; // Replace with actual user data if available
+  const assignedBy = user?.username || ""; // Replace with actual user data if available
 
   // Prefill the form with task data when editing
   useEffect(() => {
