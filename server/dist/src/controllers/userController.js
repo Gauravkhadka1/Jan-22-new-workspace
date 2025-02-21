@@ -58,7 +58,7 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Check if user exists
         const user = yield prisma.user.findUnique({
             where: { email },
-            select: { userId: true, email: true, password: true, username: true, profilePictureUrl: true },
+            select: { userId: true, email: true, password: true, username: true, profilePictureUrl: true, role: true },
         });
         if (!user || !user.password) {
             res.status(401).json({ message: "Invalid credentials" });
@@ -75,7 +75,7 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.json({
             message: "Login successful",
             token,
-            user: { id: user.userId, email: user.email, username: user.username }
+            user: { id: user.userId, email: user.email, username: user.username, role: user.role }
         });
     }
     catch (error) {
@@ -108,7 +108,7 @@ const getUserByEmail = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const { email } = req.params;
         const user = yield prisma.user.findUnique({
             where: { email },
-            select: { userId: true, username: true, email: true, profilePictureUrl: true },
+            select: { userId: true, username: true, email: true, profilePictureUrl: true, role: true },
         });
         if (!user) {
             res.status(404).json({ message: "User not found" });

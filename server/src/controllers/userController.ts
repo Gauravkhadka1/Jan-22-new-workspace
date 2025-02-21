@@ -51,7 +51,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     // Check if user exists
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { userId: true, email: true, password: true, username: true, profilePictureUrl: true },
+      select: { userId: true, email: true, password: true, username: true, profilePictureUrl: true, role: true },
     });
     
 
@@ -74,7 +74,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     res.json({ 
       message: "Login successful", 
       token, 
-      user: { id: user.userId, email: user.email, username: user.username } 
+      user: { id: user.userId, email: user.email, username: user.username, role:user.role } 
     });
     
   } catch (error: any) {
@@ -107,7 +107,7 @@ export const getUserByEmail = async (req: Request, res: Response): Promise<void>
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { userId: true, username: true, email: true, profilePictureUrl: true },
+      select: { userId: true, username: true, email: true, profilePictureUrl: true, role: true },
     });
 
     if (!user) {

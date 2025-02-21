@@ -1,7 +1,6 @@
 "use client";
 import { useGetUsersQuery } from "@/state/api";
 import React from "react";
-import { useAppSelector } from "../redux";
 import Header from "@/components/Header";
 import withAuth from "../../hoc/withAuth";
 import {
@@ -11,9 +10,9 @@ import {
   GridToolbarExport,
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
-import Image from "next/image";
-// import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
 import Link from "next/link";
+import { Select } from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 const CustomToolbar = () => (
   <GridToolbarContainer className="toolbar flex gap-2">
@@ -22,41 +21,41 @@ const CustomToolbar = () => (
   </GridToolbarContainer>
 );
 
-const columns: GridColDef[] = [
-  { field: "userId", headerName: "ID", width: 100 },
-  {
-    field: "username",
-    headerName: "Username",
-    width: 150,
-    renderCell: (params) => (
-      <Link href={`/usertasks/${params.row.userId}`} className="text-blue-500 hover:underline">
-        {params.value}  {/* Displaying the username */}
-      </Link>
-    ),
-  },
-  {
-    field: "profilePictureUrl",
-    headerName: "Profile Picture",
-    width: 100,
-    renderCell: (params) => (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="h-9 w-9">
-          <Image
-            src={`https://pm-s3-images.s3.us-east-2.amazonaws.com/${params.value}`}
-            alt={params.row.username}
-            width={100}
-            height={50}
-            className="h-full rounded-full object-cover"
-          />
-        </div>
-      </div>
-    ),
-  },
-];
-
 const Users = () => {
   const { data: users, isLoading, isError } = useGetUsersQuery();
-  const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
+  const { user } = useAuth(); // Get logged-in user from AuthContext
+  const isAdmin = user?.role === "ADMIN"; // Check if the logged-in user is an admin
+
+  // Define columns conditionally
+  const columns: GridColDef[] = [
+    { field: "userId", headerName: "ID", width: 100 },
+    {
+      field: "username",
+      headerName: "Username",
+      width: 150,
+      renderCell: (params) => (
+        <Link href={`/usertasks/${params.row.userId}`} className="text-blue-500 hover:underline">
+          {params.value}
+        </Link>
+      ),
+    },
+  ];
+
+  // Add the Role column only if the user is an admin
+  if (isAdmin) {
+    columns.push({
+      field: "role",
+      headerName: "Role",
+      width: 100,
+      renderCell: (params) => (
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="h-9 w-9">
+            <Select />
+          </div>
+        </div>
+      ),
+    });
+  }
 
   if (isLoading) return <div>Loading...</div>;
   if (isError || !users) return <div>Error fetching users</div>;
@@ -73,8 +72,6 @@ const Users = () => {
           slots={{
             toolbar: CustomToolbar,
           }}
-          // className={dataGridClassNames}
-          // sx={dataGridSxStyles(isDarkMode)}
         />
       </div>
     </div>

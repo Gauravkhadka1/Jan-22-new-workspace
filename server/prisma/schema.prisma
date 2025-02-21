@@ -17,17 +17,19 @@ datasource db {
 model User {
   userId            Int     @id @default(autoincrement())
   username          String?
-  email          String @unique
+  email             String  @unique
   profilePictureUrl String?
-  password String?
+  password          String?
+  role              Role    @default(MANAGER) // New column with default role
+
 }
-model newUser {
-  userId            Int     @id @default(autoincrement())
-  username          String?
-  email          String @unique
-  profilePictureUrl String?
-  password String?
+
+enum Role {
+  ADMIN
+  MANAGER
+  INTERN
 }
+
 
 model Project {
   id           Int           @id @default(autoincrement())
