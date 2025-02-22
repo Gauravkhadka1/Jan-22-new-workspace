@@ -75,13 +75,15 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             where: { id: Number(projectId) },
             select: { name: true }, // Only fetch the project name
         });
-        const formatNepalTime = (dateValue) => {
+        const formatNepaliTime = (dateValue) => {
             if (!dateValue)
                 return "N/A"; // Return "N/A" or an empty string if the date is null
             return (0, date_fns_tz_1.format)(dateValue, "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
         };
         if (assignedUser && assignedUser.email && assigningUser && project) {
             const emailSubject = `New Task Assigned: ${newTask.title}`;
+            const formattedStartDate = formatNepaliTime(newTask.startDate); // Convert UTC to Nepali Time
+            const formattedDueDate = formatNepaliTime(newTask.dueDate); // Convert UTC to Nepali Time
             // Email for the assigned user
             const assignedUserMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
@@ -90,8 +92,8 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned you a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-            <p><strong>Start Date:</strong> ${formatNepalTime(newTask.startDate)}</p>
-            <p><strong>Due Date:</strong> ${formatNepalTime(newTask.dueDate)}</p>
+            <p><strong>Start Date:</strong> ${formattedStartDate}</p>
+        <p><strong>Due Date:</strong> ${formattedDueDate}</p>
           </div>
         </div>
       `;
@@ -103,8 +105,8 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned <strong style="color: #2c3e50;">${assignedUser.username}</strong> a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-            <p><strong>Start Date:</strong> ${formatNepalTime(newTask.startDate)}</p>
-            <p><strong>Due Date:</strong> ${formatNepalTime(newTask.dueDate)}</p>
+            <p><strong>Start Date:</strong> ${formattedStartDate}</p>
+        <p><strong>Due Date:</strong> ${formattedDueDate}</p>
           </div>
         </div>
       `;
