@@ -139,3 +139,28 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ message: `Error deleting user: ${error.message}` });
   }
 };
+
+export const updateUserRole = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    // Validate role input
+    const validRoles = ["ADMIN", "MANAGER", "INTERN"];
+    if (!validRoles.includes(role)) {
+      res.status(400).json({ message: "Invalid role selected" });
+      return;
+    }
+
+    // Update the user's role in the database
+    const updatedUser = await prisma.user.update({
+      where: { userId: Number(userId) }, 
+      data: { role },
+    });
+
+    res.json({ message: "User role updated successfully", user: updatedUser });
+  } catch (error: any) {
+    console.error("Error updating user role:", error);
+    res.status(500).json({ message: `Error updating user role: ${error.message}` });
+  }
+};

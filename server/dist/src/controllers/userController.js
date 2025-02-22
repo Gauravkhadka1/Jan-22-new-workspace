@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.getUserByEmail = exports.getUsers = exports.loginUser = exports.createUser = void 0;
+exports.updateUserRole = exports.deleteUser = exports.getUserByEmail = exports.getUsers = exports.loginUser = exports.createUser = void 0;
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -139,3 +139,26 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.deleteUser = deleteUser;
+const updateUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.params;
+        const { role } = req.body;
+        // Validate role input
+        const validRoles = ["ADMIN", "MANAGER", "INTERN"];
+        if (!validRoles.includes(role)) {
+            res.status(400).json({ message: "Invalid role selected" });
+            return;
+        }
+        // Update the user's role in the database
+        const updatedUser = yield prisma.user.update({
+            where: { userId: Number(userId) },
+            data: { role },
+        });
+        res.json({ message: "User role updated successfully", user: updatedUser });
+    }
+    catch (error) {
+        console.error("Error updating user role:", error);
+        res.status(500).json({ message: `Error updating user role: ${error.message}` });
+    }
+});
+exports.updateUserRole = updateUserRole;

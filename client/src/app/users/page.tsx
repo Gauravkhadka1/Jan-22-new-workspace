@@ -1,5 +1,5 @@
 "use client";
-import { useGetUsersQuery } from "@/state/api";
+import { useGetUsersQuery, useUpdateUserRoleMutation } from "@/state/api";
 import React from "react";
 import Header from "@/components/Header";
 import withAuth from "../../hoc/withAuth";
@@ -11,10 +11,9 @@ import {
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
 import Link from "next/link";
-import { Select } from "@/components/ui/select";
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
-
-
+import { useAuth } from "@/context/AuthContext"; 
+ // For notifications
+import { toast } from "react-toastify";
 const CustomToolbar = () => (
   <GridToolbarContainer className="toolbar flex gap-2">
     <GridToolbarFilterButton />
@@ -24,8 +23,10 @@ const CustomToolbar = () => (
 
 const Users = () => {
   const { data: users, isLoading, isError } = useGetUsersQuery();
-  const { user } = useAuth(); // Get logged-in user from AuthContext
-  const isAdmin = user?.role === "ADMIN"; // Check if the logged-in user is an admin
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
+
+  const [updateUserRole, { isLoading: isUpdating }] = useUpdateUserRoleMutation();
 
   // Define columns conditionally
   const columns: GridColDef[] = [
@@ -42,22 +43,42 @@ const Users = () => {
     },
   ];
 
-  // Add the Role column only if the user is an admin
   if (isAdmin) {
     columns.push({
       field: "role",
       headerName: "Role",
-      width: 100,
-      renderCell: (params) => (
-        <div className="flex h-full w-full items-center justify-center">
-          <div className="h-9 w-9">
-            {params.row.role || "N/A"}
-          </div>
-        </div>
-      ),
+      width: 150,
+      renderCell: (params) => {
+        const [role, setRole] = React.useState(params.row.role || "INTERN");
+
+        const handleRoleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
+          const newRole = event.target.value;
+          setRole(newRole);
+
+          try {
+            await updateUserRole({ userId: params.row.userId, role: newRole }).unwrap();
+            toast.success("User role updated successfully!");
+          } catch (error) {
+            console.error("Error updating role:", error);
+            toast.error("Failed to update role. Please try again.");
+          }
+        };
+
+        return (
+          <select
+            value={role}
+            onChange={handleRoleChange}
+            className="border rounded px-2 py-1"
+            disabled={isUpdating}
+          >
+            <option value="ADMIN">ADMIN</option>
+            <option value="MANAGER">MANAGER</option>
+            <option value="INTERN">INTERN</option>
+          </select>
+        );
+      },
     });
   }
-  
 
   if (isLoading) return <div>Loading...</div>;
   if (isError || !users) return <div>Error fetching users</div>;
@@ -71,9 +92,7 @@ const Users = () => {
           columns={columns}
           getRowId={(row) => row.userId}
           pagination
-          slots={{
-            toolbar: CustomToolbar,
-          }}
+          slots={{ toolbar: CustomToolbar }}
         />
       </div>
     </div>

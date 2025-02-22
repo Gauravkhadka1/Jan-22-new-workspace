@@ -14,6 +14,7 @@ router.post("/login", userController_1.loginUser); // <-- Add this line
 router.get("/", userController_1.getUsers);
 // Get a user by email
 router.get("/:email", userController_1.getUserByEmail);
+router.put("/role/:userId", userController_1.updateUserRole);
 // Delete a user by email
 router.delete("/:email", userController_1.deleteUser);
 exports.default = router;

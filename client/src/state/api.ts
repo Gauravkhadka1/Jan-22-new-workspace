@@ -200,6 +200,17 @@ export const api = createApi({
       }),
       invalidatesTags: ["Users"],
    }),
+
+   updateUserRole: build.mutation<void, { userId: number; role: string }>({
+    query: ({ userId, role }) => ({
+      url: `users/role/${userId}`, // Match backend route
+      method: "PUT", // Change to PUT
+      body: { role },
+    }),
+    invalidatesTags: ["Users"],
+  }),
+  
+  
    
     getTeams: build.query<Team[], void>({
       query: () => "teams",
@@ -222,6 +233,7 @@ export const {
   useUpdateProjectStatusMutation,
   useSearchQuery,
   useGetUsersQuery,
+  useUpdateUserRoleMutation,
   useDeleteUserMutation, 
   useGetTeamsQuery,
   useGetTasksByUserQuery,
