@@ -92,8 +92,7 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned you a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-            <p><strong>Start Date:</strong> ${formattedStartDate}</p>
-        <p><strong>Due Date:</strong> ${formattedDueDate}</p>
+       
           </div>
         </div>
       `;
@@ -105,8 +104,7 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned <strong style="color: #2c3e50;">${assignedUser.username}</strong> a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-            <p><strong>Start Date:</strong> ${formattedStartDate}</p>
-        <p><strong>Due Date:</strong> ${formattedDueDate}</p>
+     
           </div>
         </div>
       `;
