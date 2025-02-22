@@ -90,7 +90,7 @@ exports.loginUser = loginUser;
 const getUsers = (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const users = yield prisma.user.findMany({
-            select: { userId: true, username: true, email: true, profilePictureUrl: true },
+            select: { userId: true, username: true, email: true, profilePictureUrl: true, role: true },
         });
         res.json(users);
     }

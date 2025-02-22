@@ -32,6 +32,7 @@ export interface User {
   profilePictureUrl?: string;
   cognitoId?: string;
   teamId?: number;
+  role?: string; 
 }
 
 export interface Attachment {

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { Select } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
+
 const CustomToolbar = () => (
   <GridToolbarContainer className="toolbar flex gap-2">
     <GridToolbarFilterButton />
@@ -50,12 +51,13 @@ const Users = () => {
       renderCell: (params) => (
         <div className="flex h-full w-full items-center justify-center">
           <div className="h-9 w-9">
-            <Select />
+            {params.row.role || "N/A"}
           </div>
         </div>
       ),
     });
   }
+  
 
   if (isLoading) return <div>Loading...</div>;
   if (isError || !users) return <div>Error fetching users</div>;

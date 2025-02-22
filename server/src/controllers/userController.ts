@@ -89,7 +89,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 export const getUsers = async (_req: Request, res: Response): Promise<void> => {
   try {
     const users = await prisma.user.findMany({
-      select: { userId: true, username: true, email: true, profilePictureUrl: true },
+      select: { userId: true, username: true, email: true, profilePictureUrl: true, role:true },
     });
     res.json(users);
   } catch (error: any) {
