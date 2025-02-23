@@ -109,8 +109,9 @@ export const api = createApi({
 
           const userDetailsResponse = await fetchWithBQ(`users/${userSub}`);
           const userDetails = userDetailsResponse.data as User;
+          const role = userDetails?.role || "DEFAULT_ROLE"; // default role if not found
 
-          return { data: { user, userSub, userDetails } };
+          return { data: { user, userSub, userDetails, role } };
         } catch (error: any) {
           return { error: error.message || "Could not fetch user data" };
         }
