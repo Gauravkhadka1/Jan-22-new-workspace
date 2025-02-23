@@ -2,7 +2,8 @@
 import { useGetUsersQuery, useUpdateUserRoleMutation } from "@/state/api";
 import React from "react";
 import Header from "@/components/Header";
-import withAuth from "../../hoc/withAuth";
+import withRoleAuth from "../../hoc/withRoleAuth";
+
 import {
   DataGrid,
   GridColDef,
@@ -99,4 +100,4 @@ const Users = () => {
   );
 };
 
-export default withAuth(Users);
+export default withRoleAuth(Users, ["ADMIN", "MANAGER"]);

@@ -2,6 +2,7 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/state";
+import withRoleAuth from "../../hoc/withRoleAuth";
 import { useGetAuthUserQuery, useGetProjectsQuery } from "@/state/api";
 import { signOut } from "aws-amplify/auth";
 import {
@@ -28,15 +29,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 
-const Sidebar = () => {
+const Sidebar = ({ role }: { role: string }) => {
   const [showProjects, setShowProjects] = useState(true);
-  const [showPriority, setShowPriority] = useState(true);
-
-
   const dispatch = useAppDispatch();
   const isSidebarCollapsed = useAppSelector(
-    (state) => state.global.isSidebarCollapsed,
+    (state) => state.global.isSidebarCollapsed
   );
+
+  const { data: currentUser } = useGetAuthUserQuery({});
 
   // const { data: currentUser } = useGetAuthUserQuery({});
   const handleSignOut = async () => {
@@ -53,6 +53,7 @@ const Sidebar = () => {
     transition-all duration-300 h-full z-40 dark:bg-black overflow-y-auto bg-white
     ${isSidebarCollapsed ? "w-0 hidden" : "w-64"}
   `;
+  const isAdminOrManager = role === "ADMIN" || role === "MANAGER";
 
   return (
     <div className={sidebarClassNames}>
@@ -81,12 +82,17 @@ const Sidebar = () => {
         {/* NAVBAR LINKS */}
         <nav className="z-10 w-full mt-6">
           <SidebarLink icon={Home} label="Home" href="/dashboard" />
-          <SidebarLink icon={FolderCode} label="Projects" href="/projects" />
+            {/* Conditionally render Projects and Teams links based on user role */}
+          {isAdminOrManager && (
+            <>
+              <SidebarLink icon={FolderCode} label="Projects" href="/projects" />
+              <SidebarLink icon={Users} label="Teams" href="/users" />
+            </>
+          )}
           {/* <SidebarLink icon={User} label="My Tasks" href="/mytasks" /> */}
           {/* <SidebarLink icon={Briefcase} label="Timeline" href="/timeline" /> */}
           {/* <SidebarLink icon={Search} label="Search" href="/search" /> */}
           {/* <SidebarLink icon={Settings} label="Settings" href="/settings" /> */}
-          <SidebarLink icon={Users} label="Teams" href="/users" />
           {/* <SidebarLink icon={Users} label="Teams" href="/teams" /> */}
          
         </nav>
