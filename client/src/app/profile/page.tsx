@@ -38,12 +38,12 @@ const ProfilePage = () => {
             >
               Logout
             </button>
-            {/* <button
+            <button
               onClick={handleDelete}
               className="mt-4 w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 focus:outline-none"
             >
               Delete Account
-            </button> */}
+            </button>
           </>
         ) : (
           <p className="mt-4 text-gray-600 dark:text-gray-400">You are not logged in.</p>
