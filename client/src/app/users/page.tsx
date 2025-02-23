@@ -25,7 +25,7 @@ const CustomToolbar = () => (
 const Users = () => {
   const { data: users, isLoading, isError } = useGetUsersQuery();
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === "MANAGER";
 
   const [updateUserRole, { isLoading: isUpdating }] = useUpdateUserRoleMutation();
 
