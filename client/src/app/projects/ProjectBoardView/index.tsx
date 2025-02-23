@@ -130,6 +130,18 @@ const Project = ({ projectData }: ProjectProps) => {
   // Attach the drag source to the element ref
   drag(dragRef);
 
+  if (projectData.status === "Completed") {
+    return (
+      <div ref={dragRef} className={`mb-4 p-4 rounded-md shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}>
+        <h4 className="font-bold text-sm break-words dark:text-gray-200">
+          <Link href={`/projects/${projectData.id}`}>
+            {projectData.name}
+          </Link>
+        </h4>
+      </div>
+    );
+  }
+
   const formattedStartDate = projectData.startDate
     ? format(new Date(projectData.startDate), "P")
     : "";
@@ -152,6 +164,7 @@ const Project = ({ projectData }: ProjectProps) => {
     statusText = `Overdue by ${daysPast} days`;
     textColor = "#b13a41"; // Red color for overdue
   }
+
 
   return (
     <div
