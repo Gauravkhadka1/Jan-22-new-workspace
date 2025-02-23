@@ -179,7 +179,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
   // Calculate time left
   const getTimeLeft = () => {
-    if (!task.dueDate) return null;
+    if (!task.dueDate || task.status === "Under Review" || task.status === "Completed") return null;
 
     const now = new Date();
     const dueDate = new Date(task.dueDate);

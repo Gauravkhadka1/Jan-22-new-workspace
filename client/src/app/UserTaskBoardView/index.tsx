@@ -164,12 +164,15 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
           <p className="text-xs mt-2 mb-2 text-gray-500 dark:text-neutral-500">
             Due: {format(new Date(task.dueDate), 'MMM d, yyyy hh:mm a')}
           </p>
-          <p 
-            className="text-xs" 
-            style={{ color: isOverdue(task.dueDate) ? '#ef4444' : '#087641' }}
-          >
-            {getTimeRemaining(task.dueDate)}
-          </p>
+          {task.status !== "Under Review" && task.status !== "Completed" && (
+  <p 
+    className="text-xs" 
+    style={{ color: isOverdue(task.dueDate) ? '#ef4444' : '#087641' }}
+  >
+    {getTimeRemaining(task.dueDate)}
+  </p>
+)}
+
         </div>
       ))}
     </div>
