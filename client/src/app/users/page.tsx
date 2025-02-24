@@ -15,6 +15,9 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext"; 
  // For notifications
 import { toast } from "react-toastify";
+
+const restrictedUserIds = ["12", "9", "8", "7"];
+
 const CustomToolbar = () => (
   <GridToolbarContainer className="toolbar flex gap-2">
     <GridToolbarFilterButton />
@@ -28,6 +31,11 @@ const Users = () => {
   const isAdmin = user?.role === "ADMIN";
 
   const [updateUserRole, { isLoading: isUpdating }] = useUpdateUserRoleMutation();
+
+  const filteredUsers = isAdmin
+  ? users // Admins see all users
+  : users?.filter((user) => !restrictedUserIds.includes(String(user.userId))); // Convert to string
+
 
   // Define columns conditionally
   const columns: GridColDef[] = [
@@ -82,14 +90,14 @@ const Users = () => {
   }
 
   if (isLoading) return <div>Loading...</div>;
-  if (isError || !users) return <div>Error fetching users</div>;
+  if (isError || !filteredUsers) return <div>Error fetching users</div>;
 
   return (
     <div className="flex w-full flex-col p-8">
       <Header name="Users" />
       <div style={{ height: 650, width: "100%" }}>
         <DataGrid
-          rows={users || []}
+           rows={filteredUsers}
           columns={columns}
           getRowId={(row) => row.userId}
           pagination
