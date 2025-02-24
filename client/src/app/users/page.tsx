@@ -39,8 +39,10 @@ const Users = () => {
   }
 
   // Sort users based on custom order
-  filteredUsers.sort((a, b) => {
-    return customOrder.indexOf(String(a.userId)) - customOrder.indexOf(String(b.userId));
+  filteredUsers = [...filteredUsers].sort((a, b) => {
+    const indexA = customOrder.indexOf(String(a.userId) || "");
+    const indexB = customOrder.indexOf(String(b.userId) || "");
+    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
   });
 
   // Add serial numbers
