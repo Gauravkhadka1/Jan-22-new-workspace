@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-toastify";
 
 const restrictedUserIds = ["12", "9", "8", "7"];
+const customOrder = ["3", "5", "11", "2", "4", "10", "13", "14", "15", "12", "9", "8", "7"];
 
 const CustomToolbar = () => (
   <GridToolbarContainer className="toolbar flex gap-2">
@@ -29,17 +30,32 @@ const Users = () => {
   const { data: users, isLoading, isError } = useGetUsersQuery();
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  let filteredUsers = users || [];
 
   const [updateUserRole, { isLoading: isUpdating }] = useUpdateUserRoleMutation();
 
-  const filteredUsers = isAdmin
-  ? users // Admins see all users
-  : users?.filter((user) => !restrictedUserIds.includes(String(user.userId))); // Convert to string
+  if (!isAdmin) {
+    filteredUsers = filteredUsers.filter((user) => !restrictedUserIds.includes(String(user.userId)));
+  }
 
+  // Sort users based on custom order
+  filteredUsers.sort((a, b) => {
+    return customOrder.indexOf(String(a.userId)) - customOrder.indexOf(String(b.userId));
+  });
+
+  // Add serial numbers
+  filteredUsers = filteredUsers.map((user, index) => ({
+    ...user,
+    serialNo: index + 1, // Serial number
+  }));
 
   // Define columns conditionally
   const columns: GridColDef[] = [
-    { field: "userId", headerName: "ID", width: 100 },
+    {
+      field: "serialNo",
+      headerName: "S.No.",
+      width: 100,
+    },
     {
       field: "username",
       headerName: "Username",
