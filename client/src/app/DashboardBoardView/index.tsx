@@ -144,12 +144,13 @@ const TaskColumn = ({
           </div>
         </div>
       </div>
-
+      <div className="h-[65vh] overflow-y-auto custom-scrollbar">
       {tasks
         .filter((task) => task.status === status)
         .map((task) => (
           <Task key={task.id} task={task} getProjectName={getProjectName} />
         ))}
+        </div>
     </div>
   );
 };

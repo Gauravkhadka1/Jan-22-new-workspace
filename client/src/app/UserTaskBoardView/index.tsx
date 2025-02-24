@@ -153,6 +153,7 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
           </div>
         </div>
       </div>
+      <div className="h-[65vh] overflow-y-auto custom-scrollbar">
 
       {tasks.filter((task) => task.status === status).map((task) => (
         <div key={task.id} className="p-4 mb-4 bg-white rounded-md shadow dark:bg-dark-secondary">
@@ -172,9 +173,11 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
     {getTimeRemaining(task.dueDate)}
   </p>
 )}
+ </div>
 
-        </div>
+       
       ))}
+    </div>
     </div>
   );
 };
