@@ -8,7 +8,7 @@ import { useAuth } from "../../../context/AuthContext"; // Import the custom hoo
 import { useGetTasksQuery, useGetTasksByUserQuery, useUpdateTaskStatusMutation, useCreateTaskMutation } from "@/state/api";
 import { Clock } from "lucide-react";
 import DashboardCalendarView from "../../DashboardCalendarUserView";
-import withAuth from "../../../hoc/withAuth";
+import withRoleAuth from "../../../hoc/withRoleAuth";
 
 
 type Props = {
@@ -45,4 +45,4 @@ const Project = ({ params }: Props) => {
   );
 };
 
-export default withAuth(Project);
+export default withRoleAuth(Project, ["ADMIN"], ["12", "9", "8", "7"]);
