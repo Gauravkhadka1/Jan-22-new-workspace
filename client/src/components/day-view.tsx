@@ -208,7 +208,7 @@ export default function DayView() {
                         height: `${height}%`,
                         width: taskWidth,
                         left: taskLeft,
-                        // zIndex: 10,
+                        zIndex: 10,
                       }}
                     >
                         <div className="flex justify-between">
