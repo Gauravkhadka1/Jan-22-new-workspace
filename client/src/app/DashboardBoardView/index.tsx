@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext"; // Import the custom hook
-import { useGetTasksQuery, useGetTasksByUserQuery, useUpdateTaskStatusMutation, useCreateTaskMutation, useGetProjectsQuery } from "@/state/api";
+import {
+  useGetTasksQuery,
+  useGetTasksByUserQuery,
+  useUpdateTaskStatusMutation,
+  useCreateTaskMutation,
+  useGetProjectsQuery,
+  useDeleteTaskMutation,
+} from "@/state/api";
 import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -8,6 +15,9 @@ import { Task as TaskType, ProjectType } from "@/state/api";
 import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import { toast } from "react-toastify";
+import ModalNewTask from "@/components/ModalNewTask";
+// Import the ModalNewTask component
 
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
 
@@ -16,13 +26,19 @@ type BoardProps = {
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
 };
 
-const taskStatus: Status[] = ["To Do", "Work In Progress", "Under Review", "Completed"];
+const taskStatus: Status[] = [
+  "To Do",
+  "Work In Progress",
+  "Under Review",
+  "Completed",
+];
 
 const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const { user } = useAuth(); // Assuming the hook returns the logged-in user
   const userId = user?.id; // Adjust this based on how your user data is structured
   const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
   const { data: projects } = useGetProjectsQuery({});
+
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
   const [createTask] = useCreateTaskMutation();
 
@@ -49,7 +65,8 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   if (error) return <div>An error occurred while fetching tasks</div>;
 
   // Filter tasks assigned to the logged-in user
-  const userTasks = tasks?.filter((task) => String(task.assignedTo) === String(userId)) || [];
+  const userTasks =
+    tasks?.filter((task) => String(task.assignedTo) === String(userId)) || [];
 
   // Function to get project name by projectId
   const getProjectName = (projectId: number) => {
@@ -67,7 +84,7 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
           <TaskColumn
             key={status}
             status={status}
-            tasks={userTasks}  // Pass only the filtered tasks
+            tasks={userTasks} // Pass only the filtered tasks
             moveTask={moveTask}
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
             getProjectName={getProjectName}
@@ -102,6 +119,9 @@ const TaskColumn = ({
   }));
   const tasksCount = tasks.filter((task) => task.status === status).length;
 
+  const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery(
+    {},
+  );
   const statusColor: Record<Status, string> = {
     "To Do": "#2563EB",
     "Work In Progress": "#059669",
@@ -132,7 +152,9 @@ const TaskColumn = ({
             </span>
           </h3>
           <div className="flex items-center gap-1">
-            <button className="flex h-6 w-5 items-center justify-center dark:text-neutral-500">
+            <button
+              className="flex h-6 w-5 items-center justify-center dark:text-neutral-500"
+            >
               <EllipsisVertical size={26} />
             </button>
             <button
@@ -142,15 +164,19 @@ const TaskColumn = ({
               <Plus size={16} />
             </button>
           </div>
+          
         </div>
       </div>
       <div className="h-[65vh] overflow-y-auto custom-scrollbar">
-      {tasks
-        .filter((task) => task.status === status)
-        .map((task) => (
-          <Task key={task.id} task={task} getProjectName={getProjectName} />
-        ))}
-        </div>
+  {tasks
+    .filter((task) => task.status === status)
+    .map((task) => (
+      <div key={task.id} className="relative">
+        <Task key={task.id} task={task} getProjectName={getProjectName} />
+      </div>
+    ))}
+</div>
+
     </div>
   );
 };
@@ -180,7 +206,12 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
   // Calculate time left
   const getTimeLeft = () => {
-    if (!task.dueDate || task.status === "Under Review" || task.status === "Completed") return null;
+    if (
+      !task.dueDate ||
+      task.status === "Under Review" ||
+      task.status === "Completed"
+    )
+      return null;
 
     const now = new Date();
     const dueDate = new Date(task.dueDate);
@@ -210,6 +241,35 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
   const timeLeft = getTimeLeft();
 
+  const [taskOptionsVisible, setTaskOptionsVisible] = useState<
+    Record<string | number, boolean>
+  >({});
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for modal visibility
+  const [selectedTask, setSelectedTask] = useState<any>(null); // State to store the task being edited
+
+  const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
+
+  const handleEditClick = (task: any) => {
+    setSelectedTask(task);
+    setIsEditModalOpen(true);
+  };
+  const handleDeleteClick = async (task: any) => {
+    // Confirm deletion with the user
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      try {
+        await deleteTask(task.id).unwrap();
+        toast.success("Task deleted successfully!");
+        // You might want to refresh the tasks list or update the UI here
+        // For example, you could reload the tasks or update local state
+      } catch (error) {
+        console.error("Failed to delete the task:", error);
+        toast.error("Failed to delete the task!");
+        // Handle error (e.g., show an error message to the user)
+      }
+    }
+  };
+
+
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
   const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
@@ -218,12 +278,12 @@ const Task = ({ task, getProjectName }: TaskProps) => {
         priority === "Urgent"
           ? "bg-red-200 text-red-700"
           : priority === "High"
-          ? "bg-yellow-200 text-yellow-700"
-          : priority === "Medium"
-          ? "bg-green-200 text-green-700"
-          : priority === "Low"
-          ? "bg-blue-200 text-blue-700"
-          : "bg-gray-200 text-gray-700"
+            ? "bg-yellow-200 text-yellow-700"
+            : priority === "Medium"
+              ? "bg-green-200 text-green-700"
+              : priority === "Low"
+                ? "bg-blue-200 text-blue-700"
+                : "bg-gray-200 text-gray-700"
       }`}
     >
       {priority}
@@ -264,16 +324,45 @@ const Task = ({ task, getProjectName }: TaskProps) => {
               ))}
             </div>
           </div>
-          <button className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500">
+          <button className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
+          onClick={(e) => {
+            e.stopPropagation();
+            setTaskOptionsVisible(prev => ({ ...prev, [task.id]: !prev[task.id] }));
+          }}
+          >
             <EllipsisVertical size={26} />
           </button>
+           {/* Task options dropdown - Ensure task is available */}
+        {taskOptionsVisible[task.id] && (
+          <div className="absolute right-0 mt-1 bg-white shadow-lg rounded z-50">
+            <button 
+              className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditClick(task); // Pass the correct task
+              }}
+            >
+              Edit
+            </button>
+            <button 
+              className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(task);
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        )}
         </div>
 
         <div className="my-3 flex justify-between">
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
         </div>
- {/* Show project name */}
- <div className="mt-1 mb-2 text-sm font-semibold text-gray-700 dark:text-neutral-400">
+        {/* Show project name */}
+        <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-neutral-400">
           in {getProjectName(task.projectId)}
         </div>
         <div className="text-xs text-gray-500 dark:text-neutral-500">
@@ -286,6 +375,15 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             {timeLeft}
           </div>
         )}
+          {/* Edit Modal */}
+          {isEditModalOpen && (
+        <ModalNewTask
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          id={selectedTask?.projectId?.toString()} // Pass the projectId
+          task={selectedTask} // Pass the task data for editing
+        />
+      )}
       </div>
     </div>
   );

@@ -101,6 +101,9 @@ export default function DayView() {
     setIsEditModalOpen(true);
    
   };
+  // Assuming you have a function to handle task updates
+
+
   const handleDeleteClick = async (task: any) => {
     // Confirm deletion with the user
     if (window.confirm('Are you sure you want to delete this task?')) {
@@ -269,13 +272,13 @@ export default function DayView() {
 
         {/* Edit Modal */}
         {isEditModalOpen && (
-        <ModalNewTask
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          id={selectedTask?.projectId?.toString()} // Pass the projectId
-          task={selectedTask} // Pass the task data for editing
-        />
-      )}
+  <ModalNewTask
+    isOpen={isEditModalOpen}
+    onClose={() => setIsEditModalOpen(false)}
+    task={selectedTask}
+  // This will trigger the update when the form is submitted
+  />
+)}
     </>
   );
 }
