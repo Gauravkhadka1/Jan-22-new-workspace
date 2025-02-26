@@ -16,7 +16,7 @@ export default function SideBar() {
       )}
     >
       {/* <Create /> */}
-      {/* <SideBarCalendar /> */}
+      <SideBarCalendar />
       {/* <SearchUsers />
       <MyCalendars /> */}
     </aside>
