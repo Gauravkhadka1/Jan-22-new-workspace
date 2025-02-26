@@ -6,11 +6,13 @@ import React, { Fragment } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 
 export default function SideBarCalendar() {
-  const { setMonth, selectedMonthIndex, twoDMonthArray, setDate } = useDateStore();
+  const { setMonth, selectedMonthIndex, twoDMonthArray, setDate, userSelectedDate } = useDateStore(); // Access 'userSelectedDate' from store
 
-  const handleDayClick = (day: Dayjs) => { // Type the 'day' parameter as 'Dayjs'
-    setDate(day); // Assuming setDate is available in your store to set the selected day
+  const handleDayClick = (day: Dayjs) => {
+    setDate(day); // Update the selected date in the store
   };
+
+  console.log("Selected Date: ", userSelectedDate.format("DD-MM-YY")); // Log the selected date
 
   return (
     <div className="my-6 p-2">
@@ -44,19 +46,17 @@ export default function SideBarCalendar() {
 
       {/* Main Content: Weeks and Days */}
       <div className="mt-2 grid grid-cols-[auto_1fr] text-xs">
-        {/* Week Number column */}
-        
         {/* Dates grid */}
         <div className="grid grid-cols-7 grid-rows-5 gap-1 gap-y-3 rounded-sm p-1 text-xs">
           {twoDMonthArray.map((row, i) => (
             <Fragment key={i}>
-              {row.map((day: Dayjs, index) => ( // Type 'day' here too
+              {row.map((day: Dayjs, index) => (
                 <button
                   key={index}
                   className={cn(
                     "flex h-5 w-5 items-center justify-center rounded-full",
-                    day.format("DD-MM-YY") === dayjs().format("DD-MM-YY") &&
-                      "bg-blue-600 text-white",
+                    day.format("DD-MM-YY") === dayjs().format("DD-MM-YY") && "bg-blue-600 text-white", // Current date styling
+                    day.isSame(userSelectedDate, "day") && "bg-blue-200", // Check if the correct class is applied
                   )}
                   onClick={() => handleDayClick(day)} // Pass 'day' here
                 >
