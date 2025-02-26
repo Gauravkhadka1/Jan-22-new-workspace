@@ -205,7 +205,7 @@ export default function DayView() {
                         height: `${height}%`,
                         width: taskWidth,
                         left: taskLeft,
-                        zIndex: 10,
+                        // zIndex: 10,
                       }}
                     >
                         <div className="flex justify-between">
@@ -223,7 +223,10 @@ export default function DayView() {
                         <div>in {projectMap[task.projectId] || "Unknown Project"}</div>
                         
                         {taskOptionsVisible[task.id] && (
-                          <div className="absolute right-0 mt-1 bg-white shadow-lg rounded">
+                <div 
+                className="absolute right-0 mt-1 bg-white shadow-lg rounded z-50">
+              
+
                             <button 
                               className="block px-4 py-2  text-gray-700 hover:bg-gray-100"
                               onClick={(e) => {
