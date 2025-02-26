@@ -8,6 +8,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
 import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
 import { Delete, DeleteIcon, Pencil, SquarePen, Trash2 } from "lucide-react";
+import { toast } from 'react-toastify';
+
 
 
 export default function DayView() {
@@ -97,16 +99,19 @@ export default function DayView() {
   const handleEditClick = (task: any) => {
     setSelectedTask(task);
     setIsEditModalOpen(true);
+   
   };
   const handleDeleteClick = async (task: any) => {
     // Confirm deletion with the user
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
         await deleteTask(task.id).unwrap();
+        toast.success("Task deleted successfully!"); 
         // You might want to refresh the tasks list or update the UI here
         // For example, you could reload the tasks or update local state
       } catch (error) {
         console.error('Failed to delete the task:', error);
+        toast.error("Failed to delete the task!"); 
         // Handle error (e.g., show an error message to the user)
       }
     }

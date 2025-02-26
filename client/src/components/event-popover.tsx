@@ -8,6 +8,8 @@ import { Status, Priority } from "@/state/api";
 import { setHours } from "date-fns/setHours";
 import { setMinutes } from "date-fns/setMinutes";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from 'react-toastify';
+
 
 type Props = {
   isOpen: boolean;
@@ -45,6 +47,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
   const handleSubmit = async () => {
     if (!title || !assignedBy || !(id !== null || projectId) || !startDate || !dueDate) return;
 
+    try{
     const newTask = await createTask({
       title,
       description,
@@ -56,12 +59,18 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
       assignedTo,
       projectId: id !== null ? Number(id) : Number(projectId),
       assignedBy,
-    });
-    if (newTask) {
-      // Assuming `onClose` closes the modal, and you can optionally pass the new task to a parent component or update the local state
-      onClose();
-    }
-  };
+    }).unwrap();
+
+    toast.success("Task created successfully!");
+
+    // Close the modal after successful task creation
+    onClose();
+  } catch (error) {
+    console.error("Error creating task:", error);
+    // Error toast notification
+    toast.error("Failed to create task. Please try again.");
+  }
+};
 
   // Filter and sort projects based on search keyword
   const filteredProjects = projects

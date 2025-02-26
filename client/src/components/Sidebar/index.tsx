@@ -49,7 +49,7 @@ const Sidebar = () => {
         <div className="z-50 flex min-h-[56px] w-64 items-center justify-between bg-white px-6 pt-3 dark:bg-black">
           <Link href="/dashboard" className="text-sm font-medium text-blue-500 hover:underline">
             <div className="text-xl font-bold text-gray-800 dark:text-white">
-              <Image src={"wtn-logo-black.svg"} alt="logo" width={300} height={20} />
+              <Image src={"https://pm-s3-images-webtech.s3.us-east-1.amazonaws.com/wtn-logo-black.svg"} alt="logo" width={300} height={20} />
             </div>
           </Link>
         </div>

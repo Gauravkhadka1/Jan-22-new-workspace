@@ -51,7 +51,7 @@ const LoginForm = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 shadow-lg rounded-2xl">
-        <img src="wtn-logo-black.svg" alt="" />
+        <img src="https://pm-s3-images-webtech.s3.us-east-1.amazonaws.com/wtn-logo-black.svg" alt="" />
         <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
           Login to Your Account
         </h2>
