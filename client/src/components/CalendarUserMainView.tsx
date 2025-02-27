@@ -284,6 +284,13 @@ export default function DayView() {
             </div>
           </div>
         </ScrollArea>
+        {isPopoverOpen && (
+        <EventPopover
+          isOpen={isPopoverOpen}
+          onClose={closePopover}
+          // date={userSelectedDate.format("YYYY-MM-DD")}
+        />
+      )}
           {/* Edit Modal */}
           {isEditModalOpen && (
   <ModalNewTask
