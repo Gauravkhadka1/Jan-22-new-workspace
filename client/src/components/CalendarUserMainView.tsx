@@ -284,6 +284,15 @@ export default function DayView() {
             </div>
           </div>
         </ScrollArea>
+          {/* Edit Modal */}
+          {isEditModalOpen && (
+  <ModalNewTask
+    isOpen={isEditModalOpen}
+    onClose={() => setIsEditModalOpen(false)}
+    task={selectedTask}
+  // This will trigger the update when the form is submitted
+  />
+)}
       </div>
     </div>
   );
