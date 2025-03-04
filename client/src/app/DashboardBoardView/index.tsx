@@ -124,9 +124,9 @@ const TaskColumn = ({
   );
   const statusColor: Record<Status, string> = {
     "To Do": "#2563EB",
-    "Work In Progress": "#059669",
-    "Under Review": "#D97706",
-    Completed: "#000000",
+    "Work In Progress": "#F87645",
+    "Under Review": "#9772EC",
+    Completed: "#3DA44B",
   };
 
   return (
@@ -155,7 +155,7 @@ const TaskColumn = ({
             <button
               className="flex h-6 w-5 items-center justify-center dark:text-neutral-500"
             >
-              <EllipsisVertical size={26} />
+              {/* <EllipsisVertical size={26} /> */}
             </button>
             <button
               className="flex h-6 w-6 items-center justify-center rounded bg-gray-200 dark:bg-dark-tertiary dark:text-white"
