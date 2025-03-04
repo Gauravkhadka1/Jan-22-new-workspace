@@ -334,7 +334,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           </button>
            {/* Task options dropdown - Ensure task is available */}
         {taskOptionsVisible[task.id] && (
-          <div className="absolute right-0 mt-1 bg-white shadow-lg rounded z-50">
+          <div className="absolute right-0 mt-6 bg-white shadow-lg rounded z-50">
             <button 
               className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
               onClick={(e) => {

@@ -246,7 +246,7 @@ export default function DayView() {
                           {taskOptionsVisible[task.id] && (
                             <div className="absolute right-0 mt-1 bg-white shadow-lg rounded">
                               <button 
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-4 text-sm text-gray-700 hover:bg-gray-100"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleEditClick(task); // Open the edit modal with the current task

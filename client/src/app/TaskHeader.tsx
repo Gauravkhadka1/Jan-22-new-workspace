@@ -44,15 +44,15 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
           </div>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2 md:gap-4">
-          <TabButton
-            name="Calendar"
-            icon={<Calendar className="h-5 w-5" />}
+        <TabButton
+            name="Board"
+            icon={<Grid3x3 className="h-5 w-5" />}
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
           <TabButton
-            name="Board"
-            icon={<Grid3x3 className="h-5 w-5" />}
+            name="Calendar"
+            icon={<Calendar className="h-5 w-5" />}
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
