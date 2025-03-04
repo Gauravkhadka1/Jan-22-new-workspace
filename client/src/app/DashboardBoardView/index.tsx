@@ -198,11 +198,13 @@ const Task = ({ task, getProjectName }: TaskProps) => {
   const taskTagsSplit = task.tags ? task.tags.split(",") : [];
 
   const formattedStartDate = task.startDate
-    ? format(new Date(task.startDate), "P")
-    : "";
-  const formattedDueDate = task.dueDate
-    ? format(new Date(task.dueDate), "P")
-    : "";
+  ? format(new Date(task.startDate), "MMM d, h:mm a") // Example: Mar 10, 10:00 am
+  : "";
+
+const formattedDueDate = task.dueDate
+  ? format(new Date(task.dueDate), "MMM d, h:mm a") // Example: Apr 12, 2:00 pm
+  : "";
+
 
   // Calculate time left
   const getTimeLeft = () => {
@@ -366,8 +368,10 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           in {getProjectName(task.projectId)}
         </div>
         <div className="text-xs text-gray-500 dark:text-neutral-500">
-          {formattedStartDate && <span>{formattedStartDate} - </span>}
-          {formattedDueDate && <span>{formattedDueDate}</span>}
+         <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
+        </div>
+        <div className="text-xs text-gray-500 dark:text-neutral-500">
+        <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {/* Show time left */}
         {timeLeft && (

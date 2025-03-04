@@ -158,16 +158,16 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
       {tasks.filter((task) => task.status === status).map((task) => (
         <div key={task.id} className="p-4 mb-4 bg-white rounded-md shadow dark:bg-dark-secondary">
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
-          <p className="text-sm mt-2 mb-2 text-gray-600 dark:text-neutral-500">in {getProjectName(task.projectId)}</p>
+          <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-neutral-400">in {getProjectName(task.projectId)}</div>
           <p className="text-xs text-gray-500 dark:text-neutral-500">
-            Start: {format(new Date(task.startDate), 'MMM d, yyyy hh:mm a')} 
+            <b>Start: </b>{format(new Date(task.startDate), 'MMM d, hh:mm a')} 
           </p>
           <p className="text-xs mt-2 mb-2 text-gray-500 dark:text-neutral-500">
-            Due: {format(new Date(task.dueDate), 'MMM d, yyyy hh:mm a')}
+          <b>Due:</b> {format(new Date(task.dueDate), 'MMM d, hh:mm a')}
           </p>
           {task.status !== "Under Review" && task.status !== "Completed" && (
   <p 
-    className="text-xs" 
+    className="text-sm font-semibold" 
     style={{ color: isOverdue(task.dueDate) ? '#ef4444' : '#087641' }}
   >
     {getTimeRemaining(task.dueDate)}
