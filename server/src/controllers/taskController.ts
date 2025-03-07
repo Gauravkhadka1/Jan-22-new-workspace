@@ -330,6 +330,9 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
             Task Updated by ${updatingUser.username}
           </h2>
           <div style="padding: 20px;">
+            <p>
+              <strong>${updatingUser.username}</strong> updated the task <strong>${updatedTask.title}</strong> of <strong>${existingTask.project?.name || "Unknown Project"}</strong>:
+            </p>
             <ul style="list-style-type: disc; padding-left: 20px;">
               ${changes.map(change => `<li>${change}</li>`).join("")}
             </ul>

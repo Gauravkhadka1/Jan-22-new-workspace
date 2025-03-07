@@ -195,7 +195,7 @@ const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, voi
 });
 exports.getTasksByUserIdForUserTasks = getTasksByUserIdForUserTasks;
 const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     const { taskId } = req.params;
     const { title, description, status, priority, startDate, dueDate, assignedTo, assignedBy, projectId, } = req.body;
     try {
@@ -290,6 +290,9 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             Task Updated by ${updatingUser.username}
           </h2>
           <div style="padding: 20px;">
+            <p>
+              <strong>${updatingUser.username}</strong> updated the task <strong>${updatedTask.title}</strong> of <strong>${((_g = existingTask.project) === null || _g === void 0 ? void 0 : _g.name) || "Unknown Project"}</strong>:
+            </p>
             <ul style="list-style-type: disc; padding-left: 20px;">
               ${changes.map(change => `<li>${change}</li>`).join("")}
             </ul>
