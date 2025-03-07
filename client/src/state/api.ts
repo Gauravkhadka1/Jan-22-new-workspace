@@ -79,19 +79,18 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
    // Add this to your second API's prepareHeaders function to debug
-prepareHeaders: (headers, { getState }) => {
-  const token = localStorage.getItem("token");
-  console.log("Token from localStorage:", token); // Debugging line
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  console.log("User from localStorage:", user); // Debugging line
-  if (user?.username) {
-    headers.set("X-Logged-In-User", user.username);
-  }
-  return headers;
-},
+   prepareHeaders: (headers, { getState }) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    // Remove the following lines:
+    // const user = JSON.parse(localStorage.getItem('user') || '{}');
+    // if (user?.username) {
+    //   headers.set('X-Logged-In-User', user.username);
+    // }
+    return headers;
+  },
   }),
   reducerPath: "api",
   tagTypes: ["Projects", "Tasks", "Users", "Teams"],
