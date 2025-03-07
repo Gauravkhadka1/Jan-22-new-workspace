@@ -21,7 +21,6 @@ model User {
   profilePictureUrl String?
   password          String?
   role              Role    @default(ADMIN) // New column with default role
-
 }
 
 enum Role {
@@ -52,7 +51,6 @@ model Task {
   projectId      Int
   assignedBy  String
   assignedTo String
-
   project         Project          @relation(fields: [projectId], references: [id])
 }
 

@@ -1,4 +1,4 @@
-import { useGetProjectsQuery, useCreateTaskMutation, useGetUsersQuery, useUpdateTaskMutation } from "@/state/api"; // Add useUpdateTaskMutation
+import { useGetProjectsQuery, useCreateTaskMutation, useGetUsersQuery, useUpdateTaskMutation } from "@/state/api";
 import Modal from "@/components/Modal";
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
@@ -19,7 +19,7 @@ type Props = {
 const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
   const { user } = useAuth();
   const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
-  const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation(); // Add mutation for updating tasks
+  const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
   const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
 
@@ -35,9 +35,8 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
 
-  const assignedBy = user?.username || ""; // Replace with actual user data if available
+  const assignedBy = user?.username || "";
 
-  // Prefill the form with task data when editing
   useEffect(() => {
     if (task) {
       setTitle(task.title || "");
@@ -50,7 +49,6 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
       setAssignedTo(task.assignedTo || "");
       setProjectId(task.projectId?.toString() || "");
     } else {
-      // Reset form when creating a new task
       setTitle("");
       setDescription("");
       setStatus(Status.ToDo);
@@ -59,47 +57,35 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
       setStartDate(null);
       setDueDate(null);
       setAssignedTo("");
-      setProjectId("");
+      setProjectId(id || "");
     }
-  }, [task]);
+  }, [task, id]);
 
   const handleSubmit = async () => {
-    if (!title || !assignedBy || !(id !== null || projectId) || !startDate || !dueDate) return;
+    if (!title || !assignedBy || !projectId || !startDate || !dueDate) return;
+
+    const taskData = {
+      title,
+      description,
+      status: status as Status,
+      priority: priority as Priority,
+      tags,
+      startDate: formatISO(startDate, { representation: "complete" }),
+      dueDate: formatISO(dueDate, { representation: "complete" }),
+      assignedTo,
+      projectId: Number(projectId),
+      assignedBy,
+    };
 
     if (task) {
-      // Update existing task
       await updateTask({
-        taskId: task.id, // ✅ Ensure it matches the expected structure
-        taskData: {
-          title,
-          description,
-          status: status as Status,
-          priority: priority as Priority,
-          tags,
-          startDate: formatISO(startDate, { representation: "complete" }),
-          dueDate: formatISO(dueDate, { representation: "complete" }),
-          assignedTo,
-          projectId: Number(projectId),
-          assignedBy,
-        },
+        taskId: task.id,
+        taskData,
       });
-      
     } else {
-      // Create new task
-      await createTask({
-        title,
-        description,
-        status: status as Status,
-        priority: priority as Priority,
-        tags,
-        startDate: formatISO(startDate, { representation: "complete" }),
-        dueDate: formatISO(dueDate, { representation: "complete" }),
-        assignedTo,
-        projectId: id !== null ? Number(id) : Number(projectId),
-        assignedBy,
-      });
+      await createTask(taskData);
     }
-    onClose(); // Close the modal after submission
+    onClose();
   };
 
   const filteredProjects = projects
@@ -125,45 +111,55 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
           onChange={(e) => setTitle(e.target.value)}
         />
 
-        {/* Project Selection Dropdown */}
-        {id === null && !task && (
-          <div>
-            <div
-              className="w-full rounded border p-2 cursor-pointer"
-              onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-            >
-              {projectId
-                ? projects?.find((project) => project.id === Number(projectId))?.name || "Select a Project"
-                : "Select a Project"}
-            </div>
+        {/* Status Selection */}
+        <select
+          className="w-full rounded border p-2"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as Status)}
+        >
+          <option value={Status.ToDo}>{Status.ToDo}</option>
+          <option value={Status.WorkInProgress}>{Status.WorkInProgress}</option>
+          <option value={Status.UnderReview}>{Status.UnderReview}</option>
+          <option value={Status.Completed}>{Status.Completed}</option>
+        </select>
 
-            {isProjectDropdownOpen && (
-              <div className="mt-2">
-                <input
-                  type="text"
-                  className="w-full rounded border p-2 mb-2"
-                  placeholder="Search projects..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                />
-                <div className="max-h-40 overflow-y-auto">
-                  {filteredProjects?.map((project) => (
-                    <div
-                      key={project.id}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        setProjectId(project.id.toString());
-                        setIsProjectDropdownOpen(false);
-                      }}
-                    >
-                      {project.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Project Selection Dropdown */}
+        <div>
+          <div
+            className="w-full rounded border p-2 cursor-pointer"
+            onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+          >
+            {projectId
+              ? projects?.find((project) => project.id === Number(projectId))?.name || "Select a Project"
+              : "Select a Project"}
           </div>
-        )}
+
+          {isProjectDropdownOpen && (
+            <div className="mt-2">
+              <input
+                type="text"
+                className="w-full rounded border p-2 mb-2"
+                placeholder="Search projects..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+              />
+              <div className="max-h-40 overflow-y-auto">
+                {filteredProjects?.map((project) => (
+                  <div
+                    key={project.id}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setProjectId(project.id.toString());
+                      setIsProjectDropdownOpen(false);
+                    }}
+                  >
+                    {project.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Assigned User Selection */}
         <select
