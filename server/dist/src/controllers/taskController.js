@@ -16,6 +16,7 @@ exports.deleteTask = exports.updateTask = exports.getTasksByUserIdForUserTasks =
 const client_1 = require("@prisma/client");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const date_fns_tz_1 = require("date-fns-tz");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma = new client_1.PrismaClient();
 const transporter = nodemailer_1.default.createTransport({
     secure: true,
@@ -23,7 +24,7 @@ const transporter = nodemailer_1.default.createTransport({
     port: 465,
     auth: {
         user: "gauravkhadka111111@gmail.com",
-        pass: "catgfxsmwkqrdknh", // It is recommended to use environment variables for sensitive data like passwords
+        pass: "catgfxsmwkqrdknh", // Use environment variables for sensitive data
     },
 });
 function sendMail(to, sub, msg, cc) {
@@ -31,7 +32,7 @@ function sendMail(to, sub, msg, cc) {
         to: to,
         subject: sub,
         html: msg,
-        cc: cc, // Add CC recipient if provided
+        cc: cc,
     };
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
@@ -42,6 +43,16 @@ function sendMail(to, sub, msg, cc) {
         }
     });
 }
+const decodeToken = (token) => {
+    try {
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || '045ffc1dc9a74ea1812af89ec2f03c531a56b144b984ce3f0413ab0e6202e7c6');
+        return decoded;
+    }
+    catch (error) {
+        console.error("Error decoding token:", error);
+        return null;
+    }
+};
 const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { projectId, assignedTo } = req.query;
     try {
@@ -71,28 +82,25 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 assignedBy,
             },
         });
-        // Fetch the assigned user's email
         const assignedUser = yield prisma.user.findUnique({
-            where: { userId: Number(assignedTo) }, // Correct field name
+            where: { userId: Number(assignedTo) },
         });
-        // Fetch the assigning user (assignedBy is an email)
         const assigningUser = yield prisma.user.findUnique({
-            where: { email: assignedBy }, // Look up by email instead of userId
+            where: { email: assignedBy },
         });
         const project = yield prisma.project.findUnique({
             where: { id: Number(projectId) },
-            select: { name: true }, // Only fetch the project name
+            select: { name: true },
         });
         const formatNepaliTime = (dateValue) => {
             if (!dateValue)
-                return "N/A"; // Return "N/A" or an empty string if the date is null
+                return "N/A";
             return (0, date_fns_tz_1.format)(dateValue, "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
         };
         if (assignedUser && assignedUser.email && assigningUser && project) {
             const emailSubject = `New Task Assigned: ${newTask.title}`;
-            const formattedStartDate = formatNepaliTime(newTask.startDate); // Convert UTC to Nepali Time
-            const formattedDueDate = formatNepaliTime(newTask.dueDate); // Convert UTC to Nepali Time
-            // Email for the assigned user
+            const formattedStartDate = formatNepaliTime(newTask.startDate);
+            const formattedDueDate = formatNepaliTime(newTask.dueDate);
             const assignedUserMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
           <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
@@ -100,11 +108,9 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned you a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-       
           </div>
         </div>
       `;
-            // Email for Gaurav
             const gauravMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
           <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
@@ -112,13 +118,10 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned <strong style="color: #2c3e50;">${assignedUser.username}</strong> a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-     
           </div>
         </div>
       `;
-            // Send the email to the assigned user
             sendMail(assignedUser.email, emailSubject, assignedUserMessage);
-            // Send a CC to Gaurav
             sendMail('gaurav@webtech.com.np', emailSubject, gauravMessage);
         }
         res.status(201).json(newTask);
@@ -130,12 +133,11 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createTask = createTask;
 const updateTaskStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { taskId } = req.params;
-    const { status, updatedBy } = req.body; // Ensure the frontend sends `updatedBy` (userId)
+    const { status, updatedBy } = req.body;
     try {
-        // Fetch the task before updating to get previous status
         const existingTask = yield prisma.task.findUnique({
             where: { id: Number(taskId) },
-            include: { project: true }, // Assuming there's a relation to fetch project details
+            include: { project: true },
         });
         if (!existingTask) {
             res.status(404).json({ message: "Task not found" });
@@ -144,20 +146,17 @@ const updateTaskStatus = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const previousStatus = existingTask.status;
         const taskName = existingTask.title;
         const projectName = existingTask.project ? existingTask.project.name : "Unknown Project";
-        // Fetch the user who is updating the task
         const updatingUser = yield prisma.user.findUnique({
-            where: { userId: Number(updatedBy) }, // Ensure `updatedBy` is passed from frontend
+            where: { userId: Number(updatedBy) },
         });
         if (!updatingUser) {
             res.status(400).json({ message: "Invalid user updating the task" });
             return;
         }
-        // Update the task status
         const updatedTask = yield prisma.task.update({
             where: { id: Number(taskId) },
             data: { status },
         });
-        // Send email notification
         const emailSubject = `Task Status Updated: ${taskName}`;
         const emailMessage = `
       <p><strong>${updatingUser.username}</strong> updated the task <strong>${taskName}</strong> of project <strong>${projectName}</strong>.</p>
@@ -176,7 +175,7 @@ const getTasksByUser = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const tasks = yield prisma.task.findMany({
             where: {
-                assignedTo: userId, // Fetch tasks assigned to the specific user
+                assignedTo: userId,
             },
         });
         res.json(tasks);
@@ -187,12 +186,11 @@ const getTasksByUser = (req, res) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.getTasksByUser = getTasksByUser;
 const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId } = req.params; // Fetch the userId from the params
+    const { userId } = req.params;
     try {
-        // Fetch tasks assigned to the specific user by userId
         const tasks = yield prisma.task.findMany({
             where: {
-                assignedTo: userId, // Use the userId to fetch tasks
+                assignedTo: userId,
             },
         });
         res.json(tasks);
@@ -203,12 +201,11 @@ const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, voi
 });
 exports.getTasksByUserIdForUserTasks = getTasksByUserIdForUserTasks;
 const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     const { taskId } = req.params;
-    const { title, description, status, priority, startDate, dueDate, assignedTo, // This is the userId
+    const { title, description, status, priority, startDate, dueDate, assignedTo, // This should be the userId
     assignedBy, projectId, } = req.body;
     try {
-        // Fetch the existing task before updating, including project details
         const existingTask = yield prisma.task.findUnique({
             where: { id: Number(taskId) },
             include: {
@@ -219,30 +216,33 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             res.status(404).json({ message: "Task not found" });
             return;
         }
-        // Fetch the assigned user's email using their userId
+        // Fetch the assigned user's details
         const assignedUser = yield prisma.user.findUnique({
-            where: { userId: Number(assignedTo) }, // Fetch user by userId
+            where: { userId: Number(assignedTo) },
         });
         if (!assignedUser) {
             res.status(400).json({ message: "Assigned user not found" });
             return;
         }
-        const assignedUserEmail = assignedUser.email; // Get the assigned user's email
-        // Get the logged-in user's username from the custom header
-        const loggedInUsername = req.headers["x-logged-in-user"];
-        if (!loggedInUsername) {
-            res.status(401).json({ message: "Unauthorized: No logged-in user provided" });
+        // Extract the logged-in user's information from the JWT token
+        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
+        if (!token) {
+            res.status(401).json({ message: "Unauthorized: No token provided" });
             return;
         }
-        // Verify the user exists in the database
-        const updatingUser = yield prisma.user.findFirst({
-            where: { username: loggedInUsername },
+        const decodedToken = decodeToken(token);
+        if (!decodedToken || !decodedToken.userId) {
+            res.status(401).json({ message: "Unauthorized: Invalid token" });
+            return;
+        }
+        const updatingUser = yield prisma.user.findUnique({
+            where: { userId: decodedToken.userId },
         });
         if (!updatingUser) {
             res.status(400).json({ message: "Invalid user updating the task" });
             return;
         }
-        // Update the task
+        // Update the task with the assignedTo field as the userId
         const updatedTask = yield prisma.task.update({
             where: { id: Number(taskId) },
             data: {
@@ -252,7 +252,7 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 priority,
                 startDate,
                 dueDate,
-                assignedTo: assignedUserEmail, // Save the email in the database
+                assignedTo: assignedTo, // Use the userId directly
                 assignedBy,
                 projectId,
             },
@@ -260,7 +260,7 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 project: true,
             },
         });
-        // Compare old and new values to detect changes
+        // Rest of the code (email notifications, etc.)
         const changes = [];
         if (title && title !== existingTask.title) {
             changes.push(`Task Title: <strong>${existingTask.title}</strong> → <strong>${title}</strong>`);
@@ -285,21 +285,20 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             changes.push(`Due Date: <strong>${oldDueDate}</strong> → <strong>${newDueDate}</strong>`);
         }
         if (assignedTo && assignedTo !== existingTask.assignedTo) {
-            const oldAssignee = ((_a = (yield prisma.user.findUnique({ where: { email: existingTask.assignedTo } }))) === null || _a === void 0 ? void 0 : _a.username) || existingTask.assignedTo || "N/A";
+            const oldAssignee = ((_b = (yield prisma.user.findUnique({ where: { userId: Number(existingTask.assignedTo) } }))) === null || _b === void 0 ? void 0 : _b.username) || existingTask.assignedTo || "N/A";
             const newAssignee = assignedUser.username || "N/A";
             changes.push(`Assigned To: <strong>${oldAssignee}</strong> → <strong>${newAssignee}</strong>`);
         }
         if (projectId && projectId !== existingTask.projectId) {
-            const oldProject = ((_b = existingTask.project) === null || _b === void 0 ? void 0 : _b.name) || "N/A";
-            const newProject = ((_c = (yield prisma.project.findUnique({ where: { id: Number(projectId) } }))) === null || _c === void 0 ? void 0 : _c.name) || "N/A";
+            const oldProject = ((_c = existingTask.project) === null || _c === void 0 ? void 0 : _c.name) || "N/A";
+            const newProject = ((_d = (yield prisma.project.findUnique({ where: { id: Number(projectId) } }))) === null || _d === void 0 ? void 0 : _d.name) || "N/A";
             changes.push(`Project: <strong>${oldProject}</strong> → <strong>${newProject}</strong>`);
         }
         if (assignedBy && assignedBy !== existingTask.assignedBy) {
-            const oldAssignedBy = ((_d = (yield prisma.user.findUnique({ where: { email: existingTask.assignedBy } }))) === null || _d === void 0 ? void 0 : _d.username) || existingTask.assignedBy || "N/A";
-            const newAssignedBy = ((_e = (yield prisma.user.findUnique({ where: { email: assignedBy } }))) === null || _e === void 0 ? void 0 : _e.username) || assignedBy || "N/A";
+            const oldAssignedBy = ((_e = (yield prisma.user.findUnique({ where: { email: existingTask.assignedBy } }))) === null || _e === void 0 ? void 0 : _e.username) || existingTask.assignedBy || "N/A";
+            const newAssignedBy = ((_f = (yield prisma.user.findUnique({ where: { email: assignedBy } }))) === null || _f === void 0 ? void 0 : _f.username) || assignedBy || "N/A";
             changes.push(`Assigned By: <strong>${oldAssignedBy}</strong> → <strong>${newAssignedBy}</strong>`);
         }
-        // Send email if there are any changes
         if (changes.length > 0) {
             const emailSubject = `Task Updated: ${updatedTask.title}`;
             const emailMessage = `
@@ -309,7 +308,7 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </h2>
           <div style="padding: 20px;">
             <p>
-              <strong>${updatingUser.username}</strong> updated the task <strong>${updatedTask.title}</strong> of <strong>${((_f = existingTask.project) === null || _f === void 0 ? void 0 : _f.name) || "Unknown Project"}</strong>:
+              <strong>${updatingUser.username}</strong> updated the task <strong>${updatedTask.title}</strong> of <strong>${((_g = existingTask.project) === null || _g === void 0 ? void 0 : _g.name) || "Unknown Project"}</strong>:
             </p>
             <ul style="list-style-type: disc; padding-left: 20px;">
               ${changes.map(change => `<li>${change}</li>`).join("")}
@@ -317,12 +316,10 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
         </div>
       `;
-            // Send the email to Gaurav and CC the assigned user (if valid)
-            if (assignedUserEmail) {
-                sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUserEmail);
+            if (assignedUser.email) {
+                sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUser.email);
             }
             else {
-                // If assignedTo is missing, send the email only to Gaurav
                 sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage);
                 console.error("Assigned user email is missing or invalid. Email sent only to Gaurav.");
             }
@@ -337,7 +334,6 @@ exports.updateTask = updateTask;
 const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { taskId } = req.params;
     try {
-        // Find the task to get details before deletion
         const taskToDelete = yield prisma.task.findUnique({
             where: { id: Number(taskId) },
         });
@@ -345,13 +341,11 @@ const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             res.status(404).json({ message: "Task not found" });
             return;
         }
-        // Delete the task
         yield prisma.task.delete({
             where: { id: Number(taskId) }
         });
-        // Send an email notification to the assigned user
         const user = yield prisma.user.findUnique({
-            where: { email: taskToDelete.assignedTo } // Use assignedTo as it contains the email
+            where: { email: taskToDelete.assignedTo }
         });
         if (user) {
             const emailSubject = `Task Deleted: ${taskToDelete.title}`;

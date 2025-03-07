@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
 import { format } from 'date-fns-tz';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
@@ -11,15 +12,16 @@ const transporter = nodemailer.createTransport({
   port: 465,
   auth: {
     user: "gauravkhadka111111@gmail.com",
-    pass: "catgfxsmwkqrdknh", // It is recommended to use environment variables for sensitive data like passwords
+    pass: "catgfxsmwkqrdknh", // Use environment variables for sensitive data
   },
 });
+
 function sendMail(to: string, sub: string, msg: string, cc?: string) {
   const mailOptions = {
     to: to,
     subject: sub,
     html: msg,
-    cc: cc, // Add CC recipient if provided
+    cc: cc,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -31,14 +33,26 @@ function sendMail(to: string, sub: string, msg: string, cc?: string) {
   });
 }
 
+interface DecodedToken extends JwtPayload {
+  userId: number; // Add other properties if needed
+}
+const decodeToken = (token: string): DecodedToken | null => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || '045ffc1dc9a74ea1812af89ec2f03c531a56b144b984ce3f0413ab0e6202e7c6') as DecodedToken;
+    return decoded;
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return null;
+  }
+};
 export const getTasks = async (req: Request, res: Response): Promise<void> => {
   const { projectId, assignedTo } = req.query;
 
   try {
     const tasks = await prisma.task.findMany({
       where: {
-        ...(projectId ? { projectId: Number(projectId) } : {}), // Filter by projectId if provided
-        ...(assignedTo ? { assignedTo: String(assignedTo) } : {}), // Convert assignedTo to string
+        ...(projectId ? { projectId: Number(projectId) } : {}),
+        ...(assignedTo ? { assignedTo: String(assignedTo) } : {}),
       },
     });
 
@@ -47,7 +61,6 @@ export const getTasks = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
   }
 };
-
 
 export const createTask = async (req: Request, res: Response): Promise<void> => {
   const {
@@ -77,32 +90,29 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
       },
     });
 
-    // Fetch the assigned user's email
     const assignedUser = await prisma.user.findUnique({
-      where: { userId: Number(assignedTo) }, // Correct field name
+      where: { userId: Number(assignedTo) },
     });
 
-    // Fetch the assigning user (assignedBy is an email)
     const assigningUser = await prisma.user.findUnique({
-      where: { email: assignedBy }, // Look up by email instead of userId
+      where: { email: assignedBy },
     });
+
     const project = await prisma.project.findUnique({
       where: { id: Number(projectId) },
-      select: { name: true }, // Only fetch the project name
+      select: { name: true },
     });
+
     const formatNepaliTime = (dateValue: Date | null) => {
-      if (!dateValue) return "N/A"; // Return "N/A" or an empty string if the date is null
+      if (!dateValue) return "N/A";
       return format(dateValue, "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
     };
-    
 
     if (assignedUser && assignedUser.email && assigningUser && project) {
       const emailSubject = `New Task Assigned: ${newTask.title}`;
+      const formattedStartDate = formatNepaliTime(newTask.startDate);
+      const formattedDueDate = formatNepaliTime(newTask.dueDate);
 
-      const formattedStartDate = formatNepaliTime(newTask.startDate); // Convert UTC to Nepali Time
-      const formattedDueDate = formatNepaliTime(newTask.dueDate); // Convert UTC to Nepali Time
-
-      // Email for the assigned user
       const assignedUserMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
           <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
@@ -110,12 +120,10 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned you a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-       
           </div>
         </div>
       `;
 
-      // Email for Gaurav
       const gauravMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
           <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
@@ -123,14 +131,11 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
           </div>
           <div style="padding: 20px;">
             <p><strong style="color: #2c3e50;">${assigningUser.username}</strong> assigned <strong style="color: #2c3e50;">${assignedUser.username}</strong> a new task <strong style="color: #3498db;">${newTask.title}</strong> in <strong style="color: #3498db;">${project.name}</strong>.</p>
-     
           </div>
         </div>
       `;
 
-      // Send the email to the assigned user
       sendMail(assignedUser.email, emailSubject, assignedUserMessage);
-      // Send a CC to Gaurav
       sendMail('gaurav@webtech.com.np', emailSubject, gauravMessage);
     }
 
@@ -142,13 +147,12 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
 
 export const updateTaskStatus = async (req: Request, res: Response): Promise<void> => {
   const { taskId } = req.params;
-  const { status, updatedBy } = req.body; // Ensure the frontend sends `updatedBy` (userId)
+  const { status, updatedBy } = req.body;
 
   try {
-    // Fetch the task before updating to get previous status
     const existingTask = await prisma.task.findUnique({
       where: { id: Number(taskId) },
-      include: { project: true }, // Assuming there's a relation to fetch project details
+      include: { project: true },
     });
 
     if (!existingTask) {
@@ -160,9 +164,8 @@ export const updateTaskStatus = async (req: Request, res: Response): Promise<voi
     const taskName = existingTask.title;
     const projectName = existingTask.project ? existingTask.project.name : "Unknown Project";
 
-    // Fetch the user who is updating the task
     const updatingUser = await prisma.user.findUnique({
-      where: { userId: Number(updatedBy) }, // Ensure `updatedBy` is passed from frontend
+      where: { userId: Number(updatedBy) },
     });
 
     if (!updatingUser) {
@@ -170,13 +173,11 @@ export const updateTaskStatus = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    // Update the task status
     const updatedTask = await prisma.task.update({
       where: { id: Number(taskId) },
       data: { status },
     });
 
-    // Send email notification
     const emailSubject = `Task Status Updated: ${taskName}`;
     const emailMessage = `
       <p><strong>${updatingUser.username}</strong> updated the task <strong>${taskName}</strong> of project <strong>${projectName}</strong>.</p>
@@ -197,7 +198,7 @@ export const getTasksByUser = async (req: Request, res: Response): Promise<void>
   try {
     const tasks = await prisma.task.findMany({
       where: {
-        assignedTo: userId, // Fetch tasks assigned to the specific user
+        assignedTo: userId,
       },
     });
 
@@ -206,14 +207,14 @@ export const getTasksByUser = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
   }
 };
+
 export const getTasksByUserIdForUserTasks = async (req: Request, res: Response): Promise<void> => {
-  const { userId } = req.params; // Fetch the userId from the params
+  const { userId } = req.params;
 
   try {
-    // Fetch tasks assigned to the specific user by userId
     const tasks = await prisma.task.findMany({
       where: {
-        assignedTo: userId, // Use the userId to fetch tasks
+        assignedTo: userId,
       },
     });
 
@@ -232,13 +233,12 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
     priority,
     startDate,
     dueDate,
-    assignedTo, // This is the userId
+    assignedTo, // This should be the userId
     assignedBy,
     projectId,
   } = req.body;
 
   try {
-    // Fetch the existing task before updating, including project details
     const existingTask = await prisma.task.findUnique({
       where: { id: Number(taskId) },
       include: {
@@ -251,9 +251,9 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Fetch the assigned user's email using their userId
+    // Fetch the assigned user's details
     const assignedUser = await prisma.user.findUnique({
-      where: { userId: Number(assignedTo) }, // Fetch user by userId
+      where: { userId: Number(assignedTo) },
     });
 
     if (!assignedUser) {
@@ -261,18 +261,21 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const assignedUserEmail = assignedUser.email; // Get the assigned user's email
-
-    // Get the logged-in user's username from the custom header
-    const loggedInUsername = req.headers["x-logged-in-user"] as string;
-    if (!loggedInUsername) {
-      res.status(401).json({ message: "Unauthorized: No logged-in user provided" });
+    // Extract the logged-in user's information from the JWT token
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ message: "Unauthorized: No token provided" });
       return;
     }
 
-    // Verify the user exists in the database
-    const updatingUser = await prisma.user.findFirst({
-      where: { username: loggedInUsername },
+    const decodedToken = decodeToken(token);
+    if (!decodedToken || !decodedToken.userId) {
+      res.status(401).json({ message: "Unauthorized: Invalid token" });
+      return;
+    }
+
+    const updatingUser = await prisma.user.findUnique({
+      where: { userId: decodedToken.userId },
     });
 
     if (!updatingUser) {
@@ -280,7 +283,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Update the task
+    // Update the task with the assignedTo field as the userId
     const updatedTask = await prisma.task.update({
       where: { id: Number(taskId) },
       data: {
@@ -290,7 +293,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
         priority,
         startDate,
         dueDate,
-        assignedTo: assignedUserEmail, // Save the email in the database
+        assignedTo: assignedTo, // Use the userId directly
         assignedBy,
         projectId,
       },
@@ -299,7 +302,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       },
     });
 
-    // Compare old and new values to detect changes
+    // Rest of the code (email notifications, etc.)
     const changes: string[] = [];
 
     if (title && title !== existingTask.title) {
@@ -325,7 +328,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       changes.push(`Due Date: <strong>${oldDueDate}</strong> → <strong>${newDueDate}</strong>`);
     }
     if (assignedTo && assignedTo !== existingTask.assignedTo) {
-      const oldAssignee = (await prisma.user.findUnique({ where: { email: existingTask.assignedTo } }))?.username || existingTask.assignedTo || "N/A";
+      const oldAssignee = (await prisma.user.findUnique({ where: { userId: Number(existingTask.assignedTo) } }))?.username || existingTask.assignedTo || "N/A";
       const newAssignee = assignedUser.username || "N/A";
       changes.push(`Assigned To: <strong>${oldAssignee}</strong> → <strong>${newAssignee}</strong>`);
     }
@@ -340,7 +343,6 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       changes.push(`Assigned By: <strong>${oldAssignedBy}</strong> → <strong>${newAssignedBy}</strong>`);
     }
 
-    // Send email if there are any changes
     if (changes.length > 0) {
       const emailSubject = `Task Updated: ${updatedTask.title}`;
       const emailMessage = `
@@ -359,11 +361,9 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
         </div>
       `;
 
-      // Send the email to Gaurav and CC the assigned user (if valid)
-      if (assignedUserEmail) {
-        sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUserEmail);
+      if (assignedUser.email) {
+        sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUser.email);
       } else {
-        // If assignedTo is missing, send the email only to Gaurav
         sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage);
         console.error("Assigned user email is missing or invalid. Email sent only to Gaurav.");
       }
@@ -379,7 +379,6 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
   const { taskId } = req.params;
 
   try {
-    // Find the task to get details before deletion
     const taskToDelete = await prisma.task.findUnique({
       where: { id: Number(taskId) },
     });
@@ -389,14 +388,12 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Delete the task
     await prisma.task.delete({
       where: { id: Number(taskId) }
     });
 
-    // Send an email notification to the assigned user
     const user = await prisma.user.findUnique({
-      where: { email: taskToDelete.assignedTo } // Use assignedTo as it contains the email
+      where: { email: taskToDelete.assignedTo }
     });
 
     if (user) {
