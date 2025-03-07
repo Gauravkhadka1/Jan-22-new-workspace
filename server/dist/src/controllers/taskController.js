@@ -195,16 +195,33 @@ const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, voi
 });
 exports.getTasksByUserIdForUserTasks = getTasksByUserIdForUserTasks;
 const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e, _f, _g;
     const { taskId } = req.params;
     const { title, description, status, priority, startDate, dueDate, assignedTo, assignedBy, projectId, } = req.body;
     try {
-        // Fetch the existing task before updating
+        // Fetch the existing task before updating, including project details
         const existingTask = yield prisma.task.findUnique({
             where: { id: Number(taskId) },
-            include: { project: true },
+            include: {
+                project: true,
+            },
         });
         if (!existingTask) {
             res.status(404).json({ message: "Task not found" });
+            return;
+        }
+        // Get the logged-in user's username from the custom header
+        const loggedInUsername = req.headers["x-logged-in-user"];
+        if (!loggedInUsername) {
+            res.status(401).json({ message: "Unauthorized: No logged-in user provided" });
+            return;
+        }
+        // Verify the user exists in the database
+        const updatingUser = yield prisma.user.findFirst({
+            where: { username: loggedInUsername },
+        });
+        if (!updatingUser) {
+            res.status(400).json({ message: "Invalid user updating the task" });
             return;
         }
         // Update the task
@@ -221,19 +238,86 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 assignedBy,
                 projectId,
             },
+            include: {
+                project: true,
+            },
         });
-        // If assigned user has changed, send an email notification
+        // Compare old and new values to detect changes
+        const changes = [];
+        if (title && title !== existingTask.title) {
+            changes.push(`Task Title changed from <strong>${existingTask.title}</strong> to <strong>${title}</strong>`);
+        }
+        if (description !== undefined && description !== existingTask.description) { // Allow null/undefined to be a change
+            changes.push(`Description changed from <strong>${existingTask.description || "N/A"}</strong> to <strong>${description || "N/A"}</strong>`);
+        }
+        if (status && status !== existingTask.status) {
+            changes.push(`Status changed from <strong>${existingTask.status || "N/A"}</strong> to <strong>${status}</strong>`);
+        }
+        if (priority && priority !== existingTask.priority) {
+            changes.push(`Priority changed from <strong>${existingTask.priority || "N/A"}</strong> to <strong>${priority}</strong>`);
+        }
+        if (startDate && startDate !== existingTask.startDate) {
+            const oldStartDate = existingTask.startDate ? (0, date_fns_tz_1.format)(new Date(existingTask.startDate), "MMMM dd, yyyy", { timeZone: "Asia/Kathmandu" }) : "N/A";
+            const newStartDate = (0, date_fns_tz_1.format)(new Date(startDate), "MMMM dd, yyyy", { timeZone: "Asia/Kathmandu" });
+            changes.push(`Start Date changed from <strong>${oldStartDate}</strong> to <strong>${newStartDate}</strong>`);
+        }
+        if (dueDate && dueDate !== existingTask.dueDate) {
+            const oldDueDate = existingTask.dueDate ? (0, date_fns_tz_1.format)(new Date(existingTask.dueDate), "MMMM dd, yyyy", { timeZone: "Asia/Kathmandu" }) : "N/A";
+            const newDueDate = (0, date_fns_tz_1.format)(new Date(dueDate), "MMMM dd, yyyy", { timeZone: "Asia/Kathmandu" });
+            changes.push(`Due Date changed from <strong>${oldDueDate}</strong> to <strong>${newDueDate}</strong>`);
+        }
+        if (assignedTo && assignedTo !== existingTask.assignedTo) {
+            const oldAssignee = ((_a = (yield prisma.user.findUnique({ where: { email: existingTask.assignedTo } }))) === null || _a === void 0 ? void 0 : _a.username) || existingTask.assignedTo || "N/A";
+            const newAssignee = ((_b = (yield prisma.user.findUnique({ where: { email: assignedTo } }))) === null || _b === void 0 ? void 0 : _b.username) || assignedTo || "N/A";
+            changes.push(`Assigned To changed from <strong>${oldAssignee}</strong> to <strong>${newAssignee}</strong>`);
+        }
+        if (projectId && projectId !== existingTask.projectId) {
+            const oldProject = ((_c = existingTask.project) === null || _c === void 0 ? void 0 : _c.name) || "N/A";
+            const newProject = ((_d = (yield prisma.project.findUnique({ where: { id: Number(projectId) } }))) === null || _d === void 0 ? void 0 : _d.name) || "N/A";
+            changes.push(`Project changed from <strong>${oldProject}</strong> to <strong>${newProject}</strong>`);
+        }
+        if (assignedBy && assignedBy !== existingTask.assignedBy) {
+            const oldAssignedBy = ((_e = (yield prisma.user.findUnique({ where: { email: existingTask.assignedBy } }))) === null || _e === void 0 ? void 0 : _e.username) || existingTask.assignedBy || "N/A";
+            const newAssignedBy = ((_f = (yield prisma.user.findUnique({ where: { email: assignedBy } }))) === null || _f === void 0 ? void 0 : _f.username) || assignedBy || "N/A";
+            changes.push(`Assigned By changed from <strong>${oldAssignedBy}</strong> to <strong>${newAssignedBy}</strong>`);
+        }
+        // Send email if there are any changes
+        if (changes.length > 0) {
+            const emailSubject = `Task Updated: ${updatedTask.title}`;
+            const emailMessage = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+          <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
+            <h2 style="margin: 0;">Task Updated</h2>
+          </div>
+          <div style="padding: 20px;">
+            <p><strong>${updatingUser.username}</strong> updated the task <strong>${updatedTask.title}</strong> in <strong>${((_g = updatedTask.project) === null || _g === void 0 ? void 0 : _g.name) || "Unknown Project"}</strong>.</p>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+              ${changes.map(change => `<li>${change}</li>`).join("")}
+            </ul>
+          </div>
+        </div>
+      `;
+            sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
+        }
+        // If assigned user has changed, send an email notification to the new assignee
         if (assignedTo && assignedTo !== existingTask.assignedTo) {
             const assignedUser = yield prisma.user.findUnique({
-                where: { userId: Number(assignedTo) },
+                where: { email: assignedTo },
             });
             if (assignedUser && assignedUser.email) {
                 const emailSubject = `Task Updated: ${updatedTask.title}`;
                 const emailMessage = `
-          <p>You have been assigned a task: <strong>${updatedTask.title}</strong></p>
-          <p><strong>Status:</strong> ${updatedTask.status}</p>
-          <p><strong>Due Date:</strong> ${updatedTask.dueDate}</p>
-          <p><strong>Priority:</strong> ${updatedTask.priority}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+            <div style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white;">
+              <h2 style="margin: 0;">Task Assignment</h2>
+            </div>
+            <div style="padding: 20px;">
+              <p>You have been assigned a task: <strong>${updatedTask.title}</strong></p>
+              <p><strong>Status:</strong> ${updatedTask.status || "N/A"}</p>
+              <p><strong>Due Date:</strong> ${updatedTask.dueDate ? (0, date_fns_tz_1.format)(new Date(updatedTask.dueDate), "MMMM dd, yyyy", { timeZone: "Asia/Kathmandu" }) : "N/A"}</p>
+              <p><strong>Priority:</strong> ${updatedTask.priority || "N/A"}</p>
+            </div>
+          </div>
         `;
                 sendMail(assignedUser.email, emailSubject, emailMessage);
             }
