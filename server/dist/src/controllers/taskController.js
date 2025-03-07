@@ -26,13 +26,21 @@ const transporter = nodemailer_1.default.createTransport({
         pass: "catgfxsmwkqrdknh", // It is recommended to use environment variables for sensitive data like passwords
     },
 });
-function sendMail(to, sub, msg) {
-    transporter.sendMail({
+function sendMail(to, sub, msg, cc) {
+    const mailOptions = {
         to: to,
         subject: sub,
         html: msg,
+        cc: cc, // Add CC recipient if provided
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error("Error sending email:", error);
+        }
+        else {
+            console.log("Email Sent:", info.response);
+        }
     });
-    console.log("Email Sent");
 }
 const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { projectId, assignedTo } = req.query;
@@ -195,9 +203,10 @@ const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, voi
 });
 exports.getTasksByUserIdForUserTasks = getTasksByUserIdForUserTasks;
 const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f;
     const { taskId } = req.params;
-    const { title, description, status, priority, startDate, dueDate, assignedTo, assignedBy, projectId, } = req.body;
+    const { title, description, status, priority, startDate, dueDate, assignedTo, // This is the userId
+    assignedBy, projectId, } = req.body;
     try {
         // Fetch the existing task before updating, including project details
         const existingTask = yield prisma.task.findUnique({
@@ -210,6 +219,15 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             res.status(404).json({ message: "Task not found" });
             return;
         }
+        // Fetch the assigned user's email using their userId
+        const assignedUser = yield prisma.user.findUnique({
+            where: { userId: Number(assignedTo) }, // Fetch user by userId
+        });
+        if (!assignedUser) {
+            res.status(400).json({ message: "Assigned user not found" });
+            return;
+        }
+        const assignedUserEmail = assignedUser.email; // Get the assigned user's email
         // Get the logged-in user's username from the custom header
         const loggedInUsername = req.headers["x-logged-in-user"];
         if (!loggedInUsername) {
@@ -234,7 +252,7 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 priority,
                 startDate,
                 dueDate,
-                assignedTo,
+                assignedTo: assignedUserEmail, // Save the email in the database
                 assignedBy,
                 projectId,
             },
@@ -268,17 +286,17 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
         if (assignedTo && assignedTo !== existingTask.assignedTo) {
             const oldAssignee = ((_a = (yield prisma.user.findUnique({ where: { email: existingTask.assignedTo } }))) === null || _a === void 0 ? void 0 : _a.username) || existingTask.assignedTo || "N/A";
-            const newAssignee = ((_b = (yield prisma.user.findUnique({ where: { email: assignedTo } }))) === null || _b === void 0 ? void 0 : _b.username) || assignedTo || "N/A";
+            const newAssignee = assignedUser.username || "N/A";
             changes.push(`Assigned To: <strong>${oldAssignee}</strong> → <strong>${newAssignee}</strong>`);
         }
         if (projectId && projectId !== existingTask.projectId) {
-            const oldProject = ((_c = existingTask.project) === null || _c === void 0 ? void 0 : _c.name) || "N/A";
-            const newProject = ((_d = (yield prisma.project.findUnique({ where: { id: Number(projectId) } }))) === null || _d === void 0 ? void 0 : _d.name) || "N/A";
+            const oldProject = ((_b = existingTask.project) === null || _b === void 0 ? void 0 : _b.name) || "N/A";
+            const newProject = ((_c = (yield prisma.project.findUnique({ where: { id: Number(projectId) } }))) === null || _c === void 0 ? void 0 : _c.name) || "N/A";
             changes.push(`Project: <strong>${oldProject}</strong> → <strong>${newProject}</strong>`);
         }
         if (assignedBy && assignedBy !== existingTask.assignedBy) {
-            const oldAssignedBy = ((_e = (yield prisma.user.findUnique({ where: { email: existingTask.assignedBy } }))) === null || _e === void 0 ? void 0 : _e.username) || existingTask.assignedBy || "N/A";
-            const newAssignedBy = ((_f = (yield prisma.user.findUnique({ where: { email: assignedBy } }))) === null || _f === void 0 ? void 0 : _f.username) || assignedBy || "N/A";
+            const oldAssignedBy = ((_d = (yield prisma.user.findUnique({ where: { email: existingTask.assignedBy } }))) === null || _d === void 0 ? void 0 : _d.username) || existingTask.assignedBy || "N/A";
+            const newAssignedBy = ((_e = (yield prisma.user.findUnique({ where: { email: assignedBy } }))) === null || _e === void 0 ? void 0 : _e.username) || assignedBy || "N/A";
             changes.push(`Assigned By: <strong>${oldAssignedBy}</strong> → <strong>${newAssignedBy}</strong>`);
         }
         // Send email if there are any changes
@@ -291,7 +309,7 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </h2>
           <div style="padding: 20px;">
             <p>
-              <strong>${updatingUser.username}</strong> updated the task <strong>${updatedTask.title}</strong> of <strong>${((_g = existingTask.project) === null || _g === void 0 ? void 0 : _g.name) || "Unknown Project"}</strong>:
+              <strong>${updatingUser.username}</strong> updated the task <strong>${updatedTask.title}</strong> of <strong>${((_f = existingTask.project) === null || _f === void 0 ? void 0 : _f.name) || "Unknown Project"}</strong>:
             </p>
             <ul style="list-style-type: disc; padding-left: 20px;">
               ${changes.map(change => `<li>${change}</li>`).join("")}
@@ -299,29 +317,14 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
           </div>
         </div>
       `;
-            sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
-        }
-        // If assigned user has changed, send an email notification to the new assignee
-        if (assignedTo && assignedTo !== existingTask.assignedTo) {
-            const assignedUser = yield prisma.user.findUnique({
-                where: { email: assignedTo },
-            });
-            if (assignedUser && assignedUser.email) {
-                const emailSubject = `Task Assigned: ${updatedTask.title}`;
-                const emailMessage = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-            <h2 style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white; margin: 0;">
-              Task Assignment
-            </h2>
-            <div style="padding: 20px;">
-              <p>You have been assigned a task: <strong>${updatedTask.title}</strong></p>
-              <p><strong>Status:</strong> ${updatedTask.status || "N/A"}</p>
-              <p><strong>Due Date:</strong> ${updatedTask.dueDate ? (0, date_fns_tz_1.format)(new Date(updatedTask.dueDate), "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" }) : "N/A"}</p>
-              <p><strong>Priority:</strong> ${updatedTask.priority || "N/A"}</p>
-            </div>
-          </div>
-        `;
-                sendMail(assignedUser.email, emailSubject, emailMessage);
+            // Send the email to Gaurav and CC the assigned user (if valid)
+            if (assignedUserEmail) {
+                sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUserEmail);
+            }
+            else {
+                // If assignedTo is missing, send the email only to Gaurav
+                sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage);
+                console.error("Assigned user email is missing or invalid. Email sent only to Gaurav.");
             }
         }
         res.json(updatedTask);

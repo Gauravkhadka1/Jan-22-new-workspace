@@ -14,13 +14,21 @@ const transporter = nodemailer.createTransport({
     pass: "catgfxsmwkqrdknh", // It is recommended to use environment variables for sensitive data like passwords
   },
 });
-function sendMail(to: string, sub: string, msg: string) {
-  transporter.sendMail({
+function sendMail(to: string, sub: string, msg: string, cc?: string) {
+  const mailOptions = {
     to: to,
     subject: sub,
     html: msg,
+    cc: cc, // Add CC recipient if provided
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending email:", error);
+    } else {
+      console.log("Email Sent:", info.response);
+    }
   });
-  console.log("Email Sent");
 }
 
 export const getTasks = async (req: Request, res: Response): Promise<void> => {
@@ -224,7 +232,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
     priority,
     startDate,
     dueDate,
-    assignedTo,
+    assignedTo, // This is the userId
     assignedBy,
     projectId,
   } = req.body;
@@ -242,6 +250,18 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       res.status(404).json({ message: "Task not found" });
       return;
     }
+
+    // Fetch the assigned user's email using their userId
+    const assignedUser = await prisma.user.findUnique({
+      where: { userId: Number(assignedTo) }, // Fetch user by userId
+    });
+
+    if (!assignedUser) {
+      res.status(400).json({ message: "Assigned user not found" });
+      return;
+    }
+
+    const assignedUserEmail = assignedUser.email; // Get the assigned user's email
 
     // Get the logged-in user's username from the custom header
     const loggedInUsername = req.headers["x-logged-in-user"] as string;
@@ -270,7 +290,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
         priority,
         startDate,
         dueDate,
-        assignedTo,
+        assignedTo: assignedUserEmail, // Save the email in the database
         assignedBy,
         projectId,
       },
@@ -299,7 +319,6 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       const newStartDate = format(new Date(startDate), "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
       changes.push(`Start Date: <strong>${oldStartDate}</strong> → <strong>${newStartDate}</strong>`);
     }
-    
     if (dueDate && existingTask.dueDate !== null && new Date(dueDate).getTime() !== new Date(existingTask.dueDate).getTime()) {
       const oldDueDate = format(new Date(existingTask.dueDate), "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
       const newDueDate = format(new Date(dueDate), "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" });
@@ -307,7 +326,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
     }
     if (assignedTo && assignedTo !== existingTask.assignedTo) {
       const oldAssignee = (await prisma.user.findUnique({ where: { email: existingTask.assignedTo } }))?.username || existingTask.assignedTo || "N/A";
-      const newAssignee = (await prisma.user.findUnique({ where: { email: assignedTo } }))?.username || assignedTo || "N/A";
+      const newAssignee = assignedUser.username || "N/A";
       changes.push(`Assigned To: <strong>${oldAssignee}</strong> → <strong>${newAssignee}</strong>`);
     }
     if (projectId && projectId !== existingTask.projectId) {
@@ -339,31 +358,14 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
           </div>
         </div>
       `;
-      sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
-    }
 
-    // If assigned user has changed, send an email notification to the new assignee
-    if (assignedTo && assignedTo !== existingTask.assignedTo) {
-      const assignedUser = await prisma.user.findUnique({
-        where: { email: assignedTo },
-      });
-
-      if (assignedUser && assignedUser.email) {
-        const emailSubject = `Task Assigned: ${updatedTask.title}`;
-        const emailMessage = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-            <h2 style="background: linear-gradient(135deg, #3498db, #2c3e50); padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; text-align: center; color: white; margin: 0;">
-              Task Assignment
-            </h2>
-            <div style="padding: 20px;">
-              <p>You have been assigned a task: <strong>${updatedTask.title}</strong></p>
-              <p><strong>Status:</strong> ${updatedTask.status || "N/A"}</p>
-              <p><strong>Due Date:</strong> ${updatedTask.dueDate ? format(new Date(updatedTask.dueDate), "MMMM dd, yyyy hh:mm a", { timeZone: "Asia/Kathmandu" }) : "N/A"}</p>
-              <p><strong>Priority:</strong> ${updatedTask.priority || "N/A"}</p>
-            </div>
-          </div>
-        `;
-        sendMail(assignedUser.email, emailSubject, emailMessage);
+      // Send the email to Gaurav and CC the assigned user (if valid)
+      if (assignedUserEmail) {
+        sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUserEmail);
+      } else {
+        // If assignedTo is missing, send the email only to Gaurav
+        sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage);
+        console.error("Assigned user email is missing or invalid. Email sent only to Gaurav.");
       }
     }
 

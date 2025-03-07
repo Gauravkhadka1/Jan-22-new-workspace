@@ -78,14 +78,11 @@ export interface Team {
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = localStorage.getItem("token"); // Get token from localStorage
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      const user = JSON.parse(localStorage.getItem("user") || "{}"); // Get user from localStorage
-      if (user?.username) {
-        headers.set("X-Logged-In-User", user.username); // Send username in a custom header
+    prepareHeaders: async (headers) => {
+      const session = await fetchAuthSession();
+      const { accessToken } = session.tokens ?? {};
+      if (accessToken) {
+        headers.set("Authorization", `Bearer ${accessToken}`);
       }
       return headers;
     },
@@ -159,7 +156,7 @@ export const api = createApi({
       query: ({ taskId, taskData }) => ({
         url: `tasks/${taskId}`,
         method: "PUT",
-        body: taskData, // taskData can still include assignedBy if needed
+        body: taskData,
       }),
       invalidatesTags: (result, error, { taskId }) => [{ type: "Tasks", id: taskId }],
     }),
