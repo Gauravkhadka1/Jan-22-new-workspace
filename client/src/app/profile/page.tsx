@@ -134,6 +134,15 @@ const ProfilePage = () => {
     return timeB - timeA;
   });
 
+  // Calculate the number of days between the selected dates
+  const calculateNumberOfDays = () => {
+    if (!fromDate || !toDate) return 0;
+    const start = new Date(fromDate);
+    const end = new Date(toDate);
+    const timeDiff = end.getTime() - start.getTime();
+    return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1; // Add 1 to include both start and end dates
+  };
+
   return (
     <div className="flex">
       <div className="flex min-h-screen ml-10 flex-col items-center mt-20 bg-gray-100 dark:bg-gray-900">
@@ -179,7 +188,18 @@ const ProfilePage = () => {
         </div>
       </div>
       <div className="mt-20 ml-20 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-        <h2 className="mb-4 text-lg font-bold">Completed Tasks</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">
+            Completed Tasks{" "}
+            {fromDate && toDate ? (
+              <span className="text-sm font-normal">
+                ({fromDate} to {toDate}, {calculateNumberOfDays()} days)
+              </span>
+            ) : (
+              <span className="text-sm font-normal">(All Time)</span>
+            )}
+          </h2>
+        </div>
         <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
           <thead>
             <tr className="bg-gray-200 dark:bg-gray-700">
