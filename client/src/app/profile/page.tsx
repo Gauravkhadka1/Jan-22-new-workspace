@@ -226,7 +226,7 @@ const ProfilePage = () => {
 
   return (
     <div className="flex">
-      <div className="flex min-h-screen ml-10 flex-col items-center mt-10 bg-gray-100 dark:bg-gray-900">
+      <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 dark:bg-gray-900">
         {/* Bar Chart */}
         <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
                 Welcome, <span className="font-semibold">{user.username}</span>!
@@ -245,7 +245,7 @@ const ProfilePage = () => {
         
 
         <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-       {/* <h2>Filter</h2> */}
+       <h2 className="text-lg font-bold mb-2">View</h2>
           <div className="flex gap-4 mb-4">
             <button
               onClick={() => setDateRange("previousMonth")}
@@ -279,7 +279,7 @@ const ProfilePage = () => {
             </button>
           </div>
           <div className="flex-col gap-4">
-          <h2 className="mb-2 text-lg font-bold"> Date Range</h2>
+          <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
             <input
               type="date"
               value={fromDate}
@@ -312,7 +312,7 @@ const ProfilePage = () => {
           )}
         </div>
       </div>
-      <div className="mt-10 ml-20 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+      <div className="mt-5 w-[45%] ml-10 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">
             Completed Tasks{" "}
