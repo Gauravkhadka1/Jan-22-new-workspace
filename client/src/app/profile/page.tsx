@@ -229,7 +229,7 @@ const ProfilePage = () => {
       <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 dark:bg-gray-900">
         {/* Bar Chart */}
         <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
-                Welcome, <span className="font-semibold">{user.username}</span>!
+                Welcome, <span className="font-semibold">{user?.username ?? "Guest"}</span>!
               </p>
         <div className="mt-6">
           {/* <h2 className="text-lg font-bold mb-4">Visual Representation</h2> */}
