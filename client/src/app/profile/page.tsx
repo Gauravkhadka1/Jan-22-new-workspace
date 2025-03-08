@@ -9,10 +9,33 @@ import {
   Task,
   Status,
 } from "@/state/api";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+} from "recharts";
 
 const WORK_START_HOUR = 10; // 10 AM
 const WORK_END_HOUR = 18; // 6 PM
 const WORK_HOURS_PER_DAY = WORK_END_HOUR - WORK_START_HOUR; // 8 hours
+
+const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#a4de6c"]; // Colors for pie chart
 
 const ProfilePage = () => {
   const { user, logout } = useAuth();
@@ -211,6 +234,26 @@ const ProfilePage = () => {
     }, 0);
   };
 
+  // Data for the charts
+  const chartData = [
+    {
+      name: "Total Working Hours",
+      value: calculateTotalWorkingHours(),
+    },
+    {
+      name: "Total Time Spent",
+      value: calculateTotalTimeSpent(),
+    },
+  ];
+
+  // Example daily data for line and area charts
+  const dailyData = [
+    { date: "2025-02-25", workingHours: 8, timeSpent: 6 },
+    { date: "2025-02-26", workingHours: 0, timeSpent: 0 }, // Excluded date
+    { date: "2025-02-27", workingHours: 8, timeSpent: 7 },
+    // Add more daily data as needed
+  ];
+
   return (
     <div className="flex">
       <div className="flex min-h-screen ml-10 flex-col items-center mt-20 bg-gray-100 dark:bg-gray-900">
@@ -305,12 +348,30 @@ const ProfilePage = () => {
 
         {/* Display total working hours and total time spent */}
         <div className="mt-6">
-          <p className="text-sm font-bold">
+          <p className="text-lg font-bold">
             Total Working Hours: {calculateTotalWorkingHours()} hours
           </p>
-          <p className="text-sm font-bold">
+          <p className="text-lg font-bold">
             Total Time Spent on Tasks: {calculateTotalTimeSpent().toFixed(2)} hours
           </p>
+        </div>
+
+        {/* Visual Representation */}
+        <div className="mt-6">
+          <h2 className="text-lg font-bold mb-4">Visual Representation</h2>
+
+          {/* Option 1: Bar Chart */}
+          <div className="mb-8">
+            <h3 className="text-md font-semibold mb-2">Bar Chart</h3>
+            <BarChart width={500} height={300} data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#8884d8" />
+            </BarChart>
+          </div>
         </div>
       </div>
     </div>
