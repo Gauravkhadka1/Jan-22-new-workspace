@@ -12,7 +12,9 @@ import {
 import React, { useState } from "react";
 import ModalNewProject from "./projects/ModalNewProject";
 import { useAuth } from "../context/AuthContext";
-import { useRouter } from 'next/router';
+import Link from "next/link";
+
+
 
 type Props = {
   activeTab: string;
@@ -41,8 +43,20 @@ const ProjectHeader = ({ activeTab, setActiveTab, username }: Props) => {
           <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
             <Share2 className="h-5 w-5" />
           </button> */}
-          <div className="mx-2 mt-2 text-lg font-medium">
-          {username ? `${username}'s Tasks` : "Tasks"}
+         <div className="mx-2 mt-2 text-lg font-medium">
+            {username ? (
+              <Link
+                href={{
+                  pathname: `/profile/${user?.id}`, // Navigate to the profile page
+                  query: { username }, // Pass the username as a query parameter
+                }}
+                className="text-blue-500 hover:underline"
+              >
+                {username}'s Tasks
+              </Link>
+            ) : (
+              "Tasks"
+            )}
           </div>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2 md:gap-4">

@@ -18,6 +18,7 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
+import { useParams, useSearchParams } from "next/navigation";
 
 const WORK_START_HOUR = 10; // 10 AM
 const WORK_END_HOUR = 18; // 6 PM
@@ -48,7 +49,15 @@ type TaskType = {
 const ProfilePage = () => {
   const { user, logout } = useAuth();
   const [deleteUser] = useDeleteUserMutation();
-  const { data: tasks, isLoading, isError } = useGetTasksByUserQuery(user?.id);
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const username = searchParams.get("username");
+
+  // Convert userId from string to number
+  const userId = parseInt(params.userId as string, 10);
+
+  // Fetch tasks for the user
+  const { data: tasks, isLoading, isError } = useGetTasksByUserQuery(userId);
   const { data: projects } = useGetProjectsQuery({});
 
   const [fromDate, setFromDate] = useState("");
@@ -229,10 +238,9 @@ const ProfilePage = () => {
       <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 dark:bg-gray-900">
         {/* Bar Chart */}
         <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
-                Welcome, <span className="font-semibold">{user.username}</span>!
-              </p>
+          Welcome, <span className="font-semibold">{username}</span>!
+        </p>
         <div className="mt-6">
-          {/* <h2 className="text-lg font-bold mb-4">Visual Representation</h2> */}
           <BarChart width={500} height={300} data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
@@ -242,10 +250,9 @@ const ProfilePage = () => {
             <Bar dataKey="value" fill="#8884d8" />
           </BarChart>
         </div>
-        
 
         <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-       <h2 className="text-lg font-bold mb-2">View</h2>
+          <h2 className="text-lg font-bold mb-2">View</h2>
           <div className="flex gap-4 mb-4">
             <button
               onClick={() => setDateRange("previousMonth")}
@@ -279,7 +286,7 @@ const ProfilePage = () => {
             </button>
           </div>
           <div className="flex-col gap-4">
-          <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
+            <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
             <input
               type="date"
               value={fromDate}
@@ -294,23 +301,6 @@ const ProfilePage = () => {
             />
           </div>
         </div>
-        {/* <div className="w-80 rounded-lg p-6 text-center  dark:bg-gray-800">
-          {user ? (
-            <>
-            
-              <button
-                onClick={logout}
-                className="mt-6 w-full rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <p className="mt-4 text-gray-600 dark:text-gray-400">
-              You are not logged in.
-            </p>
-          )}
-        </div> */}
       </div>
       <div className="mt-5 w-[45%] ml-10 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
