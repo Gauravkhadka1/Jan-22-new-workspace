@@ -26,6 +26,7 @@
     "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
+    "framer-motion": "^12.4.10",
     "gantt-task-react": "^0.3.9",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",

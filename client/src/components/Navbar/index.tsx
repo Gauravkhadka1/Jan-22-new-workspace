@@ -67,8 +67,9 @@ const Navbar = () => {
         <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
 
         {user ? (
-          <Link href="/profile" className="text-sm font-medium text-blue-500 hover:underline">
+          <Link href="/profile" className="flex items-end text-sm font-medium text-blue-500 hover:underline">
             {getGreeting()}, {user.username}
+            <User className="ml-2 w-6  h-6"/>
           </Link>
         ) : (
           <button onClick={logout} className="text-sm font-medium text-red-500 hover:underline">
