@@ -50,9 +50,28 @@ const ProfilePage = () => {
     const end = new Date(task.dueDate!);
     let totalMinutes = 0;
   
+    // Define the dates to exclude (e.g., February 26, 2025, and March 13, 2025)
+    const excludeDates = [
+      new Date("2025-02-26"),
+      new Date("2025-03-13"),
+      // Add more dates here as needed
+    ].map((date) => {
+      date.setHours(0, 0, 0, 0); // Normalize the time to midnight
+      return date.getTime(); // Convert to timestamp for easy comparison
+    });
+  
     while (start < end) {
       // Skip Saturdays
       if (start.getDay() === 6) {
+        start.setDate(start.getDate() + 1);
+        start.setHours(WORK_START_HOUR, 0, 0, 0);
+        continue;
+      }
+  
+      // Skip excluded dates
+      const currentDate = new Date(start);
+      currentDate.setHours(0, 0, 0, 0); // Normalize the time to midnight for comparison
+      if (excludeDates.includes(currentDate.getTime())) {
         start.setDate(start.getDate() + 1);
         start.setHours(WORK_START_HOUR, 0, 0, 0);
         continue;
