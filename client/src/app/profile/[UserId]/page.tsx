@@ -1,15 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import {
-  useGetTasksByUserQuery,
-  useGetProjectsQuery,
-  Task,
-  Status,
-} from "@/state/api";
-
+import React from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { useGetTasksByUserIdForProfileQuery } from "@/state/api";
+
 // Define the TaskType type
 type TaskType = {
   id: number;
@@ -17,45 +11,73 @@ type TaskType = {
   startDate?: string;
   dueDate?: string;
   projectId: number;
-  status?: Status;
+  status?: string;
 };
 
 const ProfilePage = () => {
-  const { user, logout } = useAuth();
   const params = useParams();
   const searchParams = useSearchParams();
   const username = searchParams.get("username");
 
-  // Convert userId from string to number
+  // Extract userId from the URL params
   const userId = parseInt(params.userId as string, 10);
 
   // Fetch tasks for the user
-  const { data: tasks, isLoading, isError } = useGetTasksByUserQuery(userId);
-  const { data: projects } = useGetProjectsQuery({});
+  const { data: tasks, isLoading, isError } = useGetTasksByUserIdForProfileQuery(userId);
 
-  const projectMap = projects
-    ? projects.reduce(
-        (acc, project) => {
-          acc[project.id] = project.name;
-          return acc;
-        },
-        {} as Record<number, string>,
-      )
-    : {};
+  // Debugging: Log params and tasks
+  console.log("params:", params);
+  console.log("userId:", userId);
+  console.log("tasks:", tasks);
 
- 
+  // Handle loading and error states
   if (isLoading) return <p>Loading tasks...</p>;
   if (isError) return <p>Error loading tasks</p>;
 
   return (
-    <div className="flex">
-      <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 dark:bg-gray-900">
-        {/* Bar Chart */}
-        <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
-          Welcome, <span className="font-semibold">{username}</span>!
-        </p>
-        </div>
+    <div className="flex min-h-screen flex-col items-center bg-gray-100 dark:bg-gray-900 p-4">
+      {/* Welcome message */}
+      <h1 className="mt-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
+        Welcome, <span className="text-blue-500">{username}</span>!
+      </h1>
+
+      {/* List of tasks */}
+      <div className="mt-6 w-full max-w-2xl">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+          Your Tasks
+        </h2>
+        <ul className="space-y-3">
+          {tasks?.map((task) => (
+            <li
+              key={task.id}
+              className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-gray-800 dark:text-gray-200">
+                  {task.title}
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Project ID: {task.projectId}
+                </span>
+              </div>
+              {task.startDate && task.dueDate && (
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  <span>
+                    {new Date(task.startDate).toLocaleDateString()} -{" "}
+                    {new Date(task.dueDate).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+              {task.status && (
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Status: <span className="font-medium">{task.status}</span>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
+    </div>
   );
 };
 

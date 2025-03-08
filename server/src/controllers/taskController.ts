@@ -224,6 +224,29 @@ export const getTasksByUserIdForUserTasks = async (req: Request, res: Response):
   }
 };
 
+export const getTasksByUserIdForProfile = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+
+  try {
+    const tasks = await prisma.task.findMany({
+      where: {
+        assignedTo: userId,
+      },
+      // include: {
+      //   project: true, // Include project details if needed
+      //   assignee: true, // Include assignee details if needed
+      // },
+    });
+
+    res.json(tasks);
+  } catch (error: any) {
+    res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
+  }
+};
+
+
+
+
 export const updateTask = async (req: Request, res: Response): Promise<void> => {
   const { taskId } = req.params;
   const {

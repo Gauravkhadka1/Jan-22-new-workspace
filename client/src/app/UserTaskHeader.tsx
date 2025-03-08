@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import Header from "@/components/Header";
 import {
   Calendar,
@@ -16,21 +17,25 @@ import { useAuth } from "../context/AuthContext";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-
 type Props = {
   activeTab: string;
   setActiveTab: (tabName: string) => void;
   username?: string;
 };
 
-const ProjectHeader = ({ activeTab, setActiveTab}: Props) => {
+const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
   const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false);
   const { user } = useAuth();
   const params = useParams();
-  const userId = params.userId;
   const searchParams = useSearchParams();
   const username = searchParams.get("username");
-  // Extract userId and username from the URL query
+
+  // Extract userId from the URL params
+  const userId = params.userId;
+
+  // Debugging: Log username and userId
+  console.log("username:", username);
+  console.log("userId:", userId);
 
   return (
     <div className="px-4 xl:px-6">
@@ -41,20 +46,13 @@ const ProjectHeader = ({ activeTab, setActiveTab}: Props) => {
 
       {/* TABS */}
       <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark md:items-center justify-between">
-        
         <div className="flex items-center gap-2">
-          {/* <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
-            <Filter className="h-5 w-5" />
-          </button>
-          <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
-            <Share2 className="h-5 w-5" />
-          </button> */}
-         <div className="mx-2 mt-2 text-lg font-medium">
-            {username ? (
+          <div className="mx-2 mt-2 text-lg font-medium">
+            {username && userId ? (
               <Link
                 href={{
-                  pathname: `/profile/${userId}`, // Navigate to the profile page
-                  query: { username }, // Pass the username as a query parameter
+                  pathname: `/profile/${userId}`,
+                  query: { username },
                 }}
                 className="text-blue-500 hover:underline"
               >
@@ -72,7 +70,7 @@ const ProjectHeader = ({ activeTab, setActiveTab}: Props) => {
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
-            <TabButton
+          <TabButton
             name="Calendar"
             icon={<Calendar className="h-5 w-5" />}
             setActiveTab={setActiveTab}

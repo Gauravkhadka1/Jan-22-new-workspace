@@ -160,7 +160,7 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
           <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-neutral-400">in {getProjectName(task.projectId)}</div>
           <p className="text-xs text-gray-500 dark:text-neutral-500">
-            <b>Start: </b>{format(new Date(task.startDate), 'MMM d, hh:mm a')} 
+            <b>Stgfgart: </b>{format(new Date(task.startDate), 'MMM d, hh:mm a')} 
           </p>
           <p className="text-xs mt-2 mb-2 text-gray-500 dark:text-neutral-500">
           <b>Due:</b> {format(new Date(task.dueDate), 'MMM d, hh:mm a')}

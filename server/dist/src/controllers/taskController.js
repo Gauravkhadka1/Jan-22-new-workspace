@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTask = exports.updateTask = exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
+exports.deleteTask = exports.updateTask = exports.getTasksByUserIdForProfile = exports.getTasksByUserIdForUserTasks = exports.getTasksByUser = exports.updateTaskStatus = exports.createTask = exports.getTasks = void 0;
 const client_1 = require("@prisma/client");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const date_fns_tz_1 = require("date-fns-tz");
@@ -200,6 +200,25 @@ const getTasksByUserIdForUserTasks = (req, res) => __awaiter(void 0, void 0, voi
     }
 });
 exports.getTasksByUserIdForUserTasks = getTasksByUserIdForUserTasks;
+const getTasksByUserIdForProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params;
+    try {
+        const tasks = yield prisma.task.findMany({
+            where: {
+                assignedTo: userId,
+            },
+            // include: {
+            //   project: true, // Include project details if needed
+            //   assignee: true, // Include assignee details if needed
+            // },
+        });
+        res.json(tasks);
+    }
+    catch (error) {
+        res.status(500).json({ message: `Error retrieving tasks: ${error.message}` });
+    }
+});
+exports.getTasksByUserIdForProfile = getTasksByUserIdForProfile;
 const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g;
     const { taskId } = req.params;

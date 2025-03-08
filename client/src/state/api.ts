@@ -84,11 +84,6 @@ export const api = createApi({
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }
-    // Remove the following lines:
-    // const user = JSON.parse(localStorage.getItem('user') || '{}');
-    // if (user?.username) {
-    //   headers.set('X-Logged-In-User', user.username);
-    // }
     return headers;
   },
   }),
@@ -144,6 +139,13 @@ export const api = createApi({
     }),
     getTasksByUser: build.query<Task[], number>({
       query: (userId) => `tasks/user/${userId}`,
+      providesTags: (result, error, userId) =>
+        result
+          ? result.map(({ id }) => ({ type: "Tasks", id }))
+          : [{ type: "Tasks", id: userId }],
+    }),
+    getTasksByUserIdForProfile: build.query<Task[], number>({
+      query: (userId) => `tasks/profile/${userId}`,
       providesTags: (result, error, userId) =>
         result
           ? result.map(({ id }) => ({ type: "Tasks", id }))
@@ -245,4 +247,5 @@ export const {
   useGetTasksByUserQuery,
   useGetAuthUserQuery,
   useRegisterUserMutation,
+  useGetTasksByUserIdForProfileQuery,
 } = api;
