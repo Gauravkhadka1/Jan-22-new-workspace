@@ -187,32 +187,30 @@ const ProfilePage = () => {
   };
 
   // Function to set the date range based on the selected tab
-  const setDateRange = (tab: string) => {
-    const today = new Date();
-    const firstDayOfWeek = new Date(today);
-    firstDayOfWeek.setDate(today.getDate() - today.getDay()); // Start of the week (Sunday)
-    const lastDayOfWeek = new Date(today);
-    lastDayOfWeek.setDate(today.getDate() + (6 - today.getDay())); // End of the week (Saturday)
+  // Function to set the date range based on the selected tab
+const setDateRange = (tab: string) => {
+  const today = new Date();
+  const lastSevenDays = new Date(today);
+  lastSevenDays.setDate(today.getDate() - 6); // 7 days ago (including today)
 
-    switch (tab) {
-      case "previousMonth":
-        setFromDate(NEPALI_MONTHS.previousMonth.startDate);
-        setToDate(NEPALI_MONTHS.previousMonth.endDate);
-        break;
-      case "thisMonth":
-        setFromDate(NEPALI_MONTHS.thisMonth.startDate);
-        setToDate(NEPALI_MONTHS.thisMonth.endDate);
-        break;
-      case "thisWeek":
-        setFromDate(firstDayOfWeek.toISOString().split("T")[0]);
-        setToDate(lastDayOfWeek.toISOString().split("T")[0]);
-        break;
-      default:
-        break;
-    }
-    setActiveTab(tab);
-  };
-
+  switch (tab) {
+    case "previousMonth":
+      setFromDate(NEPALI_MONTHS.previousMonth.startDate);
+      setToDate(NEPALI_MONTHS.previousMonth.endDate);
+      break;
+    case "thisMonth":
+      setFromDate(NEPALI_MONTHS.thisMonth.startDate);
+      setToDate(NEPALI_MONTHS.thisMonth.endDate);
+      break;
+    case "thisWeek":
+      setFromDate(lastSevenDays.toISOString().split("T")[0]); // 7 days ago
+      setToDate(today.toISOString().split("T")[0]); // Today
+      break;
+    default:
+      break;
+  }
+  setActiveTab(tab);
+};
   // Set default date range to this week on component mount
   useEffect(() => {
     setDateRange("thisWeek");

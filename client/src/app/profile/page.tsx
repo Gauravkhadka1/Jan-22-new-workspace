@@ -35,7 +35,6 @@ const NEPALI_MONTHS = {
   },
 };
 
-// Define the TaskType type
 type TaskType = {
   id: number;
   title: string;
@@ -53,22 +52,21 @@ const ProfilePage = () => {
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [activeTab, setActiveTab] = useState("thisWeek"); // Default to "This Week"
+  const [activeTab, setActiveTab] = useState("thisWeek");
 
   const projectMap = projects
-    ? projects.reduce(
-        (acc, project) => {
-          acc[project.id] = project.name;
-          return acc;
-        },
-        {} as Record<number, string>,
-      )
+    ? projects.reduce((acc, project) => {
+        acc[project.id] = project.name;
+        return acc;
+      }, {} as Record<number, string>)
     : {};
 
   // Function to calculate time spent on a task
-  const calculateTimeSpent = (task: TaskType, allTasks: TaskType[]) => {
-    let start = new Date(task.startDate!);
-    const end = new Date(task.dueDate!);
+  const calculateTimeSpent = (task: TaskType) => {
+    if (!task.startDate || !task.dueDate) return "0.00";
+
+    let start = new Date(task.startDate);
+    const end = new Date(task.dueDate);
     let totalMinutes = 0;
 
     while (start < end) {
@@ -79,9 +77,9 @@ const ProfilePage = () => {
         continue;
       }
 
-      let workStart = new Date(start);
+      const workStart = new Date(start);
       workStart.setHours(WORK_START_HOUR, 0, 0, 0);
-      let workEnd = new Date(start);
+      const workEnd = new Date(start);
       workEnd.setHours(WORK_END_HOUR, 0, 0, 0);
 
       if (start < workStart) start = workStart;
@@ -92,7 +90,7 @@ const ProfilePage = () => {
         continue;
       }
 
-      let effectiveEnd = end < workEnd ? end : workEnd;
+      const effectiveEnd = end < workEnd ? end : workEnd;
       let taskDuration = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60); // in minutes
 
       // Ensure no more than 8 hours (480 minutes) are counted per day
@@ -127,13 +125,12 @@ const ProfilePage = () => {
   };
 
   // Filter tasks based on the selected date range
-  const filteredTasks =
-    tasks?.filter((task) => isCompletedAndWithinRange(task)) ?? [];
+  const filteredTasks = tasks?.filter(isCompletedAndWithinRange) ?? [];
 
   // Sort tasks by time spent (descending order)
   const sortedTasks = filteredTasks.slice().sort((a, b) => {
-    const timeA = parseFloat(calculateTimeSpent(a, filteredTasks));
-    const timeB = parseFloat(calculateTimeSpent(b, filteredTasks));
+    const timeA = parseFloat(calculateTimeSpent(a));
+    const timeB = parseFloat(calculateTimeSpent(b));
     return timeB - timeA;
   });
 
@@ -172,7 +169,7 @@ const ProfilePage = () => {
   // Calculate total time spent on tasks
   const calculateTotalTimeSpent = () => {
     return sortedTasks.reduce((total, task) => {
-      const timeSpent = parseFloat(calculateTimeSpent(task, sortedTasks));
+      const timeSpent = parseFloat(calculateTimeSpent(task));
       return total + timeSpent;
     }, 0);
   };
@@ -180,10 +177,8 @@ const ProfilePage = () => {
   // Function to set the date range based on the selected tab
   const setDateRange = (tab: string) => {
     const today = new Date();
-    const firstDayOfWeek = new Date(today);
-    firstDayOfWeek.setDate(today.getDate() - today.getDay()); // Start of the week (Sunday)
-    const lastDayOfWeek = new Date(today);
-    lastDayOfWeek.setDate(today.getDate() + (6 - today.getDay())); // End of the week (Saturday)
+    const lastSevenDays = new Date(today);
+    lastSevenDays.setDate(today.getDate() - 6); // 7 days ago (including today)
 
     switch (tab) {
       case "previousMonth":
@@ -195,8 +190,8 @@ const ProfilePage = () => {
         setToDate(NEPALI_MONTHS.thisMonth.endDate);
         break;
       case "thisWeek":
-        setFromDate(firstDayOfWeek.toISOString().split("T")[0]);
-        setToDate(lastDayOfWeek.toISOString().split("T")[0]);
+        setFromDate(lastSevenDays.toISOString().split("T")[0]); // 7 days ago
+        setToDate(today.toISOString().split("T")[0]); // Today
         break;
       default:
         break;
@@ -229,10 +224,9 @@ const ProfilePage = () => {
       <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 dark:bg-gray-900">
         {/* Bar Chart */}
         <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
-                Welcome, <span className="font-semibold">{user?.username ?? "Guest"}</span>!
-              </p>
+          Welcome, <span className="font-semibold">{user?.username ?? "Guest"}</span>!
+        </p>
         <div className="mt-6">
-          {/* <h2 className="text-lg font-bold mb-4">Visual Representation</h2> */}
           <BarChart width={500} height={300} data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
@@ -242,10 +236,9 @@ const ProfilePage = () => {
             <Bar dataKey="value" fill="#8884d8" />
           </BarChart>
         </div>
-        
 
         <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-       <h2 className="text-lg font-bold mb-2">View</h2>
+          <h2 className="text-lg font-bold mb-2">View</h2>
           <div className="flex gap-4 mb-4">
             <button
               onClick={() => setDateRange("previousMonth")}
@@ -279,7 +272,7 @@ const ProfilePage = () => {
             </button>
           </div>
           <div className="flex-col gap-4">
-          <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
+            <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
             <input
               type="date"
               value={fromDate}
@@ -294,10 +287,9 @@ const ProfilePage = () => {
             />
           </div>
         </div>
-        <div className="w-80 rounded-lg p-6 text-center  dark:bg-gray-800">
+        <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
             <>
-            
               <button
                 onClick={logout}
                 className="mt-6 w-full rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none"
@@ -343,7 +335,7 @@ const ProfilePage = () => {
                   </td>
                   <td className="border p-2">
                     {task.startDate && task.dueDate
-                      ? calculateTimeSpent(task, sortedTasks)
+                      ? calculateTimeSpent(task)
                       : "N/A"}
                   </td>
                 </tr>
