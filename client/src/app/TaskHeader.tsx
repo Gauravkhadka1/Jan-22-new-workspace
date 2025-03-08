@@ -39,7 +39,7 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
           <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
             <Share2 className="h-5 w-5" />
           </button> */}
-          <div className="mx-2 mt-2 text-lg font-medium">
+          <div className="mx-2 mt-2 text-lg font-medium dark:text-neutral-100">
             {user.username} Task's
           </div>
         </div>
