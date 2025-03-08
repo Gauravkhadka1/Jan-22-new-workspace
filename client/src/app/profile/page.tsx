@@ -49,13 +49,20 @@ const ProfilePage = () => {
     let start = new Date(task.startDate!);
     const end = new Date(task.dueDate!);
     let totalMinutes = 0;
-
+  
     while (start < end) {
+      // Skip Saturdays
+      if (start.getDay() === 6) {
+        start.setDate(start.getDate() + 1);
+        start.setHours(WORK_START_HOUR, 0, 0, 0);
+        continue;
+      }
+  
       let workStart = new Date(start);
       workStart.setHours(WORK_START_HOUR, 0, 0, 0);
       let workEnd = new Date(start);
       workEnd.setHours(WORK_END_HOUR, 0, 0, 0);
-
+  
       if (start < workStart) start = workStart;
       if (end < workStart) break;
       if (start > workEnd) {
@@ -63,26 +70,26 @@ const ProfilePage = () => {
         start.setHours(WORK_START_HOUR, 0, 0, 0);
         continue;
       }
-
+  
       let effectiveEnd = end < workEnd ? end : workEnd;
       let taskDuration = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60); // in minutes
-
+  
       // Calculate overlapping time with other tasks
       let overlapMinutes = 0;
       allTasks.forEach((otherTask) => {
         if (otherTask.id !== task.id) {
           let otherStart = new Date(otherTask.startDate!);
           let otherEnd = new Date(otherTask.dueDate!);
-
+  
           // Adjust other task's start and end to working hours
           otherStart.setHours(Math.max(otherStart.getHours(), WORK_START_HOUR), 0, 0, 0);
           otherEnd.setHours(Math.min(otherEnd.getHours(), WORK_END_HOUR), 0, 0, 0);
-
+  
           if (otherStart < otherEnd) {
             // Find the intersection between the current task and the other task
             let overlapStart = new Date(Math.max(start.getTime(), otherStart.getTime()));
             let overlapEnd = new Date(Math.min(effectiveEnd.getTime(), otherEnd.getTime()));
-
+  
             if (overlapStart < overlapEnd) {
               let overlappingTime = (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60); // in minutes
               // Only subtract overlap if the current task is longer than the overlapping task
@@ -93,15 +100,15 @@ const ProfilePage = () => {
           }
         }
       });
-
+  
       // Ensure overlapMinutes does not exceed taskDuration
       overlapMinutes = Math.min(overlapMinutes, taskDuration);
       totalMinutes += taskDuration - overlapMinutes;
-
+  
       start.setDate(start.getDate() + 1);
       start.setHours(WORK_START_HOUR, 0, 0, 0);
     }
-
+  
     // Convert total minutes to hours and minutes
     const hours = Math.floor(totalMinutes / 60);
     const minutes = Math.round(totalMinutes % 60);
