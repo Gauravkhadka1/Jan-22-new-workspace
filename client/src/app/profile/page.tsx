@@ -294,7 +294,7 @@ const ProfilePage = () => {
             />
           </div>
         </div>
-        {/* <div className="w-80 rounded-lg p-6 text-center  dark:bg-gray-800">
+        <div className="w-80 rounded-lg p-6 text-center  dark:bg-gray-800">
           {user ? (
             <>
             
@@ -310,7 +310,7 @@ const ProfilePage = () => {
               You are not logged in.
             </p>
           )}
-        </div> */}
+        </div>
       </div>
       <div className="mt-5 w-[45%] ml-10 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
