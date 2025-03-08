@@ -1,3 +1,4 @@
+"use client"
 import Header from "@/components/Header";
 import {
   Calendar,
@@ -12,8 +13,8 @@ import {
 import React, { useState } from "react";
 import ModalNewProject from "./projects/ModalNewProject";
 import { useAuth } from "../context/AuthContext";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-
 
 
 type Props = {
@@ -22,9 +23,14 @@ type Props = {
   username?: string;
 };
 
-const ProjectHeader = ({ activeTab, setActiveTab, username }: Props) => {
+const ProjectHeader = ({ activeTab, setActiveTab}: Props) => {
   const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false);
   const { user } = useAuth();
+  const params = useParams();
+  const userId = params.userId;
+  const searchParams = useSearchParams();
+  const username = searchParams.get("username");
+  // Extract userId and username from the URL query
 
   return (
     <div className="px-4 xl:px-6">
@@ -47,7 +53,7 @@ const ProjectHeader = ({ activeTab, setActiveTab, username }: Props) => {
             {username ? (
               <Link
                 href={{
-                  pathname: `/profile/${user?.id}`, // Navigate to the profile page
+                  pathname: `/profile/${userId}`, // Navigate to the profile page
                   query: { username }, // Pass the username as a query parameter
                 }}
                 className="text-blue-500 hover:underline"
