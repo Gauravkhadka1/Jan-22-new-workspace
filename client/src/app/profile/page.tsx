@@ -45,20 +45,20 @@ const ProfilePage = () => {
     status?: Status;
   };
 
+  // Define the dates to exclude (e.g., February 26, 2025, and March 13, 2025)
+  const excludeDates = [
+    new Date("2025-02-26"),
+    new Date("2025-03-13"),
+    // Add more dates here as needed
+  ].map((date) => {
+    date.setHours(0, 0, 0, 0); // Normalize the time to midnight
+    return date.getTime(); // Convert to timestamp for easy comparison
+  });
+
   const calculateTimeSpent = (task: TaskType, allTasks: TaskType[]) => {
     let start = new Date(task.startDate!);
     const end = new Date(task.dueDate!);
     let totalMinutes = 0;
-
-    // Define the dates to exclude (e.g., February 26, 2025, and March 13, 2025)
-    const excludeDates = [
-      new Date("2025-02-26"),
-      new Date("2025-03-13"),
-      // Add more dates here as needed
-    ].map((date) => {
-      date.setHours(0, 0, 0, 0); // Normalize the time to midnight
-      return date.getTime(); // Convert to timestamp for easy comparison
-    });
 
     while (start < end) {
       // Skip Saturdays
@@ -172,6 +172,45 @@ const ProfilePage = () => {
     return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1; // Add 1 to include both start and end dates
   };
 
+  // Calculate total working hours in the selected date range
+  const calculateTotalWorkingHours = () => {
+    if (!fromDate || !toDate) return 0;
+
+    let start = new Date(fromDate);
+    const end = new Date(toDate);
+    let totalWorkingHours = 0;
+
+    while (start <= end) {
+      // Skip Saturdays
+      if (start.getDay() === 6) {
+        start.setDate(start.getDate() + 1);
+        continue;
+      }
+
+      // Skip excluded dates
+      const currentDate = new Date(start);
+      currentDate.setHours(0, 0, 0, 0); // Normalize the time to midnight for comparison
+      if (excludeDates.includes(currentDate.getTime())) {
+        start.setDate(start.getDate() + 1);
+        continue;
+      }
+
+      // Add 8 hours for each valid working day
+      totalWorkingHours += WORK_HOURS_PER_DAY;
+      start.setDate(start.getDate() + 1);
+    }
+
+    return totalWorkingHours;
+  };
+
+  // Calculate total time spent on tasks
+  const calculateTotalTimeSpent = () => {
+    return sortedTasks.reduce((total, task) => {
+      const timeSpent = parseFloat(calculateTimeSpent(task, sortedTasks));
+      return total + timeSpent;
+    }, 0);
+  };
+
   return (
     <div className="flex">
       <div className="flex min-h-screen ml-10 flex-col items-center mt-20 bg-gray-100 dark:bg-gray-900">
@@ -263,6 +302,16 @@ const ProfilePage = () => {
             )}
           </tbody>
         </table>
+
+        {/* Display total working hours and total time spent */}
+        <div className="mt-6">
+          <p className="text-sm font-bold">
+            Total Working Hours: {calculateTotalWorkingHours()} hours
+          </p>
+          <p className="text-sm font-bold">
+            Total Time Spent on Tasks: {calculateTotalTimeSpent().toFixed(2)} hours
+          </p>
+        </div>
       </div>
     </div>
   );
