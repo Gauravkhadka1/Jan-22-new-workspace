@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useDeleteUserMutation } from "@/state/api";
 import {
@@ -17,25 +17,33 @@ import {
   Tooltip,
   Legend,
   CartesianGrid,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
 } from "recharts";
 
 const WORK_START_HOUR = 10; // 10 AM
 const WORK_END_HOUR = 18; // 6 PM
 const WORK_HOURS_PER_DAY = WORK_END_HOUR - WORK_START_HOUR; // 8 hours
 
-const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#a4de6c"]; // Colors for pie chart
+// Define Nepali month start and end dates (Gregorian equivalents)
+const NEPALI_MONTHS = {
+  thisMonth: {
+    startDate: "2025-02-13", // Start of Chaitra (Nepali month)
+    endDate: "2025-03-13",   // End of Chaitra (Nepali month)
+  },
+  previousMonth: {
+    startDate: "2025-01-13", // Start of Falgun (Nepali month)
+    endDate: "2025-02-12",   // End of Falgun (Nepali month)
+  },
+};
+
+// Define the TaskType type
+type TaskType = {
+  id: number;
+  title: string;
+  startDate?: string;
+  dueDate?: string;
+  projectId: number;
+  status?: Status;
+};
 
 const ProfilePage = () => {
   const { user, logout } = useAuth();
@@ -45,6 +53,7 @@ const ProfilePage = () => {
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [activeTab, setActiveTab] = useState("thisWeek"); // Default to "This Week"
 
   const projectMap = projects
     ? projects.reduce(
@@ -56,28 +65,7 @@ const ProfilePage = () => {
       )
     : {};
 
-  if (isLoading) return <p>Loading tasks...</p>;
-  if (isError) return <p>Error loading tasks</p>;
-
-  type TaskType = {
-    id: number;
-    title: string;
-    startDate?: string;
-    dueDate?: string;
-    projectId: number;
-    status?: Status;
-  };
-
-  // Define the dates to exclude (e.g., February 26, 2025, and March 13, 2025)
-  const excludeDates = [
-    new Date("2025-02-26"),
-    new Date("2025-03-13"),
-    // Add more dates here as needed
-  ].map((date) => {
-    date.setHours(0, 0, 0, 0); // Normalize the time to midnight
-    return date.getTime(); // Convert to timestamp for easy comparison
-  });
-
+  // Function to calculate time spent on a task
   const calculateTimeSpent = (task: TaskType, allTasks: TaskType[]) => {
     let start = new Date(task.startDate!);
     const end = new Date(task.dueDate!);
@@ -86,15 +74,6 @@ const ProfilePage = () => {
     while (start < end) {
       // Skip Saturdays
       if (start.getDay() === 6) {
-        start.setDate(start.getDate() + 1);
-        start.setHours(WORK_START_HOUR, 0, 0, 0);
-        continue;
-      }
-
-      // Skip excluded dates
-      const currentDate = new Date(start);
-      currentDate.setHours(0, 0, 0, 0); // Normalize the time to midnight for comparison
-      if (excludeDates.includes(currentDate.getTime())) {
         start.setDate(start.getDate() + 1);
         start.setHours(WORK_START_HOUR, 0, 0, 0);
         continue;
@@ -119,37 +98,7 @@ const ProfilePage = () => {
       // Ensure no more than 8 hours (480 minutes) are counted per day
       taskDuration = Math.min(taskDuration, WORK_HOURS_PER_DAY * 60);
 
-      // Calculate overlapping time with other tasks
-      let overlapMinutes = 0;
-      allTasks.forEach((otherTask) => {
-        if (otherTask.id !== task.id) {
-          let otherStart = new Date(otherTask.startDate!);
-          let otherEnd = new Date(otherTask.dueDate!);
-
-          // Adjust other task's start and end to working hours
-          otherStart.setHours(Math.max(otherStart.getHours(), WORK_START_HOUR), 0, 0, 0);
-          otherEnd.setHours(Math.min(otherEnd.getHours(), WORK_END_HOUR), 0, 0, 0);
-
-          if (otherStart < otherEnd) {
-            // Find the intersection between the current task and the other task
-            let overlapStart = new Date(Math.max(start.getTime(), otherStart.getTime()));
-            let overlapEnd = new Date(Math.min(effectiveEnd.getTime(), otherEnd.getTime()));
-
-            if (overlapStart < overlapEnd) {
-              let overlappingTime = (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60); // in minutes
-              // Only subtract overlap if the current task is longer than the overlapping task
-              if (taskDuration > overlappingTime) {
-                overlapMinutes += overlappingTime;
-              }
-            }
-          }
-        }
-      });
-
-      // Ensure overlapMinutes does not exceed taskDuration
-      overlapMinutes = Math.min(overlapMinutes, taskDuration);
-      totalMinutes += taskDuration - overlapMinutes;
-
+      totalMinutes += taskDuration;
       start.setDate(start.getDate() + 1);
       start.setHours(WORK_START_HOUR, 0, 0, 0);
     }
@@ -160,10 +109,11 @@ const ProfilePage = () => {
     return `${hours}.${minutes.toString().padStart(2, "0")}`;
   };
 
+  // Function to check if a task is completed and within the selected date range
   const isCompletedAndWithinRange = (task: TaskType) => {
     if (task.status !== Status.Completed) return false;
     if (!task.startDate || !task.dueDate) return false;
-    if (!fromDate || !toDate) return true;
+    if (!fromDate || !toDate) return false;
 
     const taskStartDate = new Date(task.startDate);
     const taskDueDate = new Date(task.dueDate);
@@ -176,6 +126,7 @@ const ProfilePage = () => {
     );
   };
 
+  // Filter tasks based on the selected date range
   const filteredTasks =
     tasks?.filter((task) => isCompletedAndWithinRange(task)) ?? [];
 
@@ -210,14 +161,6 @@ const ProfilePage = () => {
         continue;
       }
 
-      // Skip excluded dates
-      const currentDate = new Date(start);
-      currentDate.setHours(0, 0, 0, 0); // Normalize the time to midnight for comparison
-      if (excludeDates.includes(currentDate.getTime())) {
-        start.setDate(start.getDate() + 1);
-        continue;
-      }
-
       // Add 8 hours for each valid working day
       totalWorkingHours += WORK_HOURS_PER_DAY;
       start.setDate(start.getDate() + 1);
@@ -234,7 +177,39 @@ const ProfilePage = () => {
     }, 0);
   };
 
-  // Data for the charts
+  // Function to set the date range based on the selected tab
+  const setDateRange = (tab: string) => {
+    const today = new Date();
+    const firstDayOfWeek = new Date(today);
+    firstDayOfWeek.setDate(today.getDate() - today.getDay()); // Start of the week (Sunday)
+    const lastDayOfWeek = new Date(today);
+    lastDayOfWeek.setDate(today.getDate() + (6 - today.getDay())); // End of the week (Saturday)
+
+    switch (tab) {
+      case "previousMonth":
+        setFromDate(NEPALI_MONTHS.previousMonth.startDate);
+        setToDate(NEPALI_MONTHS.previousMonth.endDate);
+        break;
+      case "thisMonth":
+        setFromDate(NEPALI_MONTHS.thisMonth.startDate);
+        setToDate(NEPALI_MONTHS.thisMonth.endDate);
+        break;
+      case "thisWeek":
+        setFromDate(firstDayOfWeek.toISOString().split("T")[0]);
+        setToDate(lastDayOfWeek.toISOString().split("T")[0]);
+        break;
+      default:
+        break;
+    }
+    setActiveTab(tab);
+  };
+
+  // Set default date range to this week on component mount
+  useEffect(() => {
+    setDateRange("thisWeek");
+  }, []);
+
+  // Data for the bar chart
   const chartData = [
     {
       name: "Total Working Hours",
@@ -246,13 +221,8 @@ const ProfilePage = () => {
     },
   ];
 
-  // Example daily data for line and area charts
-  const dailyData = [
-    { date: "2025-02-25", workingHours: 8, timeSpent: 6 },
-    { date: "2025-02-26", workingHours: 0, timeSpent: 0 }, // Excluded date
-    { date: "2025-02-27", workingHours: 8, timeSpent: 7 },
-    // Add more daily data as needed
-  ];
+  if (isLoading) return <p>Loading tasks...</p>;
+  if (isError) return <p>Error loading tasks</p>;
 
   return (
     <div className="flex">
@@ -282,6 +252,38 @@ const ProfilePage = () => {
 
         <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
           <h2 className="mb-2 text-lg font-bold">Filter Tasks by Date Range</h2>
+          <div className="flex gap-4 mb-4">
+            <button
+              onClick={() => setDateRange("previousMonth")}
+              className={`px-4 py-2 rounded-lg ${
+                activeTab === "previousMonth"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Previous Month
+            </button>
+            <button
+              onClick={() => setDateRange("thisMonth")}
+              className={`px-4 py-2 rounded-lg ${
+                activeTab === "thisMonth"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => setDateRange("thisWeek")}
+              className={`px-4 py-2 rounded-lg ${
+                activeTab === "thisWeek"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              This Week
+            </button>
+          </div>
           <div className="flex gap-4">
             <input
               type="date"
@@ -306,9 +308,7 @@ const ProfilePage = () => {
               <span className="text-sm font-normal">
                 ({fromDate} to {toDate}, {calculateNumberOfDays()} days)
               </span>
-            ) : (
-              <span className="text-sm font-normal">(All Time)</span>
-            )}
+            ) : null}
           </h2>
         </div>
         <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
@@ -356,22 +356,17 @@ const ProfilePage = () => {
           </p>
         </div>
 
-        {/* Visual Representation */}
+        {/* Bar Chart */}
         <div className="mt-6">
           <h2 className="text-lg font-bold mb-4">Visual Representation</h2>
-
-          {/* Option 1: Bar Chart */}
-          <div className="mb-8">
-            <h3 className="text-md font-semibold mb-2">Bar Chart</h3>
-            <BarChart width={500} height={300} data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="value" fill="#8884d8" />
-            </BarChart>
-          </div>
+          <BarChart width={500} height={300} data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="value" fill="#8884d8" />
+          </BarChart>
         </div>
       </div>
     </div>
