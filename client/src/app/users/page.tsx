@@ -3,6 +3,7 @@ import { useGetUsersQuery, useUpdateUserRoleMutation } from "@/state/api";
 import React from "react";
 import Header from "@/components/Header";
 import withRoleAuth from "../../hoc/withRoleAuth";
+import { useRouter } from 'next/router';
 
 import {
   DataGrid,
@@ -63,9 +64,15 @@ const Users = () => {
       headerName: "Username",
       width: 150,
       renderCell: (params) => (
-        <Link href={`/usertasks/${params.row.userId}`} className="text-blue-500 hover:underline">
-          {params.value}
-        </Link>
+        <Link 
+        href={{
+          pathname: `/usertasks/${params.row.userId}`,
+          query: { username: params.value },
+        }} 
+        className="text-blue-500 hover:underline"
+      >
+        {params.value}
+      </Link>
       ),
     },
   ];

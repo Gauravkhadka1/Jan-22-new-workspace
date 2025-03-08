@@ -12,13 +12,15 @@ import {
 import React, { useState } from "react";
 import ModalNewProject from "./projects/ModalNewProject";
 import { useAuth } from "../context/AuthContext";
+import { useRouter } from 'next/router';
 
 type Props = {
   activeTab: string;
   setActiveTab: (tabName: string) => void;
+  username?: string;
 };
 
-const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
+const ProjectHeader = ({ activeTab, setActiveTab, username }: Props) => {
   const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false);
   const { user } = useAuth();
 
@@ -40,7 +42,7 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
             <Share2 className="h-5 w-5" />
           </button> */}
           <div className="mx-2 mt-2 text-lg font-medium">
-            ... Task's
+          {username ? `${username}'s Tasks` : "Tasks"}
           </div>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2 md:gap-4">

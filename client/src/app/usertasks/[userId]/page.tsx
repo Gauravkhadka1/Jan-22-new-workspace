@@ -9,7 +9,7 @@ import { useGetTasksQuery, useGetTasksByUserQuery, useUpdateTaskStatusMutation, 
 import { Clock } from "lucide-react";
 import DashboardCalendarView from "../../DashboardCalendarUserView";
 import withRoleAuth from "../../../hoc/withRoleAuth";
-
+import { useParams, useSearchParams } from 'next/navigation'; // Use these hooks for App Router
 
 type Props = {
   params: { id: string };
@@ -17,11 +17,14 @@ type Props = {
 
 const Project = ({ params }: Props) => {
   const { id } = params;
+  const searchParams = useSearchParams(); // Access query parameters
+  const username = searchParams.get('username') ?? undefined; // Convert null to undefined
+
   const [activeTab, setActiveTab] = useState("Board");
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
-    const { user } = useAuth(); // Assuming the hook returns the logged-in user
-    const userId = user?.id; // Adjust this based on how your user data is structured
-    const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
+  const { user } = useAuth(); // Assuming the hook returns the logged-in user
+  const userId = user?.id; // Adjust this based on how your user data is structured
+  const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
 
   return (
     <div>
@@ -30,17 +33,13 @@ const Project = ({ params }: Props) => {
         onClose={() => setIsModalNewTaskOpen(false)}
         id={id}
       />
-     <TaskHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-     {activeTab === "Calendar" && (
-        <DashboardCalendarView/>
+      <TaskHeader activeTab={activeTab} setActiveTab={setActiveTab} username={username} />
+      {activeTab === "Calendar" && (
+        <DashboardCalendarView />
       )}
-     {activeTab === "Board" && (
-        <Board id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen}/>
+      {activeTab === "Board" && (
+        <Board id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
       )}
-    
-      {/* {activeTab === "Board" && (
-        <CalendarView id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
-      )} */}
     </div>
   );
 };
