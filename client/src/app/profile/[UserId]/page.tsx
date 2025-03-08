@@ -56,8 +56,14 @@ const ProfilePage = () => {
   // Convert userId from string to number
   const userId = parseInt(params.userId as string, 10);
 
+  // Validate userId
+  if (isNaN(userId)) {
+      console.error("Invalid userId:", params.userId);
+      return <p>Invalid user ID. Please check the URL.</p>;
+  }
+
   // Fetch tasks for the user
-  const { data: tasks, isLoading, isError } =   useGetTasksByUserIdForProfileQuery(userId);
+  const { data: tasks, isLoading, isError } = useGetTasksByUserIdForProfileQuery(userId);
   const { data: projects } = useGetProjectsQuery({});
 
   const [fromDate, setFromDate] = useState("");
