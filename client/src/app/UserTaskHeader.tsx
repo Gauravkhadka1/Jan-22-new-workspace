@@ -46,8 +46,8 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
 
       {/* TABS */}
       <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark md:items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="mx-2 mt-2 text-lg font-medium">
+        <div className="flex text-lg font-medium items-center">
+          <div className="mx-2 text-lg font-medium">
             {username && userId ? (
               <Link
                 href={{
@@ -56,12 +56,13 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
                 }}
                 className="text-blue-500 hover:underline"
               >
-                {username}'s Tasks
+                {username} 
               </Link>
             ) : (
               "Tasks"
             )}
           </div>
+          Tasks
         </div>
         <div className="flex-1 flex items-center justify-end gap-2 md:gap-4">
           <TabButton
