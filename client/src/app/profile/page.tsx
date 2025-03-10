@@ -65,6 +65,7 @@ const ProfilePage = () => {
    const [confirmPassword, setConfirmPassword] = useState("");
    const [passwordError, setPasswordError] = useState("");
    const [passwordSuccess, setPasswordSuccess] = useState("");
+   const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
 
    // Function to handle password change
    const [changePassword, { isLoading: isChangingPassword, isSuccess, isError: isChangePasswordError }] =
@@ -95,7 +96,7 @@ const ProfilePage = () => {
       setPasswordSuccess("");
     }
   };
-  
+
   const projectMap = projects
     ? projects.reduce((acc, project) => {
         acc[project.id] = project.name;
@@ -337,6 +338,7 @@ const ProfilePage = () => {
         </div>
 
  {/* Change Password Form */}
+ {showChangePasswordForm && (
 <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
   <h2 className="text-lg font-bold mb-2">Change Password</h2>
   <form onSubmit={handleChangePassword}>
@@ -381,11 +383,17 @@ const ProfilePage = () => {
     </button>
   </form>
 </div>
-
+ )}
 
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
             <>
+             {/* <button
+                onClick={() => setShowChangePasswordForm(!showChangePasswordForm)} // Toggle form visibility
+                className="mt-6 w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
+              >
+                {showChangePasswordForm ? "Hide Change Password" : "Change Password"}
+              </button> */}
               <button
                 onClick={logout}
                 className="mt-6 w-full rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none"
