@@ -118,9 +118,15 @@ const ProfilePage = () => {
     const start = new Date(fromDate);
     const end = new Date(toDate);
 
+    // Normalize dates to the start and end of the day
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    // Check if the task's start or due date falls within the selected date range
     return (
       (taskStartDate >= start && taskStartDate <= end) ||
-      (taskDueDate >= start && taskDueDate <= end)
+      (taskDueDate >= start && taskDueDate <= end) ||
+      (taskStartDate <= start && taskDueDate >= end)
     );
   };
 
