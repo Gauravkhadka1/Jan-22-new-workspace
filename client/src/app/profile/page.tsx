@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useDeleteUserMutation } from "@/state/api";
-import { useChangePasswordMutation } from "@/state/api"; // Import the mutation hook
+import { useChangePasswordMutation } from "@/state/api";
 import {
   useGetTasksByUserQuery,
   useGetProjectsQuery,
@@ -59,33 +59,32 @@ const ProfilePage = () => {
   const [toDate, setToDate] = useState("");
   const [activeTab, setActiveTab] = useState("thisWeek");
 
-   // State for change password
-   const [currentPassword, setCurrentPassword] = useState("");
-   const [newPassword, setNewPassword] = useState("");
-   const [confirmPassword, setConfirmPassword] = useState("");
-   const [passwordError, setPasswordError] = useState("");
-   const [passwordSuccess, setPasswordSuccess] = useState("");
-   const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
+  // State for change password
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
 
-   // Function to handle password change
-   const [changePassword, { isLoading: isChangingPassword, isSuccess, isError: isChangePasswordError }] =
-   useChangePasswordMutation();
+  // Function to handle password change
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
 
-   const handleChangePassword = async (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (newPassword !== confirmPassword) {
       setPasswordError("New passwords do not match.");
       return;
     }
-  
+
     try {
       await changePassword({
-        userId: user?.id, // Ensure user.id is passed correctly
+        userId: user?.id,
         currentPassword,
         newPassword,
       }).unwrap();
-  
+
       setPasswordSuccess("Password changed successfully.");
       setPasswordError("");
       setCurrentPassword("");
@@ -104,13 +103,17 @@ const ProfilePage = () => {
       }, {} as Record<number, string>)
     : {};
 
-  // Function to calculate time spent on a task
-  const calculateTimeSpent = (task: TaskType) => {
-    if (!task.startDate || !task.dueDate) return "0.00";
+  // Function to calculate time spent on a task within a specific range
+  const calculateTimeSpent = (task: TaskType, startRange: Date, endRange: Date) => {
+    if (!task.startDate || !task.dueDate) return 0;
 
     let start = new Date(task.startDate);
-    const end = new Date(task.dueDate);
+    let end = new Date(task.dueDate);
     let totalMinutes = 0;
+
+    // Ensure the start and end dates are within the specified range
+    if (start < startRange) start = new Date(startRange);
+    if (end > endRange) end = new Date(endRange);
 
     while (start < end) {
       // Skip Saturdays
@@ -144,55 +147,98 @@ const ProfilePage = () => {
       start.setHours(WORK_START_HOUR, 0, 0, 0);
     }
 
-    // Convert total minutes to hours and minutes
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = Math.round(totalMinutes % 60);
-    return `${hours}.${minutes.toString().padStart(2, "0")}`;
+    // Convert total minutes to hours
+    return totalMinutes / 60;
   };
 
   // Function to check if a task is completed and within the selected date range
-  const isCompletedAndWithinRange = (task: TaskType) => {
+  const isCompletedAndWithinRange = (task: TaskType, startRange: Date, endRange: Date) => {
     if (task.status !== Status.Completed) return false;
     if (!task.startDate || !task.dueDate) return false;
-    if (!fromDate || !toDate) return false;
 
     const taskStartDate = new Date(task.startDate);
     const taskDueDate = new Date(task.dueDate);
-    const start = new Date(fromDate);
-    const end = new Date(toDate);
-
-    // Normalize dates to the start and end of the day
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
 
     // Check if the task's start or due date falls within the selected date range
     return (
-      (taskStartDate >= start && taskStartDate <= end) ||
-      (taskDueDate >= start && taskDueDate <= end) ||
-      (taskStartDate <= start && taskDueDate >= end)
+      (taskStartDate >= startRange && taskStartDate <= endRange) ||
+      (taskDueDate >= startRange && taskDueDate <= endRange) ||
+      (taskStartDate <= startRange && taskDueDate >= endRange)
     );
   };
 
+  // Function to set the date range based on the selected tab
+  const setDateRange = (tab: string) => {
+    const today = new Date();
+    const lastSevenDays = new Date(today);
+    lastSevenDays.setDate(today.getDate() - 6); // 7 days ago (including today)
+
+    let startRange, endRange;
+
+    switch (tab) {
+      case "previousMonth":
+        startRange = new Date(NEPALI_MONTHS.previousMonth.startDate);
+        endRange = new Date(NEPALI_MONTHS.previousMonth.endDate);
+        break;
+      case "thisMonth":
+        startRange = new Date(NEPALI_MONTHS.thisMonth.startDate);
+        endRange = new Date(NEPALI_MONTHS.thisMonth.endDate);
+        break;
+      case "thisWeek":
+        startRange = lastSevenDays;
+        endRange = today;
+        break;
+      default:
+        startRange = new Date(fromDate);
+        endRange = new Date(toDate);
+        break;
+    }
+
+    setFromDate(startRange.toISOString().split("T")[0]);
+    setToDate(endRange.toISOString().split("T")[0]);
+    setActiveTab(tab);
+  };
+
+  // Set default date range to this week on component mount
+  useEffect(() => {
+    setDateRange("thisWeek");
+  }, []);
+
   // Filter tasks based on the selected date range
-  const filteredTasks = tasks?.filter(isCompletedAndWithinRange) ?? [];
+  const filteredTasks = tasks?.filter((task) =>
+    isCompletedAndWithinRange(task, new Date(fromDate), new Date(toDate))
+  ) ?? [];
 
   // Sort tasks by time spent (descending order)
   const sortedTasks = filteredTasks.slice().sort((a, b) => {
-    const timeA = parseFloat(calculateTimeSpent(a));
-    const timeB = parseFloat(calculateTimeSpent(b));
+    const timeA = calculateTimeSpent(a, new Date(fromDate), new Date(toDate));
+    const timeB = calculateTimeSpent(b, new Date(fromDate), new Date(toDate));
     return timeB - timeA;
   });
 
-  // Calculate the number of days between the selected dates
-  const calculateNumberOfDays = () => {
-    if (!fromDate || !toDate) return 0;
-    const start = new Date(fromDate);
-    const end = new Date(toDate);
-    const timeDiff = end.getTime() - start.getTime();
-    return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1; // Add 1 to include both start and end dates
+  // Calculate total time spent on tasks
+  const calculateTotalTimeSpent = () => {
+    return sortedTasks.reduce((total, task) => {
+      const timeSpent = calculateTimeSpent(task, new Date(fromDate), new Date(toDate));
+      return total + timeSpent;
+    }, 0);
   };
 
-  // Calculate total working hours in the selected date range
+  const calculateNumberOfDays = () => {
+    if (!fromDate || !toDate) return 0;
+
+    const start = new Date(fromDate);
+    const end = new Date(toDate);
+
+    // Calculate the difference in milliseconds
+    const timeDiff = end.getTime() - start.getTime();
+
+    // Convert milliseconds to days and add 1 to include both start and end dates
+    const numberOfDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+
+    return numberOfDays;
+  };
+
   const calculateTotalWorkingHours = () => {
     if (!fromDate || !toDate) return 0;
 
@@ -214,44 +260,6 @@ const ProfilePage = () => {
 
     return totalWorkingHours;
   };
-
-  // Calculate total time spent on tasks
-  const calculateTotalTimeSpent = () => {
-    return sortedTasks.reduce((total, task) => {
-      const timeSpent = parseFloat(calculateTimeSpent(task));
-      return total + timeSpent;
-    }, 0);
-  };
-
-  // Function to set the date range based on the selected tab
-  const setDateRange = (tab: string) => {
-    const today = new Date();
-    const lastSevenDays = new Date(today);
-    lastSevenDays.setDate(today.getDate() - 6); // 7 days ago (including today)
-
-    switch (tab) {
-      case "previousMonth":
-        setFromDate(NEPALI_MONTHS.previousMonth.startDate);
-        setToDate(NEPALI_MONTHS.previousMonth.endDate);
-        break;
-      case "thisMonth":
-        setFromDate(NEPALI_MONTHS.thisMonth.startDate);
-        setToDate(NEPALI_MONTHS.thisMonth.endDate);
-        break;
-      case "thisWeek":
-        setFromDate(lastSevenDays.toISOString().split("T")[0]); // 7 days ago
-        setToDate(today.toISOString().split("T")[0]); // Today
-        break;
-      default:
-        break;
-    }
-    setActiveTab(tab);
-  };
-
-  // Set default date range to this week on component mount
-  useEffect(() => {
-    setDateRange("thisWeek");
-  }, []);
 
   // Data for the bar chart
   const chartData = [
@@ -337,63 +345,63 @@ const ProfilePage = () => {
           </div>
         </div>
 
- {/* Change Password Form */}
- {showChangePasswordForm && (
-<div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-  <h2 className="text-lg font-bold mb-2">Change Password</h2>
-  <form onSubmit={handleChangePassword}>
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-2">Current Password</label>
-      <input
-        type="password"
-        value={currentPassword}
-        onChange={(e) => setCurrentPassword(e.target.value)}
-        className="rounded-md border p-2 w-full"
-        required
-      />
-    </div>
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-2">New Password</label>
-      <input
-        type="password"
-        value={newPassword}
-        onChange={(e) => setNewPassword(e.target.value)}
-        className="rounded-md border p-2 w-full"
-        required
-      />
-    </div>
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-2">Confirm New Password</label>
-      <input
-        type="password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        className="rounded-md border p-2 w-full"
-        required
-      />
-    </div>
-    {passwordError && <p className="text-red-500 text-sm mb-4">{passwordError}</p>}
-    {passwordSuccess && <p className="text-green-500 text-sm mb-4">{passwordSuccess}</p>}
-    <button
-      type="submit"
-      disabled={isChangingPassword}
-      className="w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
-    >
-      {isChangingPassword ? "Changing Password..." : "Change Password"}
-    </button>
-  </form>
-</div>
- )}
+        {/* Change Password Form */}
+        {showChangePasswordForm && (
+          <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+            <h2 className="text-lg font-bold mb-2">Change Password</h2>
+            <form onSubmit={handleChangePassword}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Current Password</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="rounded-md border p-2 w-full"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="rounded-md border p-2 w-full"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="rounded-md border p-2 w-full"
+                  required
+                />
+              </div>
+              {passwordError && <p className="text-red-500 text-sm mb-4">{passwordError}</p>}
+              {passwordSuccess && <p className="text-green-500 text-sm mb-4">{passwordSuccess}</p>}
+              <button
+                type="submit"
+                disabled={isChangingPassword}
+                className="w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
+              >
+                {isChangingPassword ? "Changing Password..." : "Change Password"}
+              </button>
+            </form>
+          </div>
+        )}
 
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
             <>
-             {/* <button
-                onClick={() => setShowChangePasswordForm(!showChangePasswordForm)} // Toggle form visibility
+              <button
+                onClick={() => setShowChangePasswordForm(!showChangePasswordForm)}
                 className="mt-6 w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
               >
                 {showChangePasswordForm ? "Hide Change Password" : "Change Password"}
-              </button> */}
+              </button>
               <button
                 onClick={logout}
                 className="mt-6 w-full rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none"
@@ -439,7 +447,7 @@ const ProfilePage = () => {
                   </td>
                   <td className="border p-2">
                     {task.startDate && task.dueDate
-                      ? calculateTimeSpent(task)
+                      ? calculateTimeSpent(task, new Date(fromDate), new Date(toDate)).toFixed(2)
                       : "N/A"}
                   </td>
                 </tr>
