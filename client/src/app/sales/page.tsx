@@ -6,7 +6,7 @@ import withRoleAuth from "../../hoc/withRoleAuth";
 const Sales = () => {
   return (
     <div>
-      <h1>Sales Dashboard</h1>
+      <h1 className='ml-6 mt-2 font-semibold text-sm'>Sales Data</h1>
       <SalesChart />
     </div>
   );

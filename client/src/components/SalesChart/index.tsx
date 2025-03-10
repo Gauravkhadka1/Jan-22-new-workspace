@@ -80,7 +80,6 @@ const SalesChart = () => {
 
   return (
     <div>
-      <h2>Monthly Sales Data</h2>
       <Chart
         type="bar" // Base chart type is bar
         data={salesData}
@@ -120,23 +119,6 @@ const SalesChart = () => {
           },
         }}
       />
-
-      <div style={{ marginTop: '20px' }}>
-        <h3>Add New Month Sales</h3>
-        <input
-          type="text"
-          placeholder="Month Name"
-          value={newMonth.label}
-          onChange={(e) => setNewMonth({ ...newMonth, label: e.target.value })}
-        />
-        <input
-          type="number"
-          placeholder="Total Sales"
-          value={newMonth.sales}
-          onChange={(e) => setNewMonth({ ...newMonth, sales: +e.target.value })}
-        />
-        <button onClick={addNewMonth}>Add Month</button>
-      </div>
     </div>
   );
 };
