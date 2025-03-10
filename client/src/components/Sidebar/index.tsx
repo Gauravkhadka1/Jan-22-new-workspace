@@ -41,6 +41,7 @@ const Sidebar = () => {
 
   // Check if the user has the correct role to display sidebar content
   const isAdminOrManager = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const isAdmin = user?.role === "ADMIN";
 
   return (
     <div className={sidebarClassNames}>
@@ -62,6 +63,11 @@ const Sidebar = () => {
             <>
               <SidebarLink icon={FolderCode} label="Projects" href="/projects" />
               <SidebarLink icon={Users} label="Teams" href="/users" />
+            </>
+          )}
+          {isAdmin && (
+            <>
+              <SidebarLink icon={Users} label="Sales" href="/sales" />
             </>
           )}
         </nav>
