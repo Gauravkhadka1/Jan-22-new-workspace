@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useDeleteUserMutation } from "@/state/api";
+import { useChangePasswordMutation } from "@/state/api"; // Import the mutation hook
 import {
   useGetTasksByUserQuery,
   useGetProjectsQuery,
@@ -47,13 +48,54 @@ type TaskType = {
 const ProfilePage = () => {
   const { user, logout } = useAuth();
   const [deleteUser] = useDeleteUserMutation();
-  const { data: tasks, isLoading, isError } = useGetTasksByUserQuery(user?.id);
+  const {
+    data: tasks,
+    isLoading: isTasksLoading,
+    isError: isTasksError,
+  } = useGetTasksByUserQuery(user?.id);
   const { data: projects } = useGetProjectsQuery({});
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [activeTab, setActiveTab] = useState("thisWeek");
 
+   // State for change password
+   const [currentPassword, setCurrentPassword] = useState("");
+   const [newPassword, setNewPassword] = useState("");
+   const [confirmPassword, setConfirmPassword] = useState("");
+   const [passwordError, setPasswordError] = useState("");
+   const [passwordSuccess, setPasswordSuccess] = useState("");
+
+   // Function to handle password change
+   const [changePassword, { isLoading: isChangingPassword, isSuccess, isError: isChangePasswordError }] =
+   useChangePasswordMutation();
+
+   const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+  
+    try {
+      await changePassword({
+        userId: user?.id, // Ensure user.id is passed correctly
+        currentPassword,
+        newPassword,
+      }).unwrap();
+  
+      setPasswordSuccess("Password changed successfully.");
+      setPasswordError("");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      setPasswordError(error.data?.message || "Failed to change password.");
+      setPasswordSuccess("");
+    }
+  };
+  
   const projectMap = projects
     ? projects.reduce((acc, project) => {
         acc[project.id] = project.name;
@@ -222,8 +264,8 @@ const ProfilePage = () => {
     },
   ];
 
-  if (isLoading) return <p>Loading tasks...</p>;
-  if (isError) return <p>Error loading tasks</p>;
+  if (isTasksLoading) return <p>Loading tasks...</p>;
+  if (isTasksError) return <p>Error loading tasks</p>;
 
   return (
     <div className="flex">
@@ -293,6 +335,54 @@ const ProfilePage = () => {
             />
           </div>
         </div>
+
+ {/* Change Password Form */}
+<div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+  <h2 className="text-lg font-bold mb-2">Change Password</h2>
+  <form onSubmit={handleChangePassword}>
+    <div className="mb-4">
+      <label className="block text-sm font-medium mb-2">Current Password</label>
+      <input
+        type="password"
+        value={currentPassword}
+        onChange={(e) => setCurrentPassword(e.target.value)}
+        className="rounded-md border p-2 w-full"
+        required
+      />
+    </div>
+    <div className="mb-4">
+      <label className="block text-sm font-medium mb-2">New Password</label>
+      <input
+        type="password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        className="rounded-md border p-2 w-full"
+        required
+      />
+    </div>
+    <div className="mb-4">
+      <label className="block text-sm font-medium mb-2">Confirm New Password</label>
+      <input
+        type="password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        className="rounded-md border p-2 w-full"
+        required
+      />
+    </div>
+    {passwordError && <p className="text-red-500 text-sm mb-4">{passwordError}</p>}
+    {passwordSuccess && <p className="text-green-500 text-sm mb-4">{passwordSuccess}</p>}
+    <button
+      type="submit"
+      disabled={isChangingPassword}
+      className="w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
+    >
+      {isChangingPassword ? "Changing Password..." : "Change Password"}
+    </button>
+  </form>
+</div>
+
+
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
             <>

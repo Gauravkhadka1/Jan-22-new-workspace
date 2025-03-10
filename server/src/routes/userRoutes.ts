@@ -1,5 +1,5 @@
 import express from "express";
-import { createUser, loginUser, getUsers, getUserByEmail, deleteUser, updateUserRole } from "../controllers/userController";
+import { createUser, loginUser, getUsers, getUserByEmail, deleteUser, updateUserRole, changePassword,  } from "../controllers/userController";
 
 const router = express.Router();
 
@@ -19,5 +19,7 @@ router.put("/role/:userId", updateUserRole);
 
 // Delete a user by email
 router.delete("/:email", deleteUser);
+
+router.post("/:userId/change-password", changePassword);
 
 export default router;

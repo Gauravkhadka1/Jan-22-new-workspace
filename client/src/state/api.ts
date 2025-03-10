@@ -98,6 +98,18 @@ export const api = createApi({
       }),
       invalidatesTags: ["Users"],
     }),
+
+    changePassword: build.mutation<
+    { message: string },
+    { userId: number; currentPassword: string; newPassword: string }
+    >({
+    query: ({ userId, currentPassword, newPassword }) => ({
+      url: `users/${userId}/change-password`,
+      method: "POST",
+      body: { currentPassword, newPassword },
+    }),
+    }),
+    
     getAuthUser: build.query({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
         try {
@@ -121,7 +133,8 @@ export const api = createApi({
       query: () => "projects",
       providesTags: ["Projects"],
     }),
-    
+
+     
     createProject: build.mutation<ProjectType, Partial<ProjectType>>({
       query: (project) => ({
         url: "projects",
@@ -228,7 +241,11 @@ export const api = createApi({
       query: (query) => `search?query=${query}`,
     }),
   }),
+
+  
+
 });
+
 
 export const {
   useGetProjectsQuery,
@@ -248,4 +265,5 @@ export const {
   useGetAuthUserQuery,
   useRegisterUserMutation,
   useGetTasksByUserIdForProfileQuery,
+  useChangePasswordMutation,
 } = api;

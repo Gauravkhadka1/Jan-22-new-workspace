@@ -164,3 +164,53 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: `Error updating user role: ${error.message}` });
   }
 };
+
+export const changePassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ message: "Current password and new password are required" });
+      return;
+    }
+
+    // Find the user
+    const user = await prisma.user.findUnique({
+      where: { userId: Number(userId) },
+    });
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    // Ensure the user has a password
+    if (!user.password) {
+      res.status(401).json({ message: "User does not have a password set" });
+      return;
+    }
+
+    // Verify the current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      res.status(401).json({ message: "Current password is incorrect" });
+      return;
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password
+    await prisma.user.update({
+      where: { userId: Number(userId) },
+      data: { password: hashedPassword },
+    });
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error: any) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ message: `Error changing password: ${error.message}` });
+  }
+};

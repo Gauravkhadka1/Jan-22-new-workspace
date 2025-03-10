@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserRole = exports.deleteUser = exports.getUserByEmail = exports.getUsers = exports.loginUser = exports.createUser = void 0;
+exports.changePassword = exports.updateUserRole = exports.deleteUser = exports.getUserByEmail = exports.getUsers = exports.loginUser = exports.createUser = void 0;
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -162,3 +162,46 @@ const updateUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.updateUserRole = updateUserRole;
+const changePassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.params;
+        const { currentPassword, newPassword } = req.body;
+        // Validate input
+        if (!currentPassword || !newPassword) {
+            res.status(400).json({ message: "Current password and new password are required" });
+            return;
+        }
+        // Find the user
+        const user = yield prisma.user.findUnique({
+            where: { userId: Number(userId) },
+        });
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+        // Ensure the user has a password
+        if (!user.password) {
+            res.status(401).json({ message: "User does not have a password set" });
+            return;
+        }
+        // Verify the current password
+        const isMatch = yield bcryptjs_1.default.compare(currentPassword, user.password);
+        if (!isMatch) {
+            res.status(401).json({ message: "Current password is incorrect" });
+            return;
+        }
+        // Hash the new password
+        const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 10);
+        // Update the user's password
+        yield prisma.user.update({
+            where: { userId: Number(userId) },
+            data: { password: hashedPassword },
+        });
+        res.status(200).json({ message: "Password changed successfully" });
+    }
+    catch (error) {
+        console.error("Error changing password:", error);
+        res.status(500).json({ message: `Error changing password: ${error.message}` });
+    }
+});
+exports.changePassword = changePassword;
