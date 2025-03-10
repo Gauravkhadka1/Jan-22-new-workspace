@@ -396,12 +396,12 @@ const ProfilePage = () => {
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
             <>
-              <button
+              {/* <button
                 onClick={() => setShowChangePasswordForm(!showChangePasswordForm)}
                 className="mt-6 w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
               >
                 {showChangePasswordForm ? "Hide Change Password" : "Change Password"}
-              </button>
+              </button> */}
               <button
                 onClick={logout}
                 className="mt-6 w-full rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none"
