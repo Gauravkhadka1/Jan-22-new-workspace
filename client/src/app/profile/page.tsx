@@ -27,7 +27,7 @@ const WORK_HOURS_PER_DAY = WORK_END_HOUR - WORK_START_HOUR; // 8 hours
 // Define Nepali month start and end dates (Gregorian equivalents)
 const NEPALI_MONTHS = {
   thisMonth: {
-    startDate: "2025-02-13", // Start of Chaitra (Nepali month)
+    startDate: "2025-02-14", // Start of Chaitra (Nepali month)
     endDate: "2025-03-13",   // End of Chaitra (Nepali month)
   },
   previousMonth: {
@@ -41,6 +41,8 @@ type TaskType = {
   title: string;
   startDate?: string;
   dueDate?: string;
+  startTime?: string; // Add start time of the day
+  dueTime?: string;   // Add due time of the day
   projectId: number;
   status?: Status;
 };
@@ -106,15 +108,19 @@ const ProfilePage = () => {
   // Function to calculate time spent on a task within a specific range
   const calculateTimeSpent = (task: TaskType, startRange: Date, endRange: Date) => {
     if (!task.startDate || !task.dueDate) return 0;
-
+  
     let start = new Date(task.startDate);
     let end = new Date(task.dueDate);
     let totalMinutes = 0;
-
-    // Ensure the start and end dates are within the specified range
+  
+    // Normalize the start and end range to include the entire day
+    startRange.setHours(0, 0, 0, 0); // Start of the day
+    endRange.setHours(23, 59, 59, 999); // End of the day
+  
+    // Ensure the task's start and end dates are within the specified range
     if (start < startRange) start = new Date(startRange);
     if (end > endRange) end = new Date(endRange);
-
+  
     while (start < end) {
       // Skip Saturdays
       if (start.getDay() === 6) {
@@ -122,12 +128,12 @@ const ProfilePage = () => {
         start.setHours(WORK_START_HOUR, 0, 0, 0);
         continue;
       }
-
+  
       const workStart = new Date(start);
       workStart.setHours(WORK_START_HOUR, 0, 0, 0);
       const workEnd = new Date(start);
       workEnd.setHours(WORK_END_HOUR, 0, 0, 0);
-
+  
       if (start < workStart) start = workStart;
       if (end < workStart) break;
       if (start > workEnd) {
@@ -135,46 +141,50 @@ const ProfilePage = () => {
         start.setHours(WORK_START_HOUR, 0, 0, 0);
         continue;
       }
-
+  
       const effectiveEnd = end < workEnd ? end : workEnd;
       let taskDuration = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60); // in minutes
-
+  
       // Ensure no more than 8 hours (480 minutes) are counted per day
       taskDuration = Math.min(taskDuration, WORK_HOURS_PER_DAY * 60);
-
+  
       totalMinutes += taskDuration;
       start.setDate(start.getDate() + 1);
       start.setHours(WORK_START_HOUR, 0, 0, 0);
     }
-
+  
     // Convert total minutes to hours
     return totalMinutes / 60;
   };
+ // Function to check if a task is completed and within the selected date range
+ const isCompletedAndWithinRange = (task: TaskType, startRange: Date, endRange: Date) => {
+  if (task.status !== Status.Completed) return false;
+  if (!task.startDate || !task.dueDate) return false;
 
-  // Function to check if a task is completed and within the selected date range
-  const isCompletedAndWithinRange = (task: TaskType, startRange: Date, endRange: Date) => {
-    if (task.status !== Status.Completed) return false;
-    if (!task.startDate || !task.dueDate) return false;
+  const taskStartDate = new Date(task.startDate);
+  const taskDueDate = new Date(task.dueDate);
 
-    const taskStartDate = new Date(task.startDate);
-    const taskDueDate = new Date(task.dueDate);
+  // Normalize the start and end range to include the entire day
+  startRange.setHours(0, 0, 0, 0); // Start of the day
+  endRange.setHours(23, 59, 59, 999); // End of the day
 
-    // Check if the task's start or due date falls within the selected date range
-    return (
-      (taskStartDate >= startRange && taskStartDate <= endRange) ||
-      (taskDueDate >= startRange && taskDueDate <= endRange) ||
-      (taskStartDate <= startRange && taskDueDate >= endRange)
-    );
-  };
+  // Check if the task's start or due date falls within the selected date range
+  return (
+    (taskStartDate >= startRange && taskStartDate <= endRange) || // Task starts within the range
+    (taskDueDate >= startRange && taskDueDate <= endRange) ||    // Task ends within the range
+    (taskStartDate <= startRange && taskDueDate >= endRange)     // Task spans the entire range
+  );
+};
+
 
   // Function to set the date range based on the selected tab
   const setDateRange = (tab: string) => {
     const today = new Date();
     const lastSevenDays = new Date(today);
     lastSevenDays.setDate(today.getDate() - 6); // 7 days ago (including today)
-
+  
     let startRange, endRange;
-
+  
     switch (tab) {
       case "previousMonth":
         startRange = new Date(NEPALI_MONTHS.previousMonth.startDate);
@@ -193,12 +203,15 @@ const ProfilePage = () => {
         endRange = new Date(toDate);
         break;
     }
-
+  
+    // Normalize the start and end range to include the entire day
+    startRange.setHours(0, 0, 0, 0);
+    endRange.setHours(23, 59, 59, 999);
+  
     setFromDate(startRange.toISOString().split("T")[0]);
     setToDate(endRange.toISOString().split("T")[0]);
     setActiveTab(tab);
   };
-
   // Set default date range to this week on component mount
   useEffect(() => {
     setDateRange("thisWeek");
