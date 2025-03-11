@@ -195,7 +195,7 @@ const Project = ({ projectData }: ProjectProps) => {
           </span>
         )}
       </p>
-   <div>
+   {/* <div>
     no of TO DO tasks
    </div>
    <div>
@@ -206,7 +206,7 @@ const Project = ({ projectData }: ProjectProps) => {
    </div>
    <div>
    no of COMPLETED tasks
-   </div>
+   </div> */}
     </div>
   );
 };
