@@ -19,7 +19,7 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 const WORK_START_HOUR = 10; // 10 AM
 const WORK_END_HOUR = 18; // 6 PM
@@ -52,7 +52,9 @@ const ProfilePage = () => {
   const { user, logout } = useAuth();
   const [deleteUser] = useDeleteUserMutation();
   const params = useParams();
+  const searchParams = useSearchParams();
   const userId = parseInt(params.UserId as string, 10); // Extract userId from URL params
+  const username = searchParams.get("username"); 
 
   const {
     data: tasks,
@@ -299,7 +301,7 @@ const ProfilePage = () => {
       <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 dark:bg-gray-900">
         {/* Bar Chart */}
         <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
-          Welcome, <span className="font-semibold">{user?.username ?? "Guest"}</span>!
+          <span className="font-semibold">{username}</span> Tasks Summary
         </p>
         <div className="mt-6">
           <BarChart width={500} height={300} data={chartData}>
