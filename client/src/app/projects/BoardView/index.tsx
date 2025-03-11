@@ -55,7 +55,6 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
           />
         ))}
-        
       </div>
     </DndProvider>
   );
@@ -92,6 +91,7 @@ const TaskColumn = ({
   };
 
   return (
+ 
     <div
       ref={(instance) => {
         drop(instance);
@@ -104,7 +104,7 @@ const TaskColumn = ({
           style={{ backgroundColor: statusColor[status] }}
         />
         <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-5 py-4 dark:bg-dark-secondary">
-          <h3 className="flex items-center text-lg font-semibold dark:text-white">
+          <h3 className="flex items-center text-sm font-semibold dark:text-white">
             {status}{" "}
             <span
               className="ml-2 inline-block rounded-full bg-gray-200 p-1 text-center text-sm leading-none dark:bg-dark-tertiary"
@@ -114,9 +114,9 @@ const TaskColumn = ({
             </span>
           </h3>
           <div className="flex items-center gap-1">
-            <button className="flex h-6 w-5 items-center justify-center dark:text-neutral-500">
+            {/* <button className="flex h-6 w-5 items-center justify-center dark:text-neutral-500">
               <EllipsisVertical size={26} />
-            </button>
+            </button> */}
             <button
               className="flex h-6 w-6 items-center justify-center rounded bg-gray-200 dark:bg-dark-tertiary dark:text-white"
               onClick={() => setIsModalNewTaskOpen(true)}
@@ -228,7 +228,7 @@ const Task = ({ task }: TaskProps) => {
         <p className="text-sm text-gray-600 dark:text-neutral-500">
           {task.description}
         </p>
-        <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" />
+        {/* <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" /> */}
 
         {/* Users */}
         <div className="mt-3 flex items-center justify-between">
@@ -254,12 +254,12 @@ const Task = ({ task }: TaskProps) => {
               />
             )}
           </div>
-          <div className="flex items-center text-gray-500 dark:text-neutral-500">
+          {/* <div className="flex items-center text-gray-500 dark:text-neutral-500">
             <MessageSquareMore size={20} />
             <span className="ml-1 text-sm dark:text-neutral-400">
               {numberOfComments}
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

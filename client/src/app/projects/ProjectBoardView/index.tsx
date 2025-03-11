@@ -9,13 +9,14 @@ import Link from "next/link";
 type BoardProps = {
   id: string;
   setIsModalNewProjectOpen: (isOpen: boolean) => void;
+  projectName: string;
 };
 
 const projectStatus: Array<"New" | "Design" | "Development" | "Content-Fillup" | "Completed"> = [
   "New", "Design", "Development", "Content-Fillup", "Completed"
 ];
 
-const ProjectBoardView = ({ id, setIsModalNewProjectOpen }: BoardProps) => {
+const ProjectBoardView = ({ id, setIsModalNewProjectOpen, projectName }: BoardProps) => {
   const { data: projects, isLoading, error, refetch } = useGetProjectsQuery({ projectId: Number(id) });
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
 
@@ -34,6 +35,7 @@ const ProjectBoardView = ({ id, setIsModalNewProjectOpen }: BoardProps) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex p-4"> {/* Flex layout for the columns */}
+      <h2>{projectName}</h2> 
         {projectStatus.map((status) => (
           <ProjectColumn
             key={status}
