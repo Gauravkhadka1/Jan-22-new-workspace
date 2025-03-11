@@ -195,6 +195,18 @@ const Project = ({ projectData }: ProjectProps) => {
           </span>
         )}
       </p>
+   <div>
+    no of TO DO tasks
+   </div>
+   <div>
+   no of IN PROGRESS tasks
+   </div>
+   <div>
+   no of UNDER REVIEW tasks
+   </div>
+   <div>
+   no of COMPLETED tasks
+   </div>
     </div>
   );
 };
