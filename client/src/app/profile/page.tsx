@@ -31,7 +31,7 @@ const NEPALI_MONTHS = {
     endDate: "2025-03-13",   // End of Chaitra (Nepali month)
   },
   previousMonth: {
-    startDate: "2025-01-13", // Start of Falgun (Nepali month)
+    startDate: "2025-01-15", // Start of Falgun (Nepali month)
     endDate: "2025-02-12",   // End of Falgun (Nepali month)
   },
 };
