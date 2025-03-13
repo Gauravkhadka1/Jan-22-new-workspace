@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext"; // Import the custom hook
+import { useAuth } from "../../context/AuthContext";
 import {
   useGetTasksQuery,
   useGetTasksByUserQuery,
@@ -17,7 +17,6 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import ModalNewTask from "@/components/ModalNewTask";
-// Import the ModalNewTask component
 
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
 
@@ -34,8 +33,8 @@ const taskStatus: Status[] = [
 ];
 
 const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
-  const { user } = useAuth(); // Assuming the hook returns the logged-in user
-  const userId = user?.id; // Adjust this based on how your user data is structured
+  const { user } = useAuth();
+  const userId = user?.id;
   const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
   const { data: projects } = useGetProjectsQuery({});
 
@@ -51,24 +50,28 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
     }
   }, [tasks, userId]);
 
-  // Move task and update its status
   const moveTask = (taskId: number, toStatus: Status) => {
     if (!userId) {
       console.error("No authenticated user found");
       return;
     }
 
-    updateTaskStatus({ taskId, status: toStatus, updatedBy: userId });
+    updateTaskStatus({ taskId, status: toStatus, updatedBy: userId })
+      .unwrap()
+      .then(() => {
+        toast.success(`Task status updated to ${toStatus}`);
+      })
+      .catch(() => {
+        toast.error("Failed to update task status");
+      });
   };
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching tasks</div>;
 
-  // Filter tasks assigned to the logged-in user
   const userTasks =
     tasks?.filter((task) => String(task.assignedTo) === String(userId)) || [];
 
-  // Function to get project name by projectId
   const getProjectName = (projectId: number) => {
     const project = projects?.find((project) => project.id === projectId);
     return project ? project.name : "Unknown Project";
@@ -76,15 +79,12 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      {/* <div className="mt-2 mx-6 text-xl font-medium">
-        {user.username} Task's
-      </div> */}
       <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
         {taskStatus.map((status) => (
           <TaskColumn
             key={status}
             status={status}
-            tasks={userTasks} // Pass only the filtered tasks
+            tasks={userTasks}
             moveTask={moveTask}
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
             getProjectName={getProjectName}
@@ -119,9 +119,6 @@ const TaskColumn = ({
   }));
   const tasksCount = tasks.filter((task) => task.status === status).length;
 
-  const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery(
-    {},
-  );
   const statusColor: Record<Status, string> = {
     "To Do": "#2563EB",
     "Work In Progress": "#F87645",
@@ -164,19 +161,17 @@ const TaskColumn = ({
               <Plus size={16} />
             </button>
           </div>
-          
         </div>
       </div>
       <div className="h-[65vh] overflow-y-auto custom-scrollbar">
-  {tasks
-    .filter((task) => task.status === status)
-    .map((task) => (
-      <div key={task.id} className="relative">
-        <Task key={task.id} task={task} getProjectName={getProjectName} />
+        {tasks
+          .filter((task) => task.status === status)
+          .map((task) => (
+            <div key={task.id} className="relative">
+              <Task key={task.id} task={task} getProjectName={getProjectName} />
+            </div>
+          ))}
       </div>
-    ))}
-</div>
-
     </div>
   );
 };
@@ -198,15 +193,13 @@ const Task = ({ task, getProjectName }: TaskProps) => {
   const taskTagsSplit = task.tags ? task.tags.split(",") : [];
 
   const formattedStartDate = task.startDate
-  ? format(new Date(task.startDate), "MMM d, h:mm a") // Example: Mar 10, 10:00 am
-  : "";
+    ? format(new Date(task.startDate), "MMM d, h:mm a")
+    : "";
 
-const formattedDueDate = task.dueDate
-  ? format(new Date(task.dueDate), "MMM d, h:mm a") // Example: Apr 12, 2:00 pm
-  : "";
+  const formattedDueDate = task.dueDate
+    ? format(new Date(task.dueDate), "MMM d, h:mm a")
+    : "";
 
-
-  // Calculate time left
   const getTimeLeft = () => {
     if (
       !task.dueDate ||
@@ -217,14 +210,13 @@ const formattedDueDate = task.dueDate
 
     const now = new Date();
     const dueDate = new Date(task.dueDate);
-    const diffMs = dueDate.getTime() - now.getTime(); // Time difference in milliseconds
+    const diffMs = dueDate.getTime() - now.getTime();
 
     const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
     const daysLeft = Math.floor(hoursLeft / 24);
     const remainingHours = hoursLeft % 24;
 
     if (diffMs < 0) {
-      // Task is overdue
       const overdueHours = Math.abs(hoursLeft);
       const overdueDays = Math.floor(overdueHours / 24);
       const overdueRemainingHours = overdueHours % 24;
@@ -246,8 +238,8 @@ const formattedDueDate = task.dueDate
   const [taskOptionsVisible, setTaskOptionsVisible] = useState<
     Record<string | number, boolean>
   >({});
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for modal visibility
-  const [selectedTask, setSelectedTask] = useState<any>(null); // State to store the task being edited
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
 
@@ -255,22 +247,18 @@ const formattedDueDate = task.dueDate
     setSelectedTask(task);
     setIsEditModalOpen(true);
   };
+
   const handleDeleteClick = async (task: any) => {
-    // Confirm deletion with the user
     if (window.confirm("Are you sure you want to delete this task?")) {
       try {
         await deleteTask(task.id).unwrap();
         toast.success("Task deleted successfully!");
-        // You might want to refresh the tasks list or update the UI here
-        // For example, you could reload the tasks or update local state
       } catch (error) {
         console.error("Failed to delete the task:", error);
         toast.error("Failed to delete the task!");
-        // Handle error (e.g., show an error message to the user)
       }
     }
   };
-
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
@@ -326,68 +314,68 @@ const formattedDueDate = task.dueDate
               ))}
             </div>
           </div>
-          <button className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
-          onClick={(e) => {
-            e.stopPropagation();
-            setTaskOptionsVisible(prev => ({ ...prev, [task.id]: !prev[task.id] }));
-          }}
+          <button
+            className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
+            onClick={(e) => {
+              e.stopPropagation();
+              setTaskOptionsVisible((prev) => ({
+                ...prev,
+                [task.id]: !prev[task.id],
+              }));
+            }}
           >
             <EllipsisVertical size={26} />
           </button>
-           {/* Task options dropdown - Ensure task is available */}
-        {taskOptionsVisible[task.id] && (
-          <div className="absolute right-0 mt-6 bg-white shadow-lg rounded z-50">
-            <button 
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditClick(task); // Pass the correct task
-              }}
-            >
-              Edit
-            </button>
-            <button 
-              className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteClick(task);
-              }}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </button>
-          </div>
-        )}
+          {taskOptionsVisible[task.id] && (
+            <div className="absolute right-0 mt-6 bg-white shadow-lg rounded z-50">
+              <button
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditClick(task);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(task);
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="my-3 flex justify-between">
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
         </div>
-        {/* Show project name */}
         <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-neutral-400">
           in {getProjectName(task.projectId)}
         </div>
         <div className="text-xs text-gray-500 dark:text-neutral-500">
-         <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
+          <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
         </div>
         <div className="text-xs text-gray-500 dark:text-neutral-500">
-        <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
+          <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
-        {/* Show time left */}
         {timeLeft && (
           <div className="mt-2 text-sm font-semibold text-red-500">
             {timeLeft}
           </div>
         )}
-          {/* Edit Modal */}
-          {isEditModalOpen && (
-        <ModalNewTask
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          id={selectedTask?.projectId?.toString()} // Pass the projectId
-          task={selectedTask} // Pass the task data for editing
-        />
-      )}
+        {isEditModalOpen && (
+          <ModalNewTask
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            id={selectedTask?.projectId?.toString()}
+            task={selectedTask}
+          />
+        )}
       </div>
     </div>
   );
