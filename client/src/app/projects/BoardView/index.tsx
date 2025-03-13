@@ -1,5 +1,5 @@
-import { useGetTasksQuery, useUpdateTaskStatusMutation, useCreateTaskMutation } from "@/state/api";
-import React from "react";
+import { useState } from "react";
+import { useGetTasksQuery, useUpdateTaskStatusMutation, useCreateTaskMutation, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType } from "@/state/api";
@@ -7,6 +7,8 @@ import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext"; // Import authentication context
+import { toast } from "sonner"
+import ModalNewTask from "@/components/ModalNewTask";
 
 // Define status types
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
@@ -37,9 +39,16 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
       return;
     }
 
-    updateTaskStatus({ taskId, status: toStatus, updatedBy: userId });
+    updateTaskStatus({ taskId, status: toStatus, updatedBy: userId })
+      .unwrap()
+      .then(() => {
+        toast.success(`Task status updated to ${toStatus}`);
+      })
+      .catch(() => {
+        toast.error("Failed to update task status");
+      });
   };
-  
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching tasks</div>;
 
@@ -190,6 +199,31 @@ const Task = ({ task }: TaskProps) => {
 
   const timeLeft = getTimeLeft();
 
+  const [taskOptionsVisible, setTaskOptionsVisible] = useState<
+    Record<string | number, boolean>
+  >({});
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+
+  const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
+
+  const handleEditClick = (task: any) => {
+    setSelectedTask(task);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = async (task: any) => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      try {
+        await deleteTask(task.id).unwrap();
+        toast.success("Task deleted successfully!");
+      } catch (error) {
+        console.error("Failed to delete the task:", error);
+        toast.error("Failed to delete the task!");
+      }
+    }
+  };
+
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
   const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
@@ -244,9 +278,41 @@ const Task = ({ task }: TaskProps) => {
               ))}
             </div>
           </div>
-          <button className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500">
+          <button
+            className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
+            onClick={(e) => {
+              e.stopPropagation();
+              setTaskOptionsVisible((prev) => ({
+                ...prev,
+                [task.id]: !prev[task.id],
+              }));
+            }}
+          >
             <EllipsisVertical size={26} />
           </button>
+          {taskOptionsVisible[task.id] && (
+                <div className="absolute mx-4 mt-6 bg-white border-gray-200 shadow-lg rounded z-50">
+              <button
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditClick(task);
+                }}
+              >
+                Edit
+              </button>
+              <button
+                className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(task);
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="my-3 flex justify-between">
@@ -254,15 +320,23 @@ const Task = ({ task }: TaskProps) => {
         </div>
 
         <div className="text-xs text-gray-500 dark:text-neutral-500">
-         <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
+          <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
         </div>
         <div className="text-xs text-gray-500 dark:text-neutral-500">
-        <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
+          <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {timeLeft && (
           <div className="mt-2 text-sm font-semibold text-red-500">
             {timeLeft}
           </div>
+        )}
+        {isEditModalOpen && (
+          <ModalNewTask
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            id={selectedTask?.projectId?.toString()}
+            task={selectedTask}
+          />
         )}
         <div className="mt-3 flex items-center justify-between">
           <div className="flex -space-x-[6px] overflow-hidden">
