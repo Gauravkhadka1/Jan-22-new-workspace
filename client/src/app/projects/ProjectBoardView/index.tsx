@@ -145,9 +145,9 @@ const Project = ({ projectData }: ProjectProps) => {
   }
 
   const formattedStartDate = projectData.startDate
-    ? format(new Date(projectData.startDate), "P")
+    ? format(new Date(projectData.startDate), "MMM d, Y")
     : "";
-  const formattedEndDate = projectData.endDate ? format(new Date(projectData.endDate), "P") : "";
+  const formattedEndDate = projectData.endDate ? format(new Date(projectData.endDate), "MMM d, Y") : "";
 
   // Calculate the days remaining or overdue
   const currentDate = new Date();

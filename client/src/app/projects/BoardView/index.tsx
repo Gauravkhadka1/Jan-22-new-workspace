@@ -151,12 +151,13 @@ const Task = ({ task }: TaskProps) => {
 
   const taskTagsSplit = task.tags ? task.tags.split(",") : [];
 
-  const formattedStartDate = task.startDate
-    ? format(new Date(task.startDate), "P")
-    : "";
-  const formattedDueDate = task.dueDate
-    ? format(new Date(task.dueDate), "P")
-    : "";
+      const formattedStartDate = task.startDate
+      ? format(new Date(task.startDate), "MMM d, h:mm a") // Example: Mar 10, 10:00 am
+      : "";
+    
+    const formattedDueDate = task.dueDate
+      ? format(new Date(task.dueDate), "MMM d, h:mm a") // Example: Apr 12, 2:00 pm
+      : "";
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
@@ -222,8 +223,10 @@ const Task = ({ task }: TaskProps) => {
         </div>
 
         <div className="text-xs text-gray-500 dark:text-neutral-500">
-          {formattedStartDate && <span>{formattedStartDate} - </span>}
-          {formattedDueDate && <span>{formattedDueDate}</span>}
+         <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
+        </div>
+        <div className="text-xs text-gray-500 dark:text-neutral-500">
+        <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         <p className="text-sm text-gray-600 dark:text-neutral-500">
           {task.description}
