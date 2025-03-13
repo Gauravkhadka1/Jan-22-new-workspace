@@ -8,7 +8,7 @@ import { Status, Priority } from "@/state/api";
 import { setHours } from "date-fns/setHours";
 import { setMinutes } from "date-fns/setMinutes";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from 'react-toastify';
+import { toast } from "sonner"
 
 
 type Props = {

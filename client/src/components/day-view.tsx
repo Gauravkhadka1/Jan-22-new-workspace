@@ -8,8 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
 import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
 import { Delete, DeleteIcon, Pencil, SquarePen, Trash2 } from "lucide-react";
-import { toast } from 'react-toastify';
-
+import { toast } from "sonner"
 
 
 export default function DayView() {
