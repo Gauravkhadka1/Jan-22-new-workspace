@@ -91,7 +91,6 @@ const TaskColumn = ({
   };
 
   return (
- 
     <div
       ref={(instance) => {
         drop(instance);
@@ -114,9 +113,6 @@ const TaskColumn = ({
             </span>
           </h3>
           <div className="flex items-center gap-1">
-            {/* <button className="flex h-6 w-5 items-center justify-center dark:text-neutral-500">
-              <EllipsisVertical size={26} />
-            </button> */}
             <button
               className="flex h-6 w-6 items-center justify-center rounded bg-gray-200 dark:bg-dark-tertiary dark:text-white"
               onClick={() => setIsModalNewTaskOpen(true)}
@@ -151,13 +147,48 @@ const Task = ({ task }: TaskProps) => {
 
   const taskTagsSplit = task.tags ? task.tags.split(",") : [];
 
-      const formattedStartDate = task.startDate
-      ? format(new Date(task.startDate), "MMM d, h:mm a") // Example: Mar 10, 10:00 am
-      : "";
-    
-    const formattedDueDate = task.dueDate
-      ? format(new Date(task.dueDate), "MMM d, h:mm a") // Example: Apr 12, 2:00 pm
-      : "";
+  const formattedStartDate = task.startDate
+    ? format(new Date(task.startDate), "MMM d, h:mm a")
+    : "";
+
+  const formattedDueDate = task.dueDate
+    ? format(new Date(task.dueDate), "MMM d, h:mm a")
+    : "";
+
+  const getTimeLeft = () => {
+    if (
+      !task.dueDate ||
+      task.status === "Under Review" ||
+      task.status === "Completed"
+    )
+      return null;
+
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    const diffMs = dueDate.getTime() - now.getTime();
+
+    const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+    const daysLeft = Math.floor(hoursLeft / 24);
+    const remainingHours = hoursLeft % 24;
+
+    if (diffMs < 0) {
+      const overdueHours = Math.abs(hoursLeft);
+      const overdueDays = Math.floor(overdueHours / 24);
+      const overdueRemainingHours = overdueHours % 24;
+
+      return overdueHours < 24
+        ? `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`
+        : `Overdue by ${overdueDays} day${overdueDays !== 1 ? "s" : ""} & ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""}`;
+    }
+
+    if (hoursLeft < 24) {
+      return `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`;
+    } else {
+      return `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`;
+    }
+  };
+
+  const timeLeft = getTimeLeft();
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
@@ -228,12 +259,11 @@ const Task = ({ task }: TaskProps) => {
         <div className="text-xs text-gray-500 dark:text-neutral-500">
         <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
-        <p className="text-sm text-gray-600 dark:text-neutral-500">
-          {task.description}
-        </p>
-        {/* <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" /> */}
-
-        {/* Users */}
+        {timeLeft && (
+          <div className="mt-2 text-sm font-semibold text-red-500">
+            {timeLeft}
+          </div>
+        )}
         <div className="mt-3 flex items-center justify-between">
           <div className="flex -space-x-[6px] overflow-hidden">
             {task.assignee && (
@@ -257,12 +287,6 @@ const Task = ({ task }: TaskProps) => {
               />
             )}
           </div>
-          {/* <div className="flex items-center text-gray-500 dark:text-neutral-500">
-            <MessageSquareMore size={20} />
-            <span className="ml-1 text-sm dark:text-neutral-400">
-              {numberOfComments}
-            </span>
-          </div> */}
         </div>
       </div>
     </div>
