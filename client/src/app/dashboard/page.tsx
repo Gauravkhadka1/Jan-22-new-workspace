@@ -9,8 +9,9 @@ import { useGetTasksQuery, useGetTasksByUserQuery, useUpdateTaskStatusMutation, 
 import { Clock } from "lucide-react";
 import DashboardCalendarView from "../DashboardCalendarView";
 import withAuth from "../../hoc/withAuth";
-import { ToastContainer } from "react-toastify"; // Import ToastContainer
-import "react-toastify/dist/ReactToastify.css"; // Import Toastify CSS
+import { toast } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
+
 
 type Props = {
   params: { id: string };
@@ -27,18 +28,7 @@ const Project = ({ params }: Props) => {
   return (
     <div>
       {/* Add ToastContainer here */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      <Toaster/>
 
       {/* Modal for creating/editing tasks */}
       <ModalNewTask

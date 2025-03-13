@@ -15,7 +15,7 @@ import { Task as TaskType, ProjectType } from "@/state/api";
 import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
-import { toast } from "react-toastify";
+import { toast } from "sonner"
 import ModalNewTask from "@/components/ModalNewTask";
 
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
