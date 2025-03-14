@@ -33,11 +33,10 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [assignedTo, setAssignedTo] = useState("");
+  const assignedBy = user?.email || ""; // Use email instead of username
   const [projectId, setProjectId] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
-
-  const assignedBy = user?.username || "";
 
   useEffect(() => {
     if (task) {
