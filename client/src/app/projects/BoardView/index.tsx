@@ -3,7 +3,7 @@ import { useGetTasksQuery, useGetUsersQuery, useUpdateTaskStatusMutation, useCre
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType } from "@/state/api";
-import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
+import { CalendarCheck, CalendarX, EllipsisVertical, MessageSquareMore, Plus, UserRound } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext"; // Import authentication context
@@ -323,14 +323,14 @@ const Task = ({ task }: TaskProps) => {
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
         </div>
 
-       <div className="text-sm mb-1 text-gray-500 dark:text-neutral-500">
-          <b>Assigned to:</b> {assignedUser ? <span>{assignedUser.username}</span> : <span>Unassigned</span>}
+       <div className="flex items-center text-sm mb-1 text-gray-500 dark:text-neutral-500">
+         <UserRound size={16}/>: {assignedUser ? <span className="ml-2">{assignedUser.username}</span> : <span>Unassigned</span>}
         </div>
-        <div className="text-sm mb-1 text-gray-500 dark:text-neutral-500">
-          <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
+        <div className="flex items-center  text-sm mb-1 text-gray-500 dark:text-neutral-500">
+        <CalendarCheck size={16} />: {formattedStartDate && <span className="ml-2">{formattedStartDate}</span>}
         </div>
-        <div className="text-sm text-gray-500 dark:text-neutral-500">
-          <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
+        <div className="flex items-center text-sm text-gray-500 dark:text-neutral-500">
+          <CalendarX size={16}/>: {formattedDueDate && <span className="ml-2">{formattedDueDate}</span>}
         </div>
         {timeLeft && (
           <div className="mt-2 text-sm font-semibold text-red-500">
