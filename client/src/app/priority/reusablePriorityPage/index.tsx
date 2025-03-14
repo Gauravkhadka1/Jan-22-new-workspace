@@ -2,7 +2,7 @@
 
 import { useAppSelector } from "@/app/redux";
 import Header from "@/components/Header";
-import ModalNewTask from "@/components/ModalNewTask";
+import ModalNewTask from "@/components/ModalNewandEditTask";
 import TaskCard from "@/components/TaskCard";
 
 import {

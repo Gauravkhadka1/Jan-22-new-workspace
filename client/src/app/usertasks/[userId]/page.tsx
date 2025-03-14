@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import TaskHeader from "../../UserTaskHeader";
 import Board from "../../UserTaskBoardView";
-import ModalNewTask from "@/components/ModalNewTask";
+import ModalNewTask from "@/components/ModalNewandEditTask";
 import { useAuth } from "../../../context/AuthContext"; // Import the custom hook
 import { useGetTasksQuery, useGetTasksByUserQuery, useUpdateTaskStatusMutation, useCreateTaskMutation } from "@/state/api";
 import { Clock } from "lucide-react";

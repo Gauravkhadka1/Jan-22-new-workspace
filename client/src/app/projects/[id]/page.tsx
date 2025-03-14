@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Board from "../BoardView";
-import ModalNewTask from "@/components/ModalNewTask";
+import ModalNewTask from "@/components/ModalNewandEditTask";
 import { useGetProjectsQuery } from "@/state/api";
 
 type Props = {

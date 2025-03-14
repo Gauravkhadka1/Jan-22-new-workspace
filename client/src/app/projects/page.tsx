@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import ProjectHeader from "@/app/projects/ProjectHeader";
 import Board from "./ProjectBoardView";
-import ModalNewTask from "@/components/ModalNewTask";
+import ModalNewTask from "@/components/ModalNewandEditTask";
 import withRoleAuth from "../../hoc/withRoleAuth";
 import { useGetProjectsQuery } from "@/state/api"; // Assuming you have this hook
 

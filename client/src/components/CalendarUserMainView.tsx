@@ -7,7 +7,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { getHours } from "@/lib/getTime";
 import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery, useDeleteTaskMutation  } from "@/state/api";
-import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
+import ModalNewTask from "./ModalNewandEditTask"; // Import the ModalNewTask component
 import { useParams } from "next/navigation"; // Import useParams to get userId from URL
 import EventPopover from './event-popover'
 import { SquarePen, Trash2 } from "lucide-react";

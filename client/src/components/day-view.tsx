@@ -6,7 +6,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { getHours } from "@/lib/getTime";
 import { useAuth } from "@/context/AuthContext";
 import { useGetTasksByUserQuery, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
-import ModalNewTask from "./ModalNewTask"; // Import the ModalNewTask component
+import ModalNewTask from "./ModalNewandEditTask"; // Import the ModalNewTask component
 import { Delete, DeleteIcon, Pencil, SquarePen, Trash2 } from "lucide-react";
 import { toast } from "sonner"
 

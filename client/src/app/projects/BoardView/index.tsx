@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetTasksQuery, useUpdateTaskStatusMutation, useCreateTaskMutation, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
+import { useGetTasksQuery, useGetUsersQuery, useUpdateTaskStatusMutation, useCreateTaskMutation, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType } from "@/state/api";
@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext"; // Import authentication context
 import { toast } from "sonner"
-import ModalNewTask from "@/components/ModalNewTask";
+import ModalNewTask from "@/components/ModalNewandEditTask";
 
 // Define status types
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
@@ -153,6 +153,10 @@ const Task = ({ task }: TaskProps) => {
       isDragging: !!monitor.isDragging(),
     }),
   }));
+
+  const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
+
+  const assignedUser = users?.find((user) => user.userId === Number(task.assignedTo));
 
   const taskTagsSplit = task.tags ? task.tags.split(",") : [];
 
@@ -319,10 +323,13 @@ const Task = ({ task }: TaskProps) => {
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
         </div>
 
-        <div className="text-xs text-gray-500 dark:text-neutral-500">
+       <div className="text-sm mb-1 text-gray-500 dark:text-neutral-500">
+          <b>Assigned to:</b> {assignedUser ? <span>{assignedUser.username}</span> : <span>Unassigned</span>}
+        </div>
+        <div className="text-sm mb-1 text-gray-500 dark:text-neutral-500">
           <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
         </div>
-        <div className="text-xs text-gray-500 dark:text-neutral-500">
+        <div className="text-sm text-gray-500 dark:text-neutral-500">
           <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {timeLeft && (

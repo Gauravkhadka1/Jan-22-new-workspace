@@ -16,7 +16,7 @@ import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import { toast } from "sonner"
-import ModalNewTask from "@/components/ModalNewTask";
+import ModalNewTask from "@/components/ModalNewandEditTask";
 
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
 
