@@ -17,6 +17,7 @@ const client_1 = require("@prisma/client");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const date_fns_tz_1 = require("date-fns-tz");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const emailTemplates_1 = require("../templates/emailTemplates");
 const prisma = new client_1.PrismaClient();
 const transporter = nodemailer_1.default.createTransport({
     secure: true,
@@ -351,28 +352,42 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.updateTask = updateTask;
 const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { taskId } = req.params;
     try {
         const taskToDelete = yield prisma.task.findUnique({
             where: { id: Number(taskId) },
+            include: { project: true },
         });
         if (!taskToDelete) {
             res.status(404).json({ message: "Task not found" });
             return;
         }
-        yield prisma.task.delete({
-            where: { id: Number(taskId) }
-        });
-        const user = yield prisma.user.findUnique({
-            where: { email: taskToDelete.assignedTo }
-        });
-        if (user) {
-            const emailSubject = `Task Deleted: ${taskToDelete.title}`;
-            const emailMessage = `
-        <p>Your task <strong>${taskToDelete.title}</strong> has been deleted.</p>
-      `;
-            sendMail(user.email, emailSubject, emailMessage);
+        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
+        if (!token) {
+            res.status(401).json({ message: "Unauthorized: No token provided" });
+            return;
         }
+        const decodedToken = decodeToken(token);
+        if (!decodedToken || !decodedToken.userId) {
+            res.status(401).json({ message: "Unauthorized: Invalid token" });
+            return;
+        }
+        const deletingUser = yield prisma.user.findUnique({
+            where: { userId: decodedToken.userId },
+        });
+        if (!deletingUser) {
+            res.status(400).json({ message: "Invalid user deleting the task" });
+            return;
+        }
+        yield prisma.task.delete({
+            where: { id: Number(taskId) },
+        });
+        // Send email to gaurav@webtech.com.np
+        const gauravEmailSubject = `Task Deleted: ${taskToDelete.title}`;
+        const gauravEmailMessage = (0, emailTemplates_1.taskDeletedEmailTemplate)(deletingUser.username || "Unknown User", // Fallback value if username is null
+        taskToDelete.title, ((_b = taskToDelete.project) === null || _b === void 0 ? void 0 : _b.name) || "Unknown Project");
+        sendMail("gaurav@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
         res.status(200).json({ message: "Task successfully deleted" });
     }
     catch (error) {

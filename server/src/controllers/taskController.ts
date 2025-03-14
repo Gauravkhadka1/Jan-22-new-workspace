@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import nodemailer from "nodemailer";
 import { format } from 'date-fns-tz';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { taskDeletedEmailTemplate } from "../templates/emailTemplates";
 
 const prisma = new PrismaClient();
 
@@ -398,12 +399,14 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+
 export const deleteTask = async (req: Request, res: Response): Promise<void> => {
   const { taskId } = req.params;
 
   try {
     const taskToDelete = await prisma.task.findUnique({
       where: { id: Number(taskId) },
+      include: { project: true },
     });
 
     if (!taskToDelete) {
@@ -411,25 +414,43 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    await prisma.task.delete({
-      where: { id: Number(taskId) }
-    });
-
-    const user = await prisma.user.findUnique({
-      where: { email: taskToDelete.assignedTo }
-    });
-
-    if (user) {
-      const emailSubject = `Task Deleted: ${taskToDelete.title}`;
-      const emailMessage = `
-        <p>Your task <strong>${taskToDelete.title}</strong> has been deleted.</p>
-      `;
-      sendMail(user.email, emailSubject, emailMessage);
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ message: "Unauthorized: No token provided" });
+      return;
     }
+
+    const decodedToken = decodeToken(token);
+    if (!decodedToken || !decodedToken.userId) {
+      res.status(401).json({ message: "Unauthorized: Invalid token" });
+      return;
+    }
+
+    const deletingUser = await prisma.user.findUnique({
+      where: { userId: decodedToken.userId },
+    });
+
+    if (!deletingUser) {
+      res.status(400).json({ message: "Invalid user deleting the task" });
+      return;
+    }
+
+    await prisma.task.delete({
+      where: { id: Number(taskId) },
+    });
+
+    // Send email to gaurav@webtech.com.np
+    const gauravEmailSubject = `Task Deleted: ${taskToDelete.title}`;
+    const gauravEmailMessage = taskDeletedEmailTemplate(
+      deletingUser.username || "Unknown User", // Fallback value if username is null
+      taskToDelete.title,
+      taskToDelete.project?.name || "Unknown Project"
+    );
+
+    sendMail("gaurav@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
 
     res.status(200).json({ message: "Task successfully deleted" });
   } catch (error: any) {
     res.status(500).json({ message: `Error deleting task: ${error.message}` });
   }
 };
-
