@@ -1,5 +1,6 @@
 import express from "express";
-import { createUser, loginUser, getUsers, getUserByEmail, deleteUser, updateUserRole, changePassword,  } from "../controllers/userController";
+import { createUser, loginUser, getUsers, getUserByEmail, deleteUser, updateUserRole, changePassword, uploadProfilePicture  } from "../controllers/userController";
+import upload from "../middleware/upload"; 
 
 const router = express.Router();
 
@@ -21,5 +22,7 @@ router.put("/role/:userId", updateUserRole);
 router.delete("/:email", deleteUser);
 
 router.post("/:userId/change-password", changePassword);
+
+router.post("/:userId/profile-picture", upload.single("profilePicture"), uploadProfilePicture);
 
 export default router;

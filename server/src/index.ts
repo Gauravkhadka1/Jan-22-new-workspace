@@ -4,7 +4,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-
+import path from "path";
+import fs from "fs";
 /* ROUTE IMPORTS */
 import projectRoutes from "./routes/projectRoutes";
 import taskRoutes from "./routes/taskRoutes";
@@ -22,6 +23,19 @@ app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
+app.get("/uploads/:filename", (req: Request, res: Response) => {
+  const { filename } = req.params; // Get the filename from the URL
+  const filePath = path.join(__dirname, "..", "uploads", filename); // Construct the file path
+
+  // Check if the file exists
+  if (fs.existsSync(filePath)) {
+    // Serve the file
+    res.sendFile(filePath);
+  } else {
+    // Return a 404 error if the file doesn't exist
+    res.status(404).json({ message: "File not found" });
+  }
+});
 
 /* ROUTES */
 app.get("/", (req, res) => {

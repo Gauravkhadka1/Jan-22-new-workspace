@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const userController_1 = require("../controllers/userController");
+const upload_1 = __importDefault(require("../middleware/upload"));
 const router = express_1.default.Router();
 // Create a new user
 router.post("/", userController_1.createUser);
@@ -18,4 +19,5 @@ router.put("/role/:userId", userController_1.updateUserRole);
 // Delete a user by email
 router.delete("/:email", userController_1.deleteUser);
 router.post("/:userId/change-password", userController_1.changePassword);
+router.post("/:userId/profile-picture", upload_1.default.single("profilePicture"), userController_1.uploadProfilePicture);
 exports.default = router;
