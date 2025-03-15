@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useDeleteUserMutation, useChangePasswordMutation, useUpdateProfilePictureMutation } from "@/state/api";
+import { useDeleteUserMutation } from "@/state/api";
+import { useChangePasswordMutation } from "@/state/api";
 import {
   useGetTasksByUserQuery,
   useGetProjectsQuery,
@@ -48,18 +49,6 @@ type TaskType = {
 
 const ProfilePage = () => {
   const { user, logout } = useAuth();
-  const [updateProfilePicture] = useUpdateProfilePictureMutation();
-  const [profilePictureUrl, setProfilePictureUrl] = useState(user?.profilePictureUrl || "");
-  const [file, setFile] = useState<File | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-
-  console.log("User object:", user);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
   const [deleteUser] = useDeleteUserMutation();
   const {
     data: tasks,
@@ -67,21 +56,6 @@ const ProfilePage = () => {
     isError: isTasksError,
   } = useGetTasksByUserQuery(user?.id);
   const { data: projects } = useGetProjectsQuery({});
-
-  const handleUploadProfilePicture = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !user) return;
-
-    const formData = new FormData();
-    formData.append("profilePicture", file);
-
-    try {
-      await updateProfilePicture({ userId: user.id, file: formData }).unwrap();
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Failed to upload profile picture:", error);
-    }
-  };
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -434,45 +408,6 @@ const ProfilePage = () => {
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
             <>
-
-<img
-  src={user.profilePictureUrl ? `http://localhost:8000${user.profilePictureUrl}` : "default.jpg"}
-  alt="Profile"
-  className="w-24 h-24 rounded-full mx-auto mb-4"
-/>
-
-            {isEditing ? (
-              <form onSubmit={handleUploadProfilePicture} className="mt-4">
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="rounded-md border p-2 w-full"
-                  accept="image/*"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="mt-2 w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
-                >
-                  Upload
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="mt-2 w-full rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none"
-                >
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="mt-4 w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
-              >
-                Change Profile Picture
-              </button>
-            )}
-
               {/* <button
                 onClick={() => setShowChangePasswordForm(!showChangePasswordForm)}
                 className="mt-6 w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
@@ -554,4 +489,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

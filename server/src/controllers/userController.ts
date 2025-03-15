@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import path from "path";
-import upload from "../middleware/upload"; 
 
 const prisma = new PrismaClient();
 
@@ -76,13 +74,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     res.json({ 
       message: "Login successful", 
       token, 
-      user: { 
-        id: user.userId, 
-        email: user.email, 
-        username: user.username, 
-        role: user.role, 
-        profilePictureUrl: user.profilePictureUrl // Fixed key name
-      } 
+      user: { id: user.userId, email: user.email, username: user.username, role:user.role } 
     });
     
   } catch (error: any) {
@@ -222,33 +214,3 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: `Error changing password: ${error.message}` });
   }
 };
-
-export const uploadProfilePicture = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { userId } = req.params;
-
-    if (!req.file) {
-      res.status(400).json({ message: "No file uploaded" });
-      return;
-    }
-
-    console.log("Uploaded file:", req.file); // Log the uploaded file
-
-    // Construct the file path or URL
-    const filePath = `/uploads/${req.file.filename}`;
-
-    // Update the user's profile picture URL in the database
-    const updatedUser = await prisma.user.update({
-      where: { userId: Number(userId) },
-      data: { profilePictureUrl: filePath },
-    });
-
-    console.log("Updated user:", updatedUser); // Log the updated user
-
-    res.status(200).json({ message: "Profile picture uploaded successfully", user: updatedUser });
-  } catch (error: any) {
-    console.error("Error uploading profile picture:", error);
-    res.status(500).json({ message: `Error uploading profile picture: ${error.message}` });
-  }
-};
-
