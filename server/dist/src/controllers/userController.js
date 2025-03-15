@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePassword = exports.updateUserRole = exports.deleteUser = exports.getUserByEmail = exports.getUsers = exports.loginUser = exports.createUser = void 0;
+exports.uploadProfilePicture = exports.changePassword = exports.updateUserRole = exports.deleteUser = exports.getUserByEmail = exports.getUsers = exports.loginUser = exports.createUser = void 0;
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -75,7 +75,13 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.json({
             message: "Login successful",
             token,
-            user: { id: user.userId, email: user.email, username: user.username, role: user.role }
+            user: {
+                id: user.userId,
+                email: user.email,
+                username: user.username,
+                role: user.role,
+                profilePictureUrl: user.profilePictureUrl // Fixed key name
+            }
         });
     }
     catch (error) {
@@ -205,3 +211,27 @@ const changePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.changePassword = changePassword;
+const uploadProfilePicture = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.params;
+        if (!req.file) {
+            res.status(400).json({ message: "No file uploaded" });
+            return;
+        }
+        console.log("Uploaded file:", req.file); // Log the uploaded file
+        // Construct the file path or URL
+        const filePath = `/uploads/${req.file.filename}`;
+        // Update the user's profile picture URL in the database
+        const updatedUser = yield prisma.user.update({
+            where: { userId: Number(userId) },
+            data: { profilePictureUrl: filePath },
+        });
+        console.log("Updated user:", updatedUser); // Log the updated user
+        res.status(200).json({ message: "Profile picture uploaded successfully", user: updatedUser });
+    }
+    catch (error) {
+        console.error("Error uploading profile picture:", error);
+        res.status(500).json({ message: `Error uploading profile picture: ${error.message}` });
+    }
+});
+exports.uploadProfilePicture = uploadProfilePicture;
