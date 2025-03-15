@@ -25,7 +25,10 @@ app.use(helmet_1.default.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use((0, morgan_1.default)("common"));
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: "https://webtech.mobi.np", // Allow requests from this origin
+    credentials: true, // Allow credentials (e.g., cookies)
+}));
 app.get("/uploads/:filename", (req, res) => {
     const { filename } = req.params; // Get the filename from the URL
     const filePath = path_1.default.join(__dirname, "..", "uploads", filename); // Construct the file path

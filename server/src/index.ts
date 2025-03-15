@@ -22,7 +22,12 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://webtech.mobi.np", // Allow requests from this origin
+    credentials: true, // Allow credentials (e.g., cookies)
+  })
+);
 app.get("/uploads/:filename", (req: Request, res: Response) => {
   const { filename } = req.params; // Get the filename from the URL
   const filePath = path.join(__dirname, "..", "uploads", filename); // Construct the file path
