@@ -9,8 +9,6 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
 /* ROUTE IMPORTS */
 const projectRoutes_1 = __importDefault(require("./routes/projectRoutes"));
 const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
@@ -25,23 +23,7 @@ app.use(helmet_1.default.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use((0, morgan_1.default)("common"));
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
-app.use((0, cors_1.default)({
-    origin: "https://webtech.mobi.np", // Allow requests from this origin
-    credentials: true, // Allow credentials (e.g., cookies)
-}));
-app.get("/uploads/:filename", (req, res) => {
-    const { filename } = req.params; // Get the filename from the URL
-    const filePath = path_1.default.join(__dirname, "..", "uploads", filename); // Construct the file path
-    // Check if the file exists
-    if (fs_1.default.existsSync(filePath)) {
-        // Serve the file
-        res.sendFile(filePath);
-    }
-    else {
-        // Return a 404 error if the file doesn't exist
-        res.status(404).json({ message: "File not found" });
-    }
-});
+app.use((0, cors_1.default)());
 /* ROUTES */
 app.get("/", (req, res) => {
     res.send("This is home route");

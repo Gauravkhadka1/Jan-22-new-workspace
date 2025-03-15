@@ -214,18 +214,6 @@ export const api = createApi({
       query: () => "users",
       providesTags: ["Users"],
     }),
-
-
-    updateProfilePicture: build.mutation<User, { userId: number; file: FormData }>({
-      query: ({ userId, file }) => ({
-        url: `users/${userId}/profile-picture`,
-        method: "POST",
-        body: file,
-        // Do NOT set Content-Type header manually
-      }),
-      invalidatesTags: ["Users"],
-    }),
-
     deleteUser: build.mutation<void, string>({
       query: (email) => ({
         url: `users/${email}`,
@@ -258,7 +246,6 @@ export const api = createApi({
 
 });
 
-
 export const {
   useGetProjectsQuery,
   useCreateProjectMutation,
@@ -278,5 +265,4 @@ export const {
   useRegisterUserMutation,
   useGetTasksByUserIdForProfileQuery,
   useChangePasswordMutation,
-  useUpdateProfilePictureMutation,
 } = api;
