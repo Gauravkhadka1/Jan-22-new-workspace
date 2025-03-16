@@ -28,12 +28,12 @@ const WORK_HOURS_PER_DAY = WORK_END_HOUR - WORK_START_HOUR; // 8 hours
 // Define Nepali month start and end dates (Gregorian equivalents)
 const NEPALI_MONTHS = {
   thisMonth: {
-    startDate: "2025-02-14", // Start of Chaitra (Nepali month)
-    endDate: "2025-03-13",   // End of Chaitra (Nepali month)
+    startDate: "2025-03-15", // Start of Chaitra (Nepali month)
+    endDate: "2025-04-13",   // End of Chaitra (Nepali month)
   },
   previousMonth: {
-    startDate: "2025-01-15", // Start of Falgun (Nepali month)
-    endDate: "2025-02-12",   // End of Falgun (Nepali month)
+    startDate: "2025-02-14", // Start of Falgun (Nepali month)
+    endDate: "2025-03-13",   // End of Falgun (Nepali month)
   },
 };
 
@@ -111,57 +111,107 @@ const ProfilePage = () => {
       }, {} as Record<number, string>)
     : {};
 
+    // List of excluded dates (Saturdays and holidays)
+const EXCLUDED_DATES = [
+  "2025-02-15", // Example holiday
+  "2025-02-22", // Example holiday
+  "2025-03-01", // Example holiday
+  "2025-03-08", // Example holiday
+  "2025-03-13", // Example holiday
+  "2025-03-15", // Example holiday
+].map((date) => new Date(date).getTime()); // Convert to timestamps for easy comparison
+
   // Function to calculate time spent on a task within a specific range
-  const calculateTimeSpent = (task: TaskType, startRange: Date, endRange: Date) => {
-    if (!task.startDate || !task.dueDate) return 0;
+  // Function to calculate time spent on a task within a specific range
+const calculateTimeSpent = (task: TaskType, allTasks: TaskType[], startRange: Date, endRange: Date) => {
+  if (!task.startDate || !task.dueDate) return 0;
 
-    let start = new Date(task.startDate);
-    let end = new Date(task.dueDate);
-    let totalMinutes = 0;
+  let start = new Date(task.startDate);
+  let end = new Date(task.dueDate);
+  let totalMinutes = 0;
 
-    // Normalize the start and end range to include the entire day
-    startRange.setHours(0, 0, 0, 0); // Start of the day
-    endRange.setHours(23, 59, 59, 999); // End of the day
+  // Normalize the start and end range to include the entire day
+  startRange.setHours(0, 0, 0, 0); // Start of the day
+  endRange.setHours(23, 59, 59, 999); // End of the day
 
-    // Ensure the task's start and end dates are within the specified range
-    if (start < startRange) start = new Date(startRange);
-    if (end > endRange) end = new Date(endRange);
+  // Ensure the task's start and end dates are within the specified range
+  if (start < startRange) start = new Date(startRange);
+  if (end > endRange) end = new Date(endRange);
 
-    while (start < end) {
-      // Skip Saturdays
-      if (start.getDay() === 6) {
-        start.setDate(start.getDate() + 1);
-        start.setHours(WORK_START_HOUR, 0, 0, 0);
-        continue;
-      }
-
-      const workStart = new Date(start);
-      workStart.setHours(WORK_START_HOUR, 0, 0, 0);
-      const workEnd = new Date(start);
-      workEnd.setHours(WORK_END_HOUR, 0, 0, 0);
-
-      if (start < workStart) start = workStart;
-      if (end < workStart) break;
-      if (start > workEnd) {
-        start.setDate(start.getDate() + 1);
-        start.setHours(WORK_START_HOUR, 0, 0, 0);
-        continue;
-      }
-
-      const effectiveEnd = end < workEnd ? end : workEnd;
-      let taskDuration = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60); // in minutes
-
-      // Ensure no more than 8 hours (480 minutes) are counted per day
-      taskDuration = Math.min(taskDuration, WORK_HOURS_PER_DAY * 60);
-
-      totalMinutes += taskDuration;
+  while (start < end) {
+    // Skip Saturdays
+    if (start.getDay() === 6) {
       start.setDate(start.getDate() + 1);
       start.setHours(WORK_START_HOUR, 0, 0, 0);
+      continue;
     }
 
-    // Convert total minutes to hours
-    return totalMinutes / 60;
-  };
+    // Skip excluded dates
+    const currentDate = new Date(start);
+    currentDate.setHours(0, 0, 0, 0); // Normalize the time to midnight for comparison
+    if (EXCLUDED_DATES.includes(currentDate.getTime())) {
+      start.setDate(start.getDate() + 1);
+      start.setHours(WORK_START_HOUR, 0, 0, 0);
+      continue;
+    }
+
+    const workStart = new Date(start);
+    workStart.setHours(WORK_START_HOUR, 0, 0, 0);
+    const workEnd = new Date(start);
+    workEnd.setHours(WORK_END_HOUR, 0, 0, 0);
+
+    if (start < workStart) start = workStart;
+    if (end < workStart) break;
+    if (start > workEnd) {
+      start.setDate(start.getDate() + 1);
+      start.setHours(WORK_START_HOUR, 0, 0, 0);
+      continue;
+    }
+
+    const effectiveEnd = end < workEnd ? end : workEnd;
+    let taskDuration = (effectiveEnd.getTime() - start.getTime()) / (1000 * 60); // in minutes
+
+    // Ensure no more than 8 hours (480 minutes) are counted per day
+    taskDuration = Math.min(taskDuration, WORK_HOURS_PER_DAY * 60);
+
+    // Calculate overlapping time with other tasks
+    let overlapMinutes = 0;
+    allTasks.forEach((otherTask) => {
+      if (otherTask.id !== task.id) {
+        let otherStart = new Date(otherTask.startDate!);
+        let otherEnd = new Date(otherTask.dueDate!);
+
+        // Adjust other task's start and end to working hours
+        otherStart.setHours(Math.max(otherStart.getHours(), WORK_START_HOUR), 0, 0, 0);
+        otherEnd.setHours(Math.min(otherEnd.getHours(), WORK_END_HOUR), 0, 0, 0);
+
+        if (otherStart < otherEnd) {
+          // Find the intersection between the current task and the other task
+          let overlapStart = new Date(Math.max(start.getTime(), otherStart.getTime()));
+          let overlapEnd = new Date(Math.min(effectiveEnd.getTime(), otherEnd.getTime()));
+
+          if (overlapStart < overlapEnd) {
+            let overlappingTime = (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60); // in minutes
+            // Only subtract overlap if the current task is longer than the overlapping task
+            if (taskDuration > overlappingTime) {
+              overlapMinutes += overlappingTime;
+            }
+          }
+        }
+      }
+    });
+
+    // Ensure overlapMinutes does not exceed taskDuration
+    overlapMinutes = Math.min(overlapMinutes, taskDuration);
+    totalMinutes += taskDuration - overlapMinutes;
+
+    start.setDate(start.getDate() + 1);
+    start.setHours(WORK_START_HOUR, 0, 0, 0);
+  }
+
+  // Convert total minutes to hours
+  return totalMinutes / 60;
+};
 
   // Function to check if a task is completed and within the selected date range
   const isCompletedAndWithinRange = (task: TaskType, startRange: Date, endRange: Date) => {
@@ -230,19 +280,21 @@ const ProfilePage = () => {
   ) ?? [];
 
   // Sort tasks by time spent (descending order)
-  const sortedTasks = filteredTasks.slice().sort((a, b) => {
-    const timeA = calculateTimeSpent(a, new Date(fromDate), new Date(toDate));
-    const timeB = calculateTimeSpent(b, new Date(fromDate), new Date(toDate));
-    return timeB - timeA;
-  });
+  // Sort tasks by time spent (descending order)
+const sortedTasks = filteredTasks.slice().sort((a, b) => {
+  const timeA = calculateTimeSpent(a, filteredTasks, new Date(fromDate), new Date(toDate));
+  const timeB = calculateTimeSpent(b, filteredTasks, new Date(fromDate), new Date(toDate));
+  return timeB - timeA;
+});
 
-  // Calculate total time spent on tasks
-  const calculateTotalTimeSpent = () => {
-    return sortedTasks.reduce((total, task) => {
-      const timeSpent = calculateTimeSpent(task, new Date(fromDate), new Date(toDate));
-      return total + timeSpent;
-    }, 0);
-  };
+// Calculate total time spent on tasks
+const calculateTotalTimeSpent = () => {
+  return sortedTasks.reduce((total, task) => {
+    const timeSpent = calculateTimeSpent(task, filteredTasks, new Date(fromDate), new Date(toDate));
+    return total + timeSpent;
+  }, 0);
+};
+ 
 
   const calculateNumberOfDays = () => {
     if (!fromDate || !toDate) return 0;
@@ -261,23 +313,31 @@ const ProfilePage = () => {
 
   const calculateTotalWorkingHours = () => {
     if (!fromDate || !toDate) return 0;
-
+  
     let start = new Date(fromDate);
     const end = new Date(toDate);
     let totalWorkingHours = 0;
-
+  
     while (start <= end) {
       // Skip Saturdays
       if (start.getDay() === 6) {
         start.setDate(start.getDate() + 1);
         continue;
       }
-
+  
+      // Skip excluded dates
+      const currentDate = new Date(start);
+      currentDate.setHours(0, 0, 0, 0); // Normalize the time to midnight for comparison
+      if (EXCLUDED_DATES.includes(currentDate.getTime())) {
+        start.setDate(start.getDate() + 1);
+        continue;
+      }
+  
       // Add 8 hours for each valid working day
       totalWorkingHours += WORK_HOURS_PER_DAY;
       start.setDate(start.getDate() + 1);
     }
-
+  
     return totalWorkingHours;
   };
 
@@ -451,29 +511,29 @@ const ProfilePage = () => {
             </tr>
           </thead>
           <tbody>
-            {sortedTasks?.length > 0 ? (
-              sortedTasks.map((task, index) => (
-                <tr key={task.id} className="border">
-                  <td className="border p-2 text-center">{index + 1}</td>
-                  <td className="border p-2">{task.title}</td>
-                  <td className="border p-2">
-                    {projectMap?.[task.projectId] || "N/A"}
-                  </td>
-                  <td className="border p-2">
-                    {task.startDate && task.dueDate
-                      ? calculateTimeSpent(task, new Date(fromDate), new Date(toDate)).toFixed(2)
-                      : "N/A"}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="border p-2 text-center">
-                  No tasks found
-                </td>
-              </tr>
-            )}
-          </tbody>
+  {sortedTasks?.length > 0 ? (
+    sortedTasks.map((task, index) => (
+      <tr key={task.id} className="border">
+        <td className="border p-2 text-center">{index + 1}</td>
+        <td className="border p-2">{task.title}</td>
+        <td className="border p-2">
+          {projectMap?.[task.projectId] || "N/A"}
+        </td>
+        <td className="border p-2">
+          {task.startDate && task.dueDate
+            ? calculateTimeSpent(task, filteredTasks, new Date(fromDate), new Date(toDate)).toFixed(2)
+            : "N/A"}
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan={4} className="border p-2 text-center">
+        No tasks found
+      </td>
+    </tr>
+  )}
+</tbody>
         </table>
 
         {/* Display total working hours and total time spent */}
