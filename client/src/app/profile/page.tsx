@@ -74,7 +74,6 @@ const EXCLUDED_DATES = [
   endTime: exclusion.endTime,
 }));
 
-
 type TaskType = {
   id: number;
   title: string;
