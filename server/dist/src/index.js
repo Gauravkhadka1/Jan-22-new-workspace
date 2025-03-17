@@ -11,7 +11,6 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 /* ROUTE IMPORTS */
 const projectRoutes_1 = __importDefault(require("./routes/projectRoutes"));
-const prospectsRoutes_1 = __importDefault(require("./routes/prospectsRoutes"));
 const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 // import searchRoutes from "./routes/searchRoutes";
@@ -30,7 +29,6 @@ app.get("/", (req, res) => {
     res.send("This is home route");
 });
 app.use("/projects", projectRoutes_1.default);
-app.use("/prospects", prospectsRoutes_1.default);
 app.use("/tasks", taskRoutes_1.default);
 app.use("/users", userRoutes_1.default);
 app.post("/api/users", (req, res) => {
