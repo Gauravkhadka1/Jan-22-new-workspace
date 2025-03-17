@@ -67,6 +67,7 @@ const Sidebar = () => {
           )}
           {isAdmin && (
             <>
+              <SidebarLink icon={Users} label="Prospects" href="/prospects" />
               <SidebarLink icon={Users} label="Sales" href="/sales" />
             </>
           )}

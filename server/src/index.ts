@@ -7,6 +7,7 @@ import morgan from "morgan";
 
 /* ROUTE IMPORTS */
 import projectRoutes from "./routes/projectRoutes";
+import prospectsRoutes from "./routes/prospectsRoutes";
 import taskRoutes from "./routes/taskRoutes";
 import userRoutes from "./routes/userRoutes";
 
@@ -29,6 +30,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/projects", projectRoutes);
+app.use("/prospects", prospectsRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/users", userRoutes);
 

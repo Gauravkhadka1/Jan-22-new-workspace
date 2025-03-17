@@ -1,3 +1,4 @@
+import Prospects from "@/app/prospects/page";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
@@ -8,6 +9,13 @@ export interface ProjectType {
   status: string;
   startDate?: string;
   endDate?: string;
+}
+export interface Prospects {
+  id: number;
+  name: string;
+  status: ProspectsStatus;
+  category: string;
+  inquiryDate?: string;
 }
 
 export enum Priority {
@@ -23,6 +31,13 @@ export enum Status {
   WorkInProgress = "Work In Progress",
   UnderReview = "Under Review",
   Completed = "Completed",
+}
+export enum ProspectsStatus {
+  New = "New",
+  Dealing = "Dealing",
+  QuoteSent = "QuoteSent",
+  AgreementSent = "AgreementSent",
+  Converted = "Converted",
 }
 
 export interface User {
@@ -88,7 +103,7 @@ export const api = createApi({
   },
   }),
   reducerPath: "api",
-  tagTypes: ["Projects", "Tasks", "Users", "Teams"],
+  tagTypes: ["Projects", "Prospects", "Tasks", "Users", "Teams"],
   endpoints: (build) => ({
     registerUser: build.mutation<{ message: string }, Partial<User>>({
       query: (userData) => ({
@@ -134,6 +149,11 @@ export const api = createApi({
       providesTags: ["Projects"],
     }),
 
+    getProspects: build.query<Prospects[], { prospectsId?: number }>({
+      query: () => "prospects",
+      providesTags: ["Prospects"],
+    }),
+
      
     createProject: build.mutation<ProjectType, Partial<ProjectType>>({
       query: (project) => ({
@@ -142,6 +162,14 @@ export const api = createApi({
         body: project,
       }),
       invalidatesTags: ["Projects"],
+    }),
+    createProspects: build.mutation<Prospects, Partial<Prospects>>({
+      query: (prospects) => ({
+        url: "prospects",
+        method: "POST",
+        body: prospects,
+      }),
+      invalidatesTags: ["Prospects"],
     }),
     getTasks: build.query<Task[], { projectId: number }>({
       query: ({ projectId }) => `tasks?projectId=${projectId}`,
@@ -189,6 +217,16 @@ export const api = createApi({
         { type: 'Tasks', id: taskId }
       ],
     }),
+
+    deleteProspects: build.mutation<void, number>({
+      query: (prospectId) => ({
+        url: `prospects/${prospectId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, prospectId) => [
+        { type: 'Prospects', id: prospectId }
+      ],
+    }),
  
     updateTaskStatus: build.mutation<Task, { taskId: number; status: string; updatedBy: number }>({
       query: ({ taskId, status, updatedBy }) => ({
@@ -208,6 +246,24 @@ export const api = createApi({
       }),
       invalidatesTags: (result, error, { projectId }) => [
         { type: "Projects", id: projectId },
+      ],
+    }),
+    updateProspect: build.mutation<Prospects, { 
+      prospectsId: number; 
+      name?: string; 
+      status?: ProspectsStatus; 
+      category?: string; 
+      inquiryDate?: string; 
+      updatedBy: number // Make `updatedBy` required
+    }>({
+      query: ({ prospectsId, name, status, category, inquiryDate, updatedBy }) => ({
+        url: `prospects/${prospectsId}`,
+        method: "PUT",
+        body: { name, status, category, inquiryDate, updatedBy },
+      }),
+      invalidatesTags: (result, error, { prospectsId }) => [
+        { type: "Prospects", id: prospectsId }, // Invalidate the specific prospect
+        { type: "Prospects", id: "LIST" }, // Invalidate the entire list of prospects
       ],
     }),
     getUsers: build.query<User[], void>({
@@ -231,8 +287,6 @@ export const api = createApi({
     invalidatesTags: ["Users"],
   }),
   
-  
-   
     getTeams: build.query<Team[], void>({
       query: () => "teams",
       providesTags: ["Teams"],
@@ -248,13 +302,17 @@ export const api = createApi({
 
 export const {
   useGetProjectsQuery,
+  useGetProspectsQuery,
   useCreateProjectMutation,
   useGetTasksQuery,
   useCreateTaskMutation,
-  useUpdateTaskMutation, 
+  useCreateProspectsMutation,
+  useUpdateTaskMutation,  
+  useDeleteProspectsMutation,
   useDeleteTaskMutation,
   useUpdateTaskStatusMutation,
   useUpdateProjectStatusMutation,
+  useUpdateProspectMutation, 
   useSearchQuery,
   useGetUsersQuery,
   useUpdateUserRoleMutation,
