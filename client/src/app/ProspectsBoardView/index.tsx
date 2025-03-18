@@ -98,21 +98,37 @@ const ProspectsBoardView = ({ id, setIsModalNewProspectsOpen }: BoardProps) => {
     }
   };
 
-  const moveProspects = (prospectsId: number, toStatus: ProspectsStatus) => {
-    if (!userId) {
-      console.error("No authenticated user found");
-      return;
-    }
+  // In client/src/app/ProspectsBoardView/index.tsx
+const moveProspects = (prospectsId: number, toStatus: ProspectsStatus) => {
+  if (!userId) {
+    console.error("No authenticated user found");
+    return;
+  }
 
-    updateProspect({ prospectsId, status: toStatus, updatedBy: userId })
-      .unwrap()
-      .then(() => {
-        toast.success(`Prospect status updated to ${toStatus}`);
-      })
-      .catch(() => {
-        toast.error("Failed to update prospect status");
-      });
-  };
+  // Find the prospect being moved
+  const prospect = prospects.find((p) => p.id === prospectsId);
+  if (!prospect) {
+    console.error("Prospect not found");
+    return;
+  }
+
+  // Send all fields, updating only the status
+  updateProspect({
+    prospectsId,
+    name: prospect.name,
+    status: toStatus,
+    category: prospect.category,
+    inquiryDate: prospect.inquiryDate,
+    updatedBy: userId,
+  })
+    .unwrap()
+    .then(() => {
+      toast.success(`Prospect status updated to ${toStatus}`);
+    })
+    .catch(() => {
+      toast.error("Failed to update prospect status");
+    });
+};
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching prospects</div>;
