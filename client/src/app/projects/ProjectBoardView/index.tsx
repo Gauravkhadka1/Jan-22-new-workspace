@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useGetProjectsQuery, useUpdateProjectStatusMutation } from "@/state/api";
+import {
+  useGetProjectsQuery,
+  useUpdateProjectStatusMutation,
+} from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { EllipsisVertical, Plus, Calendar } from "lucide-react"; // Import Calendar icon
@@ -12,12 +15,21 @@ type BoardProps = {
   projectName: string;
 };
 
-const projectStatus: Array<"New" | "Design" | "Development" | "Content-Fillup" | "Completed"> = [
-  "New", "Design", "Development", "Content-Fillup", "Completed"
-];
+const projectStatus: Array<
+  "New" | "Design" | "Development" | "Content-Fillup" | "Completed"
+> = ["New", "Design", "Development", "Content-Fillup", "Completed"];
 
-const ProjectBoardView = ({ id, setIsModalNewProjectOpen, projectName }: BoardProps) => {
-  const { data: projects, isLoading, error, refetch } = useGetProjectsQuery({ projectId: Number(id) });
+const ProjectBoardView = ({
+  id,
+  setIsModalNewProjectOpen,
+  projectName,
+}: BoardProps) => {
+  const {
+    data: projects,
+    isLoading,
+    error,
+    refetch,
+  } = useGetProjectsQuery({ projectId: Number(id) });
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
 
   const moveProject = (projectId: number, toStatus: string) => {
@@ -34,8 +46,10 @@ const ProjectBoardView = ({ id, setIsModalNewProjectOpen, projectName }: BoardPr
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex p-4"> {/* Flex layout for the columns */}
-      <h2>{projectName}</h2> 
+      <div className="flex p-4">
+        {" "}
+        {/* Flex layout for the columns */}
+        <h2>{projectName}</h2>
         {projectStatus.map((status) => (
           <ProjectColumn
             key={status}
@@ -57,62 +71,68 @@ type ProjectColumnProps = {
   setIsModalNewProjectOpen: (isOpen: boolean) => void;
 };
 
-const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(({
-  status,
-  projects,
-  moveProject,
-  setIsModalNewProjectOpen,
-}, ref) => {
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: "Project",
-    drop: (item: { id: number }) => moveProject(item.id, status),
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  }));
+const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
+  ({ status, projects, moveProject, setIsModalNewProjectOpen }, ref) => {
+    const [{ isOver }, drop] = useDrop(() => ({
+      accept: "Project",
+      drop: (item: { id: number }) => moveProject(item.id, status),
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+      }),
+    }));
 
-  const filteredProjects = projects.filter((project) => project.status === status);
-  const statusColor: Record<"New" | "Design" | "Development" | "Content-Fillup" | "Completed", string> = {
-    New: "#2563EB",
-    Design: "#059669",
-    Development: "#D97706",
-    "Content-Fillup": "#000000",
-    Completed: "#000000",
-  };
+    const filteredProjects = projects.filter(
+      (project) => project.status === status,
+    );
+    const statusColor: Record<
+      "New" | "Design" | "Development" | "Content-Fillup" | "Completed",
+      string
+    > = {
+      New: "#2563EB",
+      Design: "#059669",
+      Development: "#D97706",
+      "Content-Fillup": "#000000",
+      Completed: "#000000",
+    };
 
-  const color = statusColor[status];
-  const projectCount = filteredProjects.length;
+    const color = statusColor[status];
+    const projectCount = filteredProjects.length;
+    
 
-  return (
-    <div
-      ref={(node) => {
-        drop(node); // Pass the node to react-dnd drop target
-        if (typeof ref === "function") ref(node); // Allow the ref forwarding
-      }}
-      className="flex-1 w-1/5 h-[69vh] rounded-lg py-4 xl:px-2 -mt-10"  // Fixed width for equal distribution
-    >
-      <div className="mb-3 flex items-center justify-between bg-white dark:bg-dark-secondary p-4 rounded-md">
-        <div className="flex items-center">
-          <span className="block h-4 w-4 rounded-full" style={{ backgroundColor: color }}></span>
-          <h3 className="ml-2 font-semibold text-sm dark:text-gray-200">
-            {status} ({projectCount}) {/* Display the project count */}
-          </h3>
-        </div>
-        {/* <button
+    return (
+      <div
+        ref={(node) => {
+          drop(node); // Pass the node to react-dnd drop target
+          if (typeof ref === "function") ref(node); // Allow the ref forwarding
+        }}
+        className="-mt-10 h-[69vh] w-1/5 flex-1 rounded-lg py-4 xl:px-2" // Fixed width for equal distribution
+      >
+        <div className="mb-3 flex items-center justify-between rounded-md bg-white p-4 dark:bg-dark-secondary">
+          <div className="flex items-center">
+            <span
+              className="block h-4 w-4 rounded-full"
+              style={{ backgroundColor: color }}
+            ></span>
+            <h3 className="ml-2 text-sm font-semibold dark:text-gray-200">
+              {status} ({projectCount}) {/* Display the project count */}
+            </h3>
+          </div>
+          {/* <button
           className="rounded bg-gray-200 p-2 dark:bg-dark-tertiary"
           onClick={() => setIsModalNewProjectOpen(true)}
         >
           <Plus size={16} />
         </button> */}
+        </div>
+        <div className="custom-scrollbar h-[65vh] overflow-y-auto">
+          {filteredProjects.map((project) => (
+            <Project key={project.id} projectData={project} />
+          ))}
+        </div>
       </div>
-      <div className="h-[65vh] overflow-y-auto custom-scrollbar">
-      {filteredProjects.map((project) => (
-        <Project key={project.id} projectData={project} />
-      ))}
-      </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 type ProjectProps = {
   projectData: any; // Replace with appropriate type
@@ -134,11 +154,12 @@ const Project = ({ projectData }: ProjectProps) => {
 
   if (projectData.status === "Completed") {
     return (
-      <div ref={dragRef} className={`mb-4 p-4 rounded-md shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}>
-        <h4 className="font-bold text-sm break-words dark:text-gray-200">
-          <Link href={`/projects/${projectData.id}`}>
-            {projectData.name}
-          </Link>
+      <div
+        ref={dragRef}
+        className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
+      >
+        <h4 className="break-words text-sm font-bold dark:text-gray-200">
+          <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
         </h4>
       </div>
     );
@@ -147,7 +168,9 @@ const Project = ({ projectData }: ProjectProps) => {
   const formattedStartDate = projectData.startDate
     ? format(new Date(projectData.startDate), "MMM d, Y")
     : "";
-  const formattedEndDate = projectData.endDate ? format(new Date(projectData.endDate), "MMM d, Y") : "";
+  const formattedEndDate = projectData.endDate
+    ? format(new Date(projectData.endDate), "MMM d, Y")
+    : "";
 
   // Calculate the days remaining or overdue
   const currentDate = new Date();
@@ -167,23 +190,23 @@ const Project = ({ projectData }: ProjectProps) => {
     textColor = "#b13a41"; // Red color for overdue
   }
 
-
   return (
     <div
       ref={dragRef} // Attach the drag ref here
-      className={`mb-4 p-4 rounded-md shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
+      className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
     >
-      <h4 className="font-bold text-sm break-words dark:text-gray-200">
-        <Link  href={`/projects/${projectData.id}`}>
-        {projectData.name}
-        </Link>
-        </h4>
+      <h4 className="flex items-center justify-between break-words text-sm font-bold dark:text-gray-200">
+        <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
+          <button className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500">
+            <EllipsisVertical size={26} />
+          </button>
+      </h4>
       <div className="flex-col py-2">
         <div className="flex items-center">
           <Calendar size={16} className="text-green-600" />
           <p className="ml-2 text-green-600">{formattedStartDate}</p>
         </div>
-        <div className="flex items-center mt-2">
+        <div className="mt-2 flex items-center">
           <Calendar size={16} className="text-red-800" />
           <p className="ml-2 text-red-800">{formattedEndDate}</p>
         </div>
@@ -195,7 +218,7 @@ const Project = ({ projectData }: ProjectProps) => {
           </span>
         )}
       </p>
-   {/* <div>
+      {/* <div>
     no of TO DO tasks
    </div>
    <div>
