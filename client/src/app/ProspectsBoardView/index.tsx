@@ -39,7 +39,12 @@ type ProspectsType = {
 const ProspectsBoardView = ({ id, setIsModalNewProspectsOpen }: BoardProps) => {
   const { user } = useAuth();
   const userId = user?.id;
-  const { data: prospectsData, isLoading, error, refetch } = useGetProspectsQuery({});
+  const {
+    data: prospectsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetProspectsQuery({});
 
   // Refetch prospects data whenever a mutation occurs
   useEffect(() => {
@@ -47,10 +52,11 @@ const ProspectsBoardView = ({ id, setIsModalNewProspectsOpen }: BoardProps) => {
   }, [refetch]);
 
   // Cast the `status` property to the `Status` type
-  const prospects = prospectsData?.map((prospect) => ({
-    ...prospect,
-    status: prospect.status as ProspectsStatus, // Cast the status to the `Status` type
-  })) || [];
+  const prospects =
+    prospectsData?.map((prospect) => ({
+      ...prospect,
+      status: prospect.status as ProspectsStatus, // Cast the status to the `Status` type
+    })) || [];
 
   const [createProspect] = useCreateProspectsMutation();
 
@@ -65,7 +71,10 @@ const ProspectsBoardView = ({ id, setIsModalNewProspectsOpen }: BoardProps) => {
 
   const [updateProspect] = useUpdateProspectMutation();
 
-  const handleEditProspect = async (prospectId: number, prospectData: Partial<Prospects>) => {
+  const handleEditProspect = async (
+    prospectId: number,
+    prospectData: Partial<Prospects>,
+  ) => {
     try {
       await updateProspect({
         prospectsId: prospectId,
@@ -110,7 +119,7 @@ const ProspectsBoardView = ({ id, setIsModalNewProspectsOpen }: BoardProps) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-5">
         {prospectsStatus.map((status) => (
           <ProspectsColumn
             key={status}
@@ -142,7 +151,9 @@ const ProspectsColumn = React.forwardRef<HTMLDivElement, ProspectsColumnProps>(
       }),
     }));
 
-    const prospectsCount = prospects.filter((prospect) => prospect.status === status).length;
+    const prospectsCount = prospects.filter(
+      (prospect) => prospect.status === status,
+    ).length;
 
     const statusColor: Record<ProspectsStatus, string> = {
       [ProspectsStatus.New]: "#2563EB",
@@ -185,7 +196,7 @@ const ProspectsColumn = React.forwardRef<HTMLDivElement, ProspectsColumnProps>(
             </div>
           </div>
         </div>
-        <div className="h-[65vh] overflow-y-auto custom-scrollbar">
+        <div className="custom-scrollbar h-[65vh] overflow-y-auto">
           {prospects
             .filter((prospect) => prospect.status === status)
             .map((prospect) => (
@@ -196,7 +207,7 @@ const ProspectsColumn = React.forwardRef<HTMLDivElement, ProspectsColumnProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 type ProspectProps = {
@@ -223,9 +234,11 @@ const Prospect = ({ prospect }: ProspectProps) => {
 
   const [prospectOptionsVisible, setProspectOptionsVisible] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedProspect, setSelectedProspect] = useState<ProspectsType | null>(null);
+  const [selectedProspect, setSelectedProspect] =
+    useState<ProspectsType | null>(null);
 
-  const [deleteProspect, { isLoading: isDeleting }] = useDeleteProspectsMutation();
+  const [deleteProspect, { isLoading: isDeleting }] =
+    useDeleteProspectsMutation();
 
   const handleEditClick = (prospect: ProspectsType) => {
     setSelectedProspect(prospect);
@@ -247,10 +260,15 @@ const Prospect = ({ prospect }: ProspectProps) => {
   return (
     <div
       ref={dragRef} // Attach the drag ref here
-      className={`mb-4 p-4 rounded-md shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
+      className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
     >
-      <div className="p-4 md:p-6">
-        <div className="flex items-start justify-between">
+      <div className="px-2">
+        <div className="flex items-center justify-between">
+          <div className="my-3 flex justify-between">
+            <h4 className="text-md font-bold dark:text-white">
+              {prospect.name}
+            </h4>
+          </div>
           <button
             className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
             onClick={(e) => {
@@ -261,7 +279,7 @@ const Prospect = ({ prospect }: ProspectProps) => {
             <EllipsisVertical size={26} />
           </button>
           {prospectOptionsVisible && (
-            <div className="absolute right-0 mt-6 bg-white shadow-lg rounded z-50">
+            <div className="absolute right-12 z-50 mt-6 rounded bg-white shadow-lg">
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {
@@ -284,13 +302,10 @@ const Prospect = ({ prospect }: ProspectProps) => {
             </div>
           )}
         </div>
-
-        <div className="my-3 flex justify-between">
-          <h4 className="text-md font-bold dark:text-white">{prospect.name}</h4>
-        </div>
         <div>{prospect.category}</div>
         <div className="text-xs text-gray-500 dark:text-neutral-500">
-          <b>Inquiry Date:</b> {formattedInquiryDate && <span>{formattedInquiryDate}</span>}
+          <b>Inquiry Date:</b>{" "}
+          {formattedInquiryDate && <span>{formattedInquiryDate}</span>}
         </div>
         {isEditModalOpen && (
           <ModalNewProspects
