@@ -51,7 +51,11 @@ const decodeToken = (token: string): DecodedToken | null => {
 // Get all prospects
 export const getProspects = async (req: Request, res: Response): Promise<void> => {
   try {
-    const prospects = await prisma.prospects.findMany();
+    const prospects = await prisma.prospects.findMany({
+      orderBy: {
+        inquiryDate: 'desc', // Sort by inquiryDate in descending order (latest first)
+      },
+    });
     res.json(prospects);
   } catch (error: any) {
     res.status(500).json({ message: `Error retrieving prospects: ${error.message}` });

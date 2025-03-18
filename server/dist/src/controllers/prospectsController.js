@@ -57,7 +57,11 @@ const decodeToken = (token) => {
 // Get all prospects
 const getProspects = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const prospects = yield prisma.prospects.findMany();
+        const prospects = yield prisma.prospects.findMany({
+            orderBy: {
+                inquiryDate: 'desc', // Sort by inquiryDate in descending order (latest first)
+            },
+        });
         res.json(prospects);
     }
     catch (error) {
