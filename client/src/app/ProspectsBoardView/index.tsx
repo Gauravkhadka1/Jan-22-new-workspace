@@ -9,7 +9,7 @@ import {
 import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { EllipsisVertical, Plus } from "lucide-react";
+import { CalendarSearch, ChartBarStacked, EllipsisVertical, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ModalNewProspects from "@/components/ModalNewandEditProspects";
@@ -318,9 +318,16 @@ const Prospect = ({ prospect }: ProspectProps) => {
             </div>
           )}
         </div>
-        <div>{prospect.category}</div>
-        <div className="text-xs text-gray-500 dark:text-neutral-500">
-          <b>Inquiry Date:</b>{" "}
+        <div className="flex items-center text-xs text-gray-500 dark:text-neutral-500">
+        <div>
+        <ChartBarStacked width={16} className="mr-2"/> {" "}
+          </div>
+        <div>
+          {prospect.category}
+          </div>
+        </div>
+        <div className="flex items-center text-xs text-gray-500 dark:text-neutral-500">
+          <CalendarSearch width={16} className="mr-2"/> {" "}
           {formattedInquiryDate && <span>{formattedInquiryDate}</span>}
         </div>
         {isEditModalOpen && (
