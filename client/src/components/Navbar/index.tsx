@@ -3,14 +3,15 @@ import React from "react";
 import { Menu, Moon, Search, Settings, Sun, User } from "lucide-react";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
-import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
+import { setIsSidebarCollapsed } from "@/state";
 import { useAuth } from "@/context/AuthContext";
 import { X } from "lucide-react";
+import { useTheme } from "next-themes"; // Import useTheme
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
   const isSidebarCollapsed = useAppSelector((state) => state.global.isSidebarCollapsed);
-  const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
+  const { theme, setTheme } = useTheme(); // Use next-themes for theme management
   const { user, logout } = useAuth();
 
   // Get current hour
@@ -58,10 +59,14 @@ const Navbar = () => {
 
       <div className="flex items-center">
         <button
-          onClick={() => dispatch(setIsDarkMode(!isDarkMode))}
-          className={isDarkMode ? `rounded p-2 dark:hover:bg-gray-700` : `rounded p-2 hover:bg-gray-100`}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")} // Use next-themes to toggle theme
+          className={theme === "dark" ? `rounded p-2 dark:hover:bg-gray-700` : `rounded p-2 hover:bg-gray-100`}
         >
-          {isDarkMode ? <Sun className="h-6 w-6 cursor-pointer dark:text-white" /> : <Moon className="h-6 w-6 cursor-pointer dark:text-white" />}
+          {theme === "dark" ? (
+            <Sun className="h-6 w-6 cursor-pointer dark:text-white" />
+          ) : (
+            <Moon className="h-6 w-6 cursor-pointer dark:text-white" />
+          )}
         </button>
 
         <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
@@ -69,7 +74,7 @@ const Navbar = () => {
         {user ? (
           <Link href="/profile" className="flex items-end text-sm font-medium text-blue-500 hover:underline">
             {getGreeting()}, {user.username}
-            <User className="ml-2 w-6  h-6"/>
+            <User className="ml-2 w-6 h-6" />
           </Link>
         ) : (
           <button onClick={logout} className="text-sm font-medium text-red-500 hover:underline">
