@@ -60,7 +60,7 @@ const Sidebar = () => {
         </div>
 
         {/* NAVBAR LINKS */}
-        <nav className="z-10 w-full mt-6">
+        <nav className="z-10 w-full mt-6 dark:text-gray-800">
           <SidebarLink icon={Home} label="Home" href="/dashboard" />
           {/* Conditionally render Projects and Teams links only if ADMIN or MANAGER */}
           {isAdminOrManager && (
@@ -101,8 +101,8 @@ const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
         {isActive && (
           <div className="absolute left-0 top-0 h-[100%] w-[5px] bg-blue-200" />
         )}
-        <Icon className="h-6 w-6 text-gray-800 dark:text-gray-100" />
-        <span className={`font-medium text-gray-800 dark:text-gray-100`}>
+        <Icon className="h-6 w-6 text-gray-800 dark:text-gray-200" />
+        <span className={`font-medium text-gray-800 dark:text-gray-200`}>
           {label}
         </span>
       </div>

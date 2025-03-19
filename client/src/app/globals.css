@@ -95,4 +95,14 @@ body,
   background-color: #c1c3c9; /* Darker thumb */
   border-radius: 10px;
 }
+
+/* Dark Mode Scrollbar Styles */
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #2d2d2d; /* Dark gray track */
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #a5a4a4; /* Lighter thumb */
+  border-radius: 10px;
+}
 }

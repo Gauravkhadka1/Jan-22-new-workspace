@@ -139,7 +139,7 @@ const TaskColumn = ({
           style={{ backgroundColor: statusColor[status] }}
         />
         <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-5 py-4 dark:bg-dark-secondary">
-          <h3 className="flex items-center text-sm font-semibold dark:text-white">
+          <h3 className="flex items-center text-sm font-semibold dark:text-gray-200">
             {status}{" "}
             <span
               className="ml-2 inline-block rounded-full bg-gray-200 p-1 text-center text-sm leading-none dark:bg-dark-tertiary"
@@ -262,23 +262,23 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
-  const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
-    <div
-      className={`rounded-full px-2 py-1 text-xs font-semibold ${
-        priority === "Urgent"
-          ? "bg-red-200 text-red-700"
-          : priority === "High"
-            ? "bg-yellow-200 text-yellow-700"
-            : priority === "Medium"
-              ? "bg-green-200 text-green-700"
-              : priority === "Low"
-                ? "bg-blue-200 text-blue-700"
-                : "bg-gray-200 text-gray-700"
-      }`}
-    >
-      {priority}
-    </div>
-  );
+  // const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
+  //   <div
+  //     className={`rounded-full px-2 py-1 text-xs font-semibold ${
+  //       priority === "Urgent"
+  //         ? "bg-red-200 text-red-700"
+  //         : priority === "High"
+  //           ? "bg-yellow-200 text-yellow-700"
+  //           : priority === "Medium"
+  //             ? "bg-green-200 text-green-700"
+  //             : priority === "Low"
+  //               ? "bg-blue-200 text-blue-700"
+  //               : "bg-gray-200 text-gray-700"
+  //     }`}
+  //   >
+  //     {priority}
+  //   </div>
+  // );
 
   return (
     <div
@@ -298,9 +298,9 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           className="h-auto w-full rounded-t-md"
         />
       )}
-      <div className="p-4 md:p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
+      <div className="p-2 md:pt-1 md:pr-5 md:pl-5 md:pb-4">
+        <div className="flex items-center justify-between">
+          {/* <div className="flex flex-1 flex-wrap items-center gap-2">
             {task.priority && <PriorityTag priority={task.priority} />}
             <div className="flex gap-2">
               {taskTagsSplit.map((tag) => (
@@ -313,7 +313,10 @@ const Task = ({ task, getProjectName }: TaskProps) => {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
+             <div className="my-3 flex justify-between">
+          <h4 className="text-md font-bold dark:text-gray-200">{task.title}</h4>
+        </div>
           <button
             className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
             onClick={(e) => {
@@ -324,7 +327,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
               }));
             }}
           >
-            <EllipsisVertical size={26} />
+            <EllipsisVertical size={26} className="dark:text-gray-200"/>
           </button>
           {taskOptionsVisible[task.id] && (
             <div className="absolute right-0 mt-6 bg-white shadow-lg rounded z-50">
@@ -350,17 +353,13 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             </div>
           )}
         </div>
-
-        <div className="my-3 flex justify-between">
-          <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
-        </div>
-        <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-neutral-400">
+        <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
           in {getProjectName(task.projectId)}
         </div>
-        <div className="text-xs text-gray-500 dark:text-neutral-500">
+        <div className="text-xs mb-1 text-gray-500 dark:text-gray-300">
           <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
         </div>
-        <div className="text-xs text-gray-500 dark:text-neutral-500">
+        <div className="text-xs text-gray-500 dark:text-gray-300">
           <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {timeLeft && (
