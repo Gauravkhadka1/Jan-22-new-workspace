@@ -3,22 +3,25 @@
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/state";
 import { signOut } from "aws-amplify/auth";
-import { FolderCode, Home, Users, LucideIcon } from "lucide-react";
+import {
+  FolderCode,
+  Home,
+  Users,
+  LucideIcon,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "next-themes"; // Import useTheme
+import { useAuth } from "../../context/AuthContext"; // Assuming you have useAuth to fetch user
 
 const Sidebar = () => {
   const [showProjects, setShowProjects] = useState(true);
   const dispatch = useAppDispatch();
-  const isSidebarCollapsed = useAppSelector(
-    (state) => state.global.isSidebarCollapsed
-  );
-  const { theme } = useTheme(); // Get the current theme
-  const { user, loading } = useAuth();
+  const isSidebarCollapsed = useAppSelector((state) => state.global.isSidebarCollapsed);
+  const isDarkMode = useAppSelector((state) => state.global.isDarkMode); // Access isDarkMode state
+
+  const { user, loading } = useAuth(); // Fetching user info from context
 
   const handleSignOut = async () => {
     try {
@@ -32,8 +35,10 @@ const Sidebar = () => {
     transition-all duration-300 h-full z-40 dark:bg-black overflow-y-auto bg-white
     ${isSidebarCollapsed ? "w-0 hidden" : "w-64"}`;
 
+  // If loading or user data isn't available yet, show a loading state
   if (loading) return <div>Loading...</div>;
 
+  // Check if the user has the correct role to display sidebar content
   const isAdminOrManager = user?.role === "ADMIN" || user?.role === "MANAGER";
   const isAdmin = user?.role === "ADMIN";
 
@@ -44,17 +49,12 @@ const Sidebar = () => {
         <div className="z-50 flex min-h-[56px] w-64 items-center justify-between bg-white px-6 pt-3 dark:bg-black">
           <Link href="/dashboard" className="text-sm font-medium text-blue-500 hover:underline">
             <div className="text-xl font-bold text-gray-800 dark:text-white">
-              {/* Conditionally render logo based on theme */}
-              <Image
-                src={
-                  theme === "dark"
-                    ? "https://pm-s3-images-webtech.s3.us-east-1.amazonaws.com/wtn-logo-white.webp" // Dark mode logo
-                    : "https://pm-s3-images-webtech.s3.us-east-1.amazonaws.com/wtn-logo-black.svg" // Light mode logo
-                }
-                alt="logo"
-                width={300}
-                height={20}
-              />
+              {/* Conditional rendering based on isDarkMode */}
+              {isDarkMode ? (
+                <Image src={"https://pm-s3-images-webtech.s3.us-east-1.amazonaws.com/wtn-logo-white.webp"} alt="logo" width={300} height={20} />
+              ) : (
+                <Image src={"https://pm-s3-images-webtech.s3.us-east-1.amazonaws.com/wtn-logo-black.svg"} alt="logo" width={300} height={20} />
+              )}
             </div>
           </Link>
         </div>
@@ -62,6 +62,7 @@ const Sidebar = () => {
         {/* NAVBAR LINKS */}
         <nav className="z-10 w-full mt-6">
           <SidebarLink icon={Home} label="Home" href="/dashboard" />
+          {/* Conditionally render Projects and Teams links only if ADMIN or MANAGER */}
           {isAdminOrManager && (
             <>
               <SidebarLink icon={FolderCode} label="Projects" href="/projects" />
