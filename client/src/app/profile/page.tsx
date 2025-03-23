@@ -136,6 +136,19 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (user && user.email) {
+      try {
+        await deleteUser(user.email).unwrap();
+        alert("User deleted successfully");
+        logout(); // Log out after deletion
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        alert("Failed to delete user");
+      }
+    }
+  };
+
   const projectMap = projects
     ? projects.reduce((acc, project) => {
         acc[project.id] = project.name;
@@ -541,6 +554,12 @@ const ProfilePage = () => {
               >
                 Logout
               </button>
+              <button
+              onClick={handleDelete}
+              className="mt-4 w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 focus:outline-none"
+            >
+              Delete Account
+            </button>
             </>
           ) : (
             <p className="mt-4 text-gray-600 dark:text-gray-400">

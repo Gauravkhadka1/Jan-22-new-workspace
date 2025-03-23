@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import withRoleAuth from "../../hoc/withRoleAuth";
 
 const SignUpForm = () => {
   const [formData, setFormData] = useState({
@@ -151,4 +152,4 @@ const SignUpForm = () => {
   );
 };
 
-export default SignUpForm;
+export default withRoleAuth(SignUpForm, ["ADMIN"]);
