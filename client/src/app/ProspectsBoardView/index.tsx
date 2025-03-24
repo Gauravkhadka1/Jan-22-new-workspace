@@ -9,7 +9,12 @@ import {
 import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { CalendarSearch, ChartBarStacked, EllipsisVertical, Plus } from "lucide-react";
+import {
+  CalendarSearch,
+  ChartBarStacked,
+  EllipsisVertical,
+  Plus,
+} from "lucide-react";
 import { toast } from "sonner";
 import ModalNewProspects from "@/components/ModalNewandEditProspects";
 import { ProspectsStatus, Prospects } from "@/state/api"; // Import Prospects type and ProspectsStatus
@@ -99,36 +104,36 @@ const ProspectsBoardView = ({ id, setIsModalNewProspectsOpen }: BoardProps) => {
   };
 
   // In client/src/app/ProspectsBoardView/index.tsx
-const moveProspects = (prospectsId: number, toStatus: ProspectsStatus) => {
-  if (!userId) {
-    console.error("No authenticated user found");
-    return;
-  }
+  const moveProspects = (prospectsId: number, toStatus: ProspectsStatus) => {
+    if (!userId) {
+      console.error("No authenticated user found");
+      return;
+    }
 
-  // Find the prospect being moved
-  const prospect = prospects.find((p) => p.id === prospectsId);
-  if (!prospect) {
-    console.error("Prospect not found");
-    return;
-  }
+    // Find the prospect being moved
+    const prospect = prospects.find((p) => p.id === prospectsId);
+    if (!prospect) {
+      console.error("Prospect not found");
+      return;
+    }
 
-  // Send all fields, updating only the status
-  updateProspect({
-    prospectsId,
-    name: prospect.name,
-    status: toStatus,
-    category: prospect.category,
-    inquiryDate: prospect.inquiryDate,
-    updatedBy: userId,
-  })
-    .unwrap()
-    .then(() => {
-      toast.success(`Prospect status updated to ${toStatus}`);
+    // Send all fields, updating only the status
+    updateProspect({
+      prospectsId,
+      name: prospect.name,
+      status: toStatus,
+      category: prospect.category,
+      inquiryDate: prospect.inquiryDate,
+      updatedBy: userId,
     })
-    .catch(() => {
-      toast.error("Failed to update prospect status");
-    });
-};
+      .unwrap()
+      .then(() => {
+        toast.success(`Prospect status updated to ${toStatus}`);
+      })
+      .catch(() => {
+        toast.error("Failed to update prospect status");
+      });
+  };
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching prospects</div>;
@@ -274,18 +279,18 @@ const Prospect = ({ prospect }: ProspectProps) => {
     : "";
 
   // Calculate days ago
-  const daysAgo = prospect.inquiryDate 
+  const daysAgo = prospect.inquiryDate
     ? differenceInDays(new Date(), new Date(prospect.inquiryDate))
     : null;
 
   return (
     <div
       ref={dragRef} // Attach the drag ref here
-      className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary dark:border dark:border-gray-700 rounded-xl`}
+      className={`mb-4 rounded-md px-2 py-3 shadow ${isDragging ? "opacity-50" : "opacity-100"} rounded-xl bg-white dark:border dark:border-gray-700 dark:bg-dark-secondary`}
     >
       <div className="px-1">
         <div className="flex items-center justify-between">
-          <div className="flex justify-between">
+          <div className="flex justify-between mb-1">
             <h4 className="text-md font-bold dark:text-white">
               {prospect.name}
             </h4>
@@ -300,7 +305,7 @@ const Prospect = ({ prospect }: ProspectProps) => {
             <EllipsisVertical size={26} className="dark:text-gray-200" />
           </button>
           {prospectOptionsVisible && (
-            <div className="absolute right-12 z-50 mt-6 rounded bg-white shadow-lg">
+            <div className="absolute right-10 z-50 mt-12 rounded bg-white shadow-lg">
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {
@@ -324,20 +329,32 @@ const Prospect = ({ prospect }: ProspectProps) => {
           )}
         </div>
         <div className="flex items-center text-xs text-gray-500 dark:text-neutral-500">
-        <div>
-        <ChartBarStacked width={16} className="mr-2 text-xs mb-1 text-gray-500 dark:text-gray-300"/> {" "}
+          <div>
+            <ChartBarStacked
+              width={14}
+              className="mr-2 text-xs text-gray-500 dark:text-gray-300"
+            />{" "}
           </div>
-        <div className="text-xs mb-1 text-gray-500 dark:text-gray-300">
-          {prospect.category}
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-300">
+            {prospect.category}
           </div>
         </div>
-        <div className="flex items-center text-xs mb-1 text-gray-500 dark:text-gray-300">
-          <CalendarSearch width={16} className="mr-2"/> {" "}
+        <div className="flex items-center text-xs text-gray-500 dark:text-neutral-500">
+          <div>
+            <CalendarSearch
+              width={14}
+              className="mr-2 text-xs text-gray-500 dark:text-gray-300"
+            />{" "}
+          </div>
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-300">
           {formattedInquiryDate && <span>{formattedInquiryDate}</span>}
+          </div>
         </div>
         {daysAgo !== null && (
-          <div className="flex items-center text-sm mt-2 text-gray-500 dark:text-gray-100">
-            {daysAgo === 0 ? "Today" : `${daysAgo} day${daysAgo !== 1 ? 's' : ''} ago`}
+          <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-100">
+            {daysAgo === 0
+              ? "Today"
+              : `${daysAgo} day${daysAgo !== 1 ? "s" : ""} ago`}
           </div>
         )}
         {isEditModalOpen && (

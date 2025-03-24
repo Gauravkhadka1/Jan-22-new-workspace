@@ -326,7 +326,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             <EllipsisVertical size={26} className="dark:text-gray-200"/>
           </button>
           {taskOptionsVisible[task.id] && (
-            <div className="absolute right-0 mt-6 bg-white shadow-lg rounded z-50">
+            <div className="absolute right-10 mt-12 bg-white shadow-lg rounded z-50">
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {

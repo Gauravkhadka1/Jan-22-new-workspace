@@ -335,7 +335,7 @@ const Task = ({ task }: TaskProps) => {
             <h4 className="text-md font-bold dark:text-gray-200">{task.title}</h4>
           </div>
           <button
-            className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
+            className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-gray-200"
             onClick={(e) => {
               e.stopPropagation();
               setTaskOptionsVisible((prev) => ({
