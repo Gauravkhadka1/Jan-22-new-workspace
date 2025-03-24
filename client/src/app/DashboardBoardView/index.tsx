@@ -13,7 +13,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType, ProjectType } from "@/state/api";
 import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInDays, differenceInHours, differenceInMinutes } from "date-fns";
 import Image from "next/image";
 import { toast } from "sonner"
 import ModalNewTask from "@/components/ModalNewandEditTask";
@@ -200,38 +200,66 @@ const Task = ({ task, getProjectName }: TaskProps) => {
     ? format(new Date(task.dueDate), "MMM d, h:mm a")
     : "";
 
-  const getTimeLeft = () => {
-    if (
-      !task.dueDate ||
-      task.status === "Under Review" ||
-      task.status === "Completed"
-    )
-      return null;
-
-    const now = new Date();
-    const dueDate = new Date(task.dueDate);
-    const diffMs = dueDate.getTime() - now.getTime();
-
-    const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
-    const daysLeft = Math.floor(hoursLeft / 24);
-    const remainingHours = hoursLeft % 24;
-
-    if (diffMs < 0) {
-      const overdueHours = Math.abs(hoursLeft);
-      const overdueDays = Math.floor(overdueHours / 24);
-      const overdueRemainingHours = overdueHours % 24;
-
-      return overdueHours < 24
-        ? `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`
-        : `Overdue by ${overdueDays} day${overdueDays !== 1 ? "s" : ""} & ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""}`;
-    }
-
-    if (hoursLeft < 24) {
-      return `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`;
-    } else {
-      return `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`;
-    }
-  };
+    const getTimeLeft = () => {
+      if (
+        !task.dueDate ||
+        task.status === "Under Review" ||
+        task.status === "Completed"
+      )
+        return null;
+    
+      const now = new Date();
+      const dueDate = new Date(task.dueDate);
+      const diffMs = dueDate.getTime() - now.getTime();
+    
+      if (diffMs < 0) {
+        // Overdue
+        const overdueMinutes = Math.abs(Math.floor(diffMs / (1000 * 60)));
+        const overdueHours = Math.abs(Math.floor(diffMs / (1000 * 60 * 60)));
+        const overdueDays = Math.floor(overdueHours / 24);
+        const overdueRemainingHours = overdueHours % 24;
+    
+        if (overdueMinutes < 60) {
+          return {
+            text: `${overdueMinutes} minute${overdueMinutes !== 1 ? "s" : ""} overdue`,
+            color: "text-red-600 dark:text-red-500"
+          };
+        } else if (overdueHours < 24) {
+          return {
+            text: `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`,
+            color: "text-red-600 dark:text-red-500"
+          };
+        } else {
+          return {
+            text: `${overdueDays} day${overdueDays !== 1 ? "s" : ""} ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""} overdue`,
+            color: "text-red-600 dark:text-red-500"
+          };
+        }
+      } else {
+        // Time left
+        const minutesLeft = Math.floor(diffMs / (1000 * 60));
+        const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+        const daysLeft = Math.floor(hoursLeft / 24);
+        const remainingHours = hoursLeft % 24;
+    
+        if (minutesLeft < 60) {
+          return {
+            text: `${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""} left`,
+            color: "text-green-600 dark:text-green-500"
+          };
+        } else if (hoursLeft < 24) {
+          return {
+            text: `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`,
+            color: "text-green-600 dark:text-green-500"
+          };
+        } else {
+          return {
+            text: `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`,
+            color: "text-green-600 dark:text-green-500"
+          };
+        }
+      }
+    };
 
   const timeLeft = getTimeLeft();
 
@@ -262,24 +290,6 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
-  // const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
-  //   <div
-  //     className={`rounded-full px-2 py-1 text-xs font-semibold ${
-  //       priority === "Urgent"
-  //         ? "bg-red-200 text-red-700"
-  //         : priority === "High"
-  //           ? "bg-yellow-200 text-yellow-700"
-  //           : priority === "Medium"
-  //             ? "bg-green-200 text-green-700"
-  //             : priority === "Low"
-  //               ? "bg-blue-200 text-blue-700"
-  //               : "bg-gray-200 text-gray-700"
-  //     }`}
-  //   >
-  //     {priority}
-  //   </div>
-  // );
-
   return (
     <div
       ref={(instance) => {
@@ -300,23 +310,9 @@ const Task = ({ task, getProjectName }: TaskProps) => {
       )}
       <div className="p-2 md:pt-1 md:pr-5 md:pl-5 md:pb-4 dark:border dark:border-gray-700 rounded-xl">
         <div className="flex items-center justify-between">
-          {/* <div className="flex flex-1 flex-wrap items-center gap-2">
-            {task.priority && <PriorityTag priority={task.priority} />}
-            <div className="flex gap-2">
-              {taskTagsSplit.map((tag) => (
-                <div
-                  key={tag}
-                  className="rounded-full bg-blue-100 px-2 py-1 text-xs"
-                >
-                  {" "}
-                  {tag}
-                </div>
-              ))}
-            </div>
-          </div> */}
-             <div className="my-3 flex justify-between">
-          <h4 className="text-md font-bold dark:text-gray-200">{task.title}</h4>
-        </div>
+          <div className="my-3 flex justify-between">
+            <h4 className="text-md font-bold dark:text-gray-200">{task.title}</h4>
+          </div>
           <button
             className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
             onClick={(e) => {
@@ -363,8 +359,8 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {timeLeft && (
-          <div className="mt-2 text-sm font-semibold text-red-500">
-            {timeLeft}
+          <div className={`mt-2 text-sm font-semibold ${timeLeft.color}`}>
+            {timeLeft.text}
           </div>
         )}
         {isEditModalOpen && (

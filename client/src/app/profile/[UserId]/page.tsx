@@ -441,12 +441,13 @@ const ProfilePage = () => {
 
   return (
     <div className="flex">
-      <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 dark:bg-gray-900">
+      <div className="flex min-h-screen ml-10 flex-col items-center mt-5 bg-gray-100 
+      dark:bg-gray-900 dark:text-gray-200">
         {/* Bar Chart */}
-        <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
+        <p className="mt-4 text-lg text-gray-700 dark:text-gray-200">
           <span className="font-semibold">{username}</span> Tasks Summary
         </p>
-        <div className="mt-6">
+        <div className="mt-6 dark:text-gray-200">
           <BarChart width={500} height={300} data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
@@ -458,58 +459,58 @@ const ProfilePage = () => {
         </div>
 
         <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-          <h2 className="text-lg font-bold mb-2">View</h2>
+          <h2 className="text-lg font-bold mb-2 dark:text-gray-200">View</h2>
           <div className="flex gap-4 mb-4">
-            <button
-              onClick={() => setDateRange("previousMonth")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "previousMonth"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              Previous Month
-            </button>
-            <button
-              onClick={() => setDateRange("thisMonth")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "thisMonth"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              This Month
-            </button>
-            <button
-              onClick={() => setDateRange("thisWeek")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "thisWeek"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              This Week
-            </button>
+          <button
+      onClick={() => setDateRange("previousMonth")}
+      className={`px-4 py-2 rounded-lg ${
+        activeTab === "previousMonth"
+          ? "bg-blue-500 text-white"
+          : "bg-gray-200 text-gray-700 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
+      }`}
+    >
+      Previous Month
+    </button>
+    <button
+      onClick={() => setDateRange("thisMonth")}
+      className={`px-4 py-2 rounded-lg ${
+        activeTab === "thisMonth"
+          ? "bg-blue-500 text-white"
+          : "bg-gray-200 text-gray-700 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
+      }`}
+    >
+      This Month
+    </button>
+    <button
+      onClick={() => setDateRange("thisWeek")}
+      className={`px-4 py-2 rounded-lg ${
+        activeTab === "thisWeek"
+          ? "bg-blue-500 text-white"
+          : "bg-gray-200 text-gray-700 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
+      }`}
+    >
+      This Week
+    </button>
           </div>
-          <div className="flex-col gap-4">
+          <div className="flex-col gap-4  dark:text-gray-200">
             <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
             <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="rounded-md border p-2 mr-5"
-            />
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="rounded-md border p-2"
-            />
+  type="date"
+  value={fromDate}
+  onChange={(e) => setFromDate(e.target.value)}
+  className="rounded-md border p-2 mr-5 dark:bg-dark-bg dark:text-gray-200 dark:border-gray-400"
+/>
+<input
+  type="date"
+  value={toDate}
+  onChange={(e) => setToDate(e.target.value)}
+  className="rounded-md border p-2 dark:bg-dark-bg dark:text-gray-200 dark:border-gray-400"
+/>
           </div>
         </div>
 
         {/* Change Password Form */}
-        {showChangePasswordForm && (
+        {/* {showChangePasswordForm && (
           <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
             <h2 className="text-lg font-bold mb-2">Change Password</h2>
             <form onSubmit={handleChangePassword}>
@@ -554,7 +555,7 @@ const ProfilePage = () => {
               </button>
             </form>
           </div>
-        )}
+        )} */}
 
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
@@ -575,7 +576,7 @@ const ProfilePage = () => {
       </div>
       <div className="mt-5 w-[45%] ml-10 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">
+          <h2 className="text-lg font-bold dark:text-gray-200">
             Completed Tasks{" "}
             {fromDate && toDate ? (
               <span className="text-sm font-normal">
@@ -584,7 +585,7 @@ const ProfilePage = () => {
             ) : null}
           </h2>
         </div>
-        <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
+        <table className="w-full border-collapse border border-gray-300 dark:border-gray-200 dark:text-gray-200">
           <thead>
             <tr className="bg-gray-200 dark:bg-gray-700">
               <th className="border p-2">SN</th>
@@ -621,7 +622,7 @@ const ProfilePage = () => {
 
 
         {/* Display total working hours and total time spent */}
-        <div className="mt-6">
+        <div className="mt-6 dark:text-gray-200">
           <p className="text-sm font-bold">
             Total Working Hours: {calculateTotalWorkingHours()} hours
           </p>

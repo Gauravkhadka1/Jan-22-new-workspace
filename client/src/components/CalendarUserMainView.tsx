@@ -141,14 +141,14 @@ export default function DayView() {
       <SideBar /> {/* Sidebar component */}
       <div className="flex-1 p-4">
         <div className="grid grid-cols-[auto_auto_1fr] px-4">
-          <div className="w-16 border-r border-gray-300 text-xs">GMT +2</div>
+          <div className="w-16 border-r border-gray-300 text-xs dark:text-gray-200">GMT +2</div>
           <div className="flex w-16 flex-col items-center">
-            <div className={cn("text-xs", isToday && "text-blue-600")}>
+            <div className={cn("text-xs dark:text-gray-200", isToday && "text-blue-600")}>
               {userSelectedDate.format("ddd")}
             </div>
             <div
               className={cn(
-                "h-12 w-12 rounded-full p-2 text-2xl",
+                "h-12 w-12 rounded-full p-2 text-2xl dark:text-gray-200",
                 isToday && "bg-blue-600 text-white"
               )}
             >
@@ -163,7 +163,7 @@ export default function DayView() {
             <div className="w-16 border-r border-gray-300">
               {displayHours.map((hour, index) => (
                 <div key={index} className="relative h-16">
-                  <div className="absolute -top-2 text-xs text-gray-600">
+                  <div className="absolute -top-2 text-xs text-gray-600 dark:text-gray-200">
                     {hour.format("hh:mm A")}
                   </div>
                 </div>

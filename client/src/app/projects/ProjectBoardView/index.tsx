@@ -192,7 +192,7 @@ const Project = ({ projectData }: ProjectProps) => {
   return (
     <div
       ref={dragRef} // Attach the drag ref here
-      className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary`}
+      className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary dark:border dark:border-gray-700 rounded-xl`}
     >
       <h4 className="flex items-center justify-between break-words text-sm font-bold dark:text-gray-200">
         <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>

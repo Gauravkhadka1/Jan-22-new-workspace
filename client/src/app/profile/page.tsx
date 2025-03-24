@@ -495,10 +495,25 @@ const ProfilePage = () => {
       This Week
     </button>
   </div>
+  <div className="flex-col gap-4  dark:text-gray-200">
+            <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="rounded-md border p-2 mr-5 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="rounded-md border p-2 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
+            />
+          </div>
 </div>
 
         {/* Change Password Form */}
-        {showChangePasswordForm && (
+        {/* {showChangePasswordForm && (
           <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
             <h2 className="text-lg font-bold mb-2">Change Password</h2>
             <form onSubmit={handleChangePassword}>
@@ -543,7 +558,7 @@ const ProfilePage = () => {
               </button>
             </form>
           </div>
-        )}
+        )} */}
 
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (

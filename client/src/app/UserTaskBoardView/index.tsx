@@ -105,22 +105,53 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
   const getTimeRemaining = (dueDate: string) => {
     const now = new Date();
     const due = new Date(dueDate);
-    const diffInMs = due.getTime() - now.getTime();
-    const hours = Math.floor(Math.abs(diffInMs) / 3600000); // Convert to hours
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-
-    if (diffInMs < 0) { // Overdue
-      if (hours >= 24) {
-        return `Overdue by ${days} day${days !== 1 ? 's' : ''} and ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
+    const diffMs = due.getTime() - now.getTime();
+    
+    if (diffMs < 0) {
+      // Overdue
+      const overdueMinutes = Math.abs(Math.floor(diffMs / (1000 * 60)));
+      const overdueHours = Math.abs(Math.floor(diffMs / (1000 * 60 * 60)));
+      const overdueDays = Math.floor(overdueHours / 24);
+      const overdueRemainingHours = overdueHours % 24;
+  
+      if (overdueMinutes < 60) {
+        return {
+          text: `${overdueMinutes} minute${overdueMinutes !== 1 ? 's' : ''} overdue`,
+          color: 'text-red-600 dark:text-red-500'
+        };
+      } else if (overdueHours < 24) {
+        return {
+          text: `${overdueHours} hour${overdueHours !== 1 ? 's' : ''} overdue`,
+          color: 'text-red-600 dark:text-red-500'
+        };
       } else {
-        return `Overdue by ${hours} hour${hours !== 1 ? 's' : ''}`;
+        return {
+          text: `${overdueDays} day${overdueDays !== 1 ? 's' : ''} ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? 's' : ''} overdue`,
+          color: 'text-red-600 dark:text-red-500'
+        };
       }
-    } else { // Time left
-      if (hours >= 24) {
-        return `${days} day${days !== 1 ? 's' : ''} and ${remainingHours} hour${remainingHours !== 1 ? 's' : ''} left`;
+    } else {
+      // Time left
+      const minutesLeft = Math.floor(diffMs / (1000 * 60));
+      const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+      const daysLeft = Math.floor(hoursLeft / 24);
+      const remainingHours = hoursLeft % 24;
+  
+      if (minutesLeft < 60) {
+        return {
+          text: `${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''} left`,
+          color: 'text-green-600 dark:text-green-500'
+        };
+      } else if (hoursLeft < 24) {
+        return {
+          text: `${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''} left`,
+          color: 'text-green-600 dark:text-green-500'
+        };
       } else {
-        return `${hours} hour${hours !== 1 ? 's' : ''} left`;
+        return {
+          text: `${daysLeft} day${daysLeft !== 1 ? 's' : ''} ${remainingHours} hour${remainingHours !== 1 ? 's' : ''} left`,
+          color: 'text-green-600 dark:text-green-500'
+        };
       }
     }
   };
@@ -158,19 +189,16 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
       {tasks.filter((task) => task.status === status).map((task) => (
         <div key={task.id} className="p-4 mb-4 bg-white rounded-md shadow dark:bg-dark-secondary">
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
-          <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-neutral-400">in {getProjectName(task.projectId)}</div>
-          <p className="text-xs text-gray-500 dark:text-neutral-500">
-            <b>Stgfgart: </b>{format(new Date(task.startDate), 'MMM d, hh:mm a')} 
+          <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">in {getProjectName(task.projectId)}</div>
+          <p className="text-xs mb-1 text-gray-500 dark:text-gray-300">
+            <b>Start: </b>{format(new Date(task.startDate), 'MMM d, hh:mm a')} 
           </p>
-          <p className="text-xs mt-2 mb-2 text-gray-500 dark:text-neutral-500">
+          <p className="text-xs text-gray-500 mb-1 dark:text-gray-300">
           <b>Due:</b> {format(new Date(task.dueDate), 'MMM d, hh:mm a')}
           </p>
           {task.status !== "Under Review" && task.status !== "Completed" && (
-  <p 
-    className="text-sm font-semibold" 
-    style={{ color: isOverdue(task.dueDate) ? '#ef4444' : '#087641' }}
-  >
-    {getTimeRemaining(task.dueDate)}
+  <p className={`text-sm font-semibold ${getTimeRemaining(task.dueDate).color}`}>
+    {getTimeRemaining(task.dueDate).text}
   </p>
 )}
  </div>
