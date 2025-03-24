@@ -160,7 +160,7 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
   const isOverdue = (dueDate: string) => new Date(dueDate).getTime() < new Date().getTime();
 
   return drop(
-    <div className={`rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}>
+    <div className={`rounded-lg py-2 xl:px-2  ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}>
       <div className="mb-3 flex w-full">
         <div className={`w-2 rounded-s-lg` } style={{ backgroundColor: statusColor[status] } } />
         <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-5 py-4 dark:bg-dark-secondary">
@@ -187,7 +187,7 @@ const TaskColumn = ({ status, tasks, moveTask, setIsModalNewTaskOpen, getProject
       <div className="h-[65vh] overflow-y-auto custom-scrollbar">
 
       {tasks.filter((task) => task.status === status).map((task) => (
-        <div key={task.id} className="p-4 mb-4 bg-white rounded-md shadow dark:bg-dark-secondary">
+        <div key={task.id} className="p-4 mb-4 bg-white rounded-md shadow dark:bg-dark-secondary dark:border dark:border-gray-700 rounded-xl">
           <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
           <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">in {getProjectName(task.projectId)}</div>
           <p className="text-sm mb-1 text-gray-500 dark:text-gray-400">
