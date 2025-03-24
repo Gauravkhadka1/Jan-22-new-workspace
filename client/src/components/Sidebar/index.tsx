@@ -8,6 +8,8 @@ import {
   Home,
   Users,
   LucideIcon,
+  Landmark,
+  SquareUserRound
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -71,8 +73,8 @@ const Sidebar = () => {
           )}
           {isAdmin && (
             <>
-              <SidebarLink icon={Users} label="Prospects" href="/prospects" />
-              <SidebarLink icon={Users} label="Sales" href="/sales" />
+              <SidebarLink icon={SquareUserRound} label="Prospects" href="/prospects" />
+              <SidebarLink icon={Landmark} label="Sales" href="/sales" />
             </>
           )}
         </nav>
