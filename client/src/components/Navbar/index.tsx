@@ -3,7 +3,9 @@ import React from "react";
 import { Menu, Moon, Search, Settings, Sun, User } from "lucide-react";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
-import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
+import { 
+  // setIsDarkMode,
+   setIsSidebarCollapsed } from "@/state";
 import { useAuth } from "@/context/AuthContext";
 import { X } from "lucide-react";
 
@@ -57,14 +59,14 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center">
-        <button
+        {/* <button
           onClick={() => dispatch(setIsDarkMode(!isDarkMode))}
           className={isDarkMode ? `rounded p-2 dark:hover:bg-gray-700` : `rounded p-2 hover:bg-gray-100`}
         >
           {isDarkMode ? <Sun className="h-6 w-6 cursor-pointer dark:text-white" /> : <Moon className="h-6 w-6 cursor-pointer dark:text-white" />}
-        </button>
+        </button> */}
 
-        <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div>
+        {/* <div className="ml-2 mr-5 hidden min-h-[2em] w-[0.1rem] bg-gray-200 md:inline-block"></div> */}
 
         {user ? (
           <Link href="/profile" className="flex items-end text-sm font-medium text-blue-500 hover:underline dark:text-gray-200">

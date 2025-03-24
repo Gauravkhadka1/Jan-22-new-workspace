@@ -1,13 +1,27 @@
 import { useState } from "react";
-import { useGetTasksQuery, useGetUsersQuery, useUpdateTaskStatusMutation, useCreateTaskMutation, useGetProjectsQuery, useDeleteTaskMutation } from "@/state/api";
+import {
+  useGetTasksQuery,
+  useGetUsersQuery,
+  useUpdateTaskStatusMutation,
+  useCreateTaskMutation,
+  useGetProjectsQuery,
+  useDeleteTaskMutation,
+} from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType } from "@/state/api";
-import { CalendarCheck, CalendarX, EllipsisVertical, MessageSquareMore, Plus, UserRound } from "lucide-react";
+import {
+  CalendarCheck,
+  CalendarX,
+  EllipsisVertical,
+  MessageSquareMore,
+  Plus,
+  UserRound,
+} from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext"; // Import authentication context
-import { toast } from "sonner"
+import { toast } from "sonner";
 import ModalNewTask from "@/components/ModalNewandEditTask";
 
 // Define status types
@@ -18,11 +32,16 @@ type BoardProps = {
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
 };
 
-const taskStatus: Status[] = ["To Do", "Work In Progress", "Under Review", "Completed"];
+const taskStatus: Status[] = [
+  "To Do",
+  "Work In Progress",
+  "Under Review",
+  "Completed",
+];
 
 const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const { user } = useAuth(); // Get authenticated user
-  const userId = user?.id; 
+  const userId = user?.id;
   const {
     data: tasks,
     isLoading,
@@ -104,7 +123,7 @@ const TaskColumn = ({
       ref={(instance) => {
         drop(instance);
       }}
-      className={`sl:py-4  rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
+      className={`sl:py-4 rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
     >
       <div className="mb-3 flex w-full">
         <div
@@ -156,7 +175,9 @@ const Task = ({ task }: TaskProps) => {
 
   const { data: users, isLoading: isUsersLoading } = useGetUsersQuery();
 
-  const assignedUser = users?.find((user) => user.userId === Number(task.assignedTo));
+  const assignedUser = users?.find(
+    (user) => user.userId === Number(task.assignedTo),
+  );
 
   const taskTagsSplit = task.tags ? task.tags.split(",") : [];
 
@@ -168,38 +189,66 @@ const Task = ({ task }: TaskProps) => {
     ? format(new Date(task.dueDate), "MMM d, h:mm a")
     : "";
 
-  const getTimeLeft = () => {
-    if (
-      !task.dueDate ||
-      task.status === "Under Review" ||
-      task.status === "Completed"
-    )
-      return null;
-
-    const now = new Date();
-    const dueDate = new Date(task.dueDate);
-    const diffMs = dueDate.getTime() - now.getTime();
-
-    const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
-    const daysLeft = Math.floor(hoursLeft / 24);
-    const remainingHours = hoursLeft % 24;
-
-    if (diffMs < 0) {
-      const overdueHours = Math.abs(hoursLeft);
-      const overdueDays = Math.floor(overdueHours / 24);
-      const overdueRemainingHours = overdueHours % 24;
-
-      return overdueHours < 24
-        ? `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`
-        : `Overdue by ${overdueDays} day${overdueDays !== 1 ? "s" : ""} & ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""}`;
-    }
-
-    if (hoursLeft < 24) {
-      return `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`;
-    } else {
-      return `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`;
-    }
-  };
+    const getTimeLeft = () => {
+      if (
+        !task.dueDate ||
+        task.status === "Under Review" ||
+        task.status === "Completed"
+      )
+        return null;
+    
+      const now = new Date();
+      const dueDate = new Date(task.dueDate);
+      const diffMs = dueDate.getTime() - now.getTime();
+    
+      if (diffMs < 0) {
+        // Overdue
+        const overdueMinutes = Math.abs(Math.floor(diffMs / (1000 * 60)));
+        const overdueHours = Math.abs(Math.floor(diffMs / (1000 * 60 * 60)));
+        const overdueDays = Math.floor(overdueHours / 24);
+        const overdueRemainingHours = overdueHours % 24;
+    
+        if (overdueMinutes < 60) {
+          return {
+            text: `${overdueMinutes} minute${overdueMinutes !== 1 ? "s" : ""} overdue`,
+            color: "text-red-600 dark:text-red-500"
+          };
+        } else if (overdueHours < 24) {
+          return {
+            text: `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`,
+            color: "text-red-600 dark:text-red-500"
+          };
+        } else {
+          return {
+            text: `${overdueDays} day${overdueDays !== 1 ? "s" : ""} ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""} overdue`,
+            color: "text-red-600 dark:text-red-500"
+          };
+        }
+      } else {
+        // Time left
+        const minutesLeft = Math.floor(diffMs / (1000 * 60));
+        const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+        const daysLeft = Math.floor(hoursLeft / 24);
+        const remainingHours = hoursLeft % 24;
+    
+        if (minutesLeft < 60) {
+          return {
+            text: `${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""} left`,
+            color: "text-green-600 dark:text-green-500"
+          };
+        } else if (hoursLeft < 24) {
+          return {
+            text: `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`,
+            color: "text-green-600 dark:text-green-500"
+          };
+        } else {
+          return {
+            text: `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`,
+            color: "text-green-600 dark:text-green-500"
+          };
+        }
+      }
+    };
 
   const timeLeft = getTimeLeft();
 
@@ -236,12 +285,12 @@ const Task = ({ task }: TaskProps) => {
         priority === "Urgent"
           ? "bg-red-200 text-red-700"
           : priority === "High"
-          ? "bg-yellow-200 text-yellow-700"
-          : priority === "Medium"
-          ? "bg-green-200 text-green-700"
-          : priority === "Low"
-          ? "bg-blue-200 text-blue-700"
-          : "bg-gray-200 text-gray-700"
+            ? "bg-yellow-200 text-yellow-700"
+            : priority === "Medium"
+              ? "bg-green-200 text-green-700"
+              : priority === "Low"
+                ? "bg-blue-200 text-blue-700"
+                : "bg-gray-200 text-gray-700"
       }`}
     >
       {priority}
@@ -266,9 +315,9 @@ const Task = ({ task }: TaskProps) => {
           className="h-auto w-full rounded-t-md"
         />
       )}
-      <div className="p-4 md:p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
+      <div className="p-2 md:px-4">
+        <div className="flex items-center justify-between">
+          {/* <div className="flex flex-1 flex-wrap items-center gap-2">
             {task.priority && <PriorityTag priority={task.priority} />}
             <div className="flex gap-2">
               {taskTagsSplit.map((tag) => (
@@ -281,6 +330,9 @@ const Task = ({ task }: TaskProps) => {
                 </div>
               ))}
             </div>
+          </div> */}
+          <div className="my-3 flex justify-between">
+            <h4 className="text-md font-bold dark:text-gray-200">{task.title}</h4>
           </div>
           <button
             className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
@@ -295,7 +347,7 @@ const Task = ({ task }: TaskProps) => {
             <EllipsisVertical size={26} />
           </button>
           {taskOptionsVisible[task.id] && (
-                <div className="absolute mx-4 mt-6 bg-white border-gray-200 shadow-lg rounded z-50">
+            <div className="absolute z-50 mx-4 mt-6 rounded border-gray-200 bg-white shadow-lg">
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {
@@ -319,22 +371,27 @@ const Task = ({ task }: TaskProps) => {
           )}
         </div>
 
-        <div className="my-3 flex justify-between">
-          <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
+        <div className="mb-2 flex items-center text-sm text-gray-500 dark:text-gray-300">
+          <UserRound size={16} />:{" "}
+          {assignedUser ? (
+            <span className="ml-2">{assignedUser.username}</span>
+          ) : (
+            <span>Unassigned</span>
+          )}
         </div>
-
-       <div className="flex items-center text-sm mb-1 text-gray-500 dark:text-neutral-500">
-         <UserRound size={16}/>: {assignedUser ? <span className="ml-2">{assignedUser.username}</span> : <span>Unassigned</span>}
+        <div className="mb-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <CalendarCheck size={16} />:{" "}
+          {formattedStartDate && (
+            <span className="ml-2">{formattedStartDate}</span>
+          )}
         </div>
-        <div className="flex items-center  text-sm mb-1 text-gray-500 dark:text-neutral-500">
-        <CalendarCheck size={16} />: {formattedStartDate && <span className="ml-2">{formattedStartDate}</span>}
-        </div>
-        <div className="flex items-center text-sm text-gray-500 dark:text-neutral-500">
-          <CalendarX size={16}/>: {formattedDueDate && <span className="ml-2">{formattedDueDate}</span>}
+        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <CalendarX size={16} />:{" "}
+          {formattedDueDate && <span className="ml-2">{formattedDueDate}</span>}
         </div>
         {timeLeft && (
-          <div className="mt-2 text-sm font-semibold text-red-500">
-            {timeLeft}
+          <div className={`mt-2 text-sm font-semibold ${timeLeft.color}`}>
+            {timeLeft.text}
           </div>
         )}
         {isEditModalOpen && (

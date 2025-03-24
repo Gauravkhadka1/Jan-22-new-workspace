@@ -352,10 +352,10 @@ const Task = ({ task, getProjectName }: TaskProps) => {
         <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
           in {getProjectName(task.projectId)}
         </div>
-        <div className="text-xs mb-1 text-gray-500 dark:text-gray-300">
+        <div className="text-sm mb-1 text-gray-500 dark:text-gray-400">
           <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-300">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
           <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {timeLeft && (

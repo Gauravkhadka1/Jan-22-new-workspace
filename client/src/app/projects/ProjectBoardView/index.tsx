@@ -202,12 +202,12 @@ const Project = ({ projectData }: ProjectProps) => {
       </h4>
       <div className="flex-col py-2">
         <div className="flex items-center">
-          <Calendar size={16} className="text-green-600 dark:text-gray-300" />
-          <p className="ml-2 text-green-600 dark:text-gray-300">{formattedStartDate}</p>
+          <Calendar size={16} className="text-green-600 dark:text-gray-400" />
+          <p className="ml-2 text-green-600 dark:text-gray-400">{formattedStartDate}</p>
         </div>
         <div className="mt-2 flex items-center">
-          <Calendar size={16} className="text-red-800 dark:text-gray-300" />
-          <p className="ml-2 text-red-800 dark:text-gray-300">{formattedEndDate}</p>
+          <Calendar size={16} className="text-red-800 dark:text-gray-400" />
+          <p className="ml-2 text-red-800 dark:text-gray-400">{formattedEndDate}</p>
         </div>
       </div>
       <p className="text-gray-600 dark:text-gray-300">
