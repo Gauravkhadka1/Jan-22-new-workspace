@@ -203,7 +203,7 @@ const LoginForm = () => {
             alt="Company Logo" 
             className="mx-auto h-16"
           />
-          <h2 className="text-2xl font-bold text-center text-gray-200 dark:text-gray-100">
+          <h2 className="text-2xl font-bold text-center text-gray-200 dark:text-gray-200">
             Login to Workspace
           </h2>
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
