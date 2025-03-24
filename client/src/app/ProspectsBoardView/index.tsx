@@ -10,10 +10,10 @@ import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { CalendarSearch, ChartBarStacked, EllipsisVertical, Plus } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import ModalNewProspects from "@/components/ModalNewandEditProspects";
 import { ProspectsStatus, Prospects } from "@/state/api"; // Import Prospects type and ProspectsStatus
+import { format, differenceInDays } from "date-fns";
 
 type BoardProps = {
   id: string;
@@ -244,10 +244,6 @@ const Prospect = ({ prospect }: ProspectProps) => {
   // Attach the drag source to the element ref
   drag(dragRef);
 
-  const formattedInquiryDate = prospect.inquiryDate
-    ? format(new Date(prospect.inquiryDate), "MMM d, h:mm a")
-    : "";
-
   const [prospectOptionsVisible, setProspectOptionsVisible] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProspect, setSelectedProspect] =
@@ -273,14 +269,23 @@ const Prospect = ({ prospect }: ProspectProps) => {
     }
   };
 
+  const formattedInquiryDate = prospect.inquiryDate
+    ? format(new Date(prospect.inquiryDate), "MMM d, h:mm a")
+    : "";
+
+  // Calculate days ago
+  const daysAgo = prospect.inquiryDate 
+    ? differenceInDays(new Date(), new Date(prospect.inquiryDate))
+    : null;
+
   return (
     <div
       ref={dragRef} // Attach the drag ref here
       className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary dark:border dark:border-gray-700 rounded-xl`}
     >
-      <div className="px-2">
+      <div className="px-1">
         <div className="flex items-center justify-between">
-          <div className="my-3 flex justify-between">
+          <div className="flex justify-between">
             <h4 className="text-md font-bold dark:text-white">
               {prospect.name}
             </h4>
@@ -330,6 +335,11 @@ const Prospect = ({ prospect }: ProspectProps) => {
           <CalendarSearch width={16} className="mr-2"/> {" "}
           {formattedInquiryDate && <span>{formattedInquiryDate}</span>}
         </div>
+        {daysAgo !== null && (
+          <div className="flex items-center text-sm mt-2 text-gray-500 dark:text-gray-100">
+            {daysAgo === 0 ? "Today" : `${daysAgo} day${daysAgo !== 1 ? 's' : ''} ago`}
+          </div>
+        )}
         {isEditModalOpen && (
           <ModalNewProspects
             isOpen={isEditModalOpen}
