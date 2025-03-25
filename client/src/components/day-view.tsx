@@ -16,9 +16,15 @@ export default function DayView() {
   const { openPopover } = useEventStore();
   const { userSelectedDate, setDate } = useDateStore();
   const { user } = useAuth();
-  const userId = user?.id;
+  const userId = user?.userId?.toString(); 
 
-  const { data: tasks, isLoading: isTasksLoading } = useGetTasksByUserQuery(userId);
+  const { 
+    data: tasks, 
+    isLoading, 
+    error 
+  } = useGetTasksByUserQuery(userId, {
+    skip: !userId // Skip query if userId is not available
+  });
   const { data: projects, isLoading: isProjectsLoading } = useGetProjectsQuery({});
 
   const [taskOptionsVisible, setTaskOptionsVisible] = useState<Record<string | number, boolean>>({});

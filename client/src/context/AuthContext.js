@@ -10,6 +10,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const getUserId = () => {
+    if (!user) return null;
+    // Return user ID in the format your backend expects
+    return user.userId?.toString(); // or Number(user.userId) if backend expects number
+  };
+
   const fetchUserData = async () => {
     const token = localStorage.getItem("token");
     
@@ -93,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, getUserId  }}>
       {children}
     </AuthContext.Provider>
   );

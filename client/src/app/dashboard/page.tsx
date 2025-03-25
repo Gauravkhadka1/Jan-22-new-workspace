@@ -22,8 +22,14 @@ const Project = ({ params }: Props) => {
   const [activeTab, setActiveTab] = useState("Board");
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
   const { user } = useAuth(); // Assuming the hook returns the logged-in user
-  const userId = user?.id; // Adjust this based on how your user data is structured
-  const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
+  const userId = user?.userId?.toString(); // Adjust this based on how your user data is structured
+  const { 
+    data: tasks, 
+    isLoading, 
+    error 
+  } = useGetTasksByUserQuery(userId, {
+    skip: !userId // Skip query if userId is not available
+  });
 
   return (
     <div>

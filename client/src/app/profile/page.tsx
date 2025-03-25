@@ -88,11 +88,14 @@ type TaskType = {
 const ProfilePage = () => {
   const { user, logout } = useAuth();
   const [deleteUser] = useDeleteUserMutation();
-  const {
-    data: tasks,
-    isLoading: isTasksLoading,
-    isError: isTasksError,
-  } = useGetTasksByUserQuery(user?.id);
+  const userId = user?.userId?.toString(); // Consistent with other pages
+  const { 
+    data: tasks, 
+    isLoading: isTasksLoading, 
+    isError: isTasksError 
+  } = useGetTasksByUserQuery(userId, {
+    skip: !userId // Skip query if no user ID
+  });
   const { data: projects } = useGetProjectsQuery({});
 
   const [fromDate, setFromDate] = useState("");

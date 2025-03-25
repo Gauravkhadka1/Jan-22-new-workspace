@@ -34,8 +34,20 @@ const taskStatus: Status[] = [
 
 const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const { user } = useAuth();
-  const userId = user?.id;
-  const { data: tasks, isLoading, error } = useGetTasksByUserQuery(userId);
+  const userId = user?.userId?.toString(); 
+  const { 
+    data: tasks, 
+    isLoading, 
+    error 
+  } = useGetTasksByUserQuery(userId, {
+    skip: !userId // Skip query if userId is not available
+  });
+
+  // Filter tasks for the current user
+  const userTasks = tasks?.filter(task => 
+    String(task.assignedTo) === String(userId)
+  ) || [];
+
   const { data: projects } = useGetProjectsQuery({});
 
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
@@ -68,9 +80,6 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>An error occurred while fetching tasks</div>;
-
-  const userTasks =
-    tasks?.filter((task) => String(task.assignedTo) === String(userId)) || [];
 
   const getProjectName = (projectId: number) => {
     const project = projects?.find((project) => project.id === projectId);
