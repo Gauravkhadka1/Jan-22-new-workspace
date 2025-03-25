@@ -214,3 +214,37 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: `Error changing password: ${error.message}` });
   }
 };
+
+
+export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // The userId is set by the auth middleware
+    const userId = (req as any).userId;
+    
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { userId: Number(userId) },
+      select: { 
+        userId: true,
+        username: true,
+        email: true,
+        profilePictureUrl: true,
+        role: true
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.json(user);
+  } catch (error: any) {
+    console.error("Error retrieving current user:", error);
+    res.status(500).json({ message: `Error retrieving current user: ${error.message}` });
+  }
+};

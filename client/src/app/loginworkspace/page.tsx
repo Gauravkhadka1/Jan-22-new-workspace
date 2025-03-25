@@ -184,14 +184,13 @@ const LoginForm = () => {
       }
   
       const data = await response.json();
-      login(data.token, data.user); 
+      login(data.token); // Only pass the token now
     } catch (err) {
       setError("Failed to connect to the server.");
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <>

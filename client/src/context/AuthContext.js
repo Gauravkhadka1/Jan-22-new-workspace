@@ -3,45 +3,70 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import jwt from "jsonwebtoken";
 
-// Create the context
 const AuthContext = createContext();
 
-// Define the AuthProvider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const fetchUserData = async () => {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}users/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        logout();
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
 
-    if (storedUser && token) {
+    if (token) {
       try {
         const decodedToken = jwt.decode(token);
         if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
-          setUser(JSON.parse(storedUser)); // Restore user from localStorage if token is valid
+          fetchUserData();
         } else {
-          logout(); // Token is expired, log out the user
+          logout();
         }
       } catch (error) {
         console.error("Error decoding token:", error);
-        logout(); // Invalid token, log out the user
+        logout();
       }
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  const login = (token, userData) => {
-    localStorage.setItem("token", token); // Save token to localStorage
-    localStorage.setItem("user", JSON.stringify(userData)); // Save user to localStorage
-    setUser(userData);
+  const login = async (token) => {
+    localStorage.setItem("token", token);
+    await fetchUserData();
     router.push("/dashboard");
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
     setUser(null);
     router.push("/");
   };
@@ -54,16 +79,16 @@ export const AuthProvider = ({ children }) => {
         try {
           const decodedToken = jwt.decode(token);
           if (decodedToken && decodedToken.exp * 1000 < Date.now()) {
-            logout(); // Token is expired, log out the user
+            logout();
           }
         } catch (error) {
           console.error("Error decoding token:", error);
-          logout(); // Invalid token, log out the user
+          logout();
         }
       }
     };
 
-    const interval = setInterval(checkTokenExpiration, 60000); // Check every minute
+    const interval = setInterval(checkTokenExpiration, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -74,5 +99,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the AuthContext in other components
 export const useAuth = () => useContext(AuthContext);

@@ -1,7 +1,10 @@
 import express from "express";
-import { createUser, loginUser, getUsers, getUserByEmail, deleteUser, updateUserRole, changePassword,  } from "../controllers/userController";
+import { createUser, loginUser, getUsers, getUserByEmail, deleteUser, updateUserRole, changePassword, getCurrentUser,  } from "../controllers/userController";
+import { authenticateToken } from "../middleware/authMiddleware";
 
 const router = express.Router();
+
+router.get("/me", authenticateToken, getCurrentUser);
 
 // Create a new user
 router.post("/", createUser);
@@ -11,6 +14,8 @@ router.post("/login", loginUser);  // <-- Add this line
 
 // Get all users
 router.get("/", getUsers);
+
+
 
 // Get a user by email
 router.get("/:email", getUserByEmail);
