@@ -43,7 +43,7 @@ type ProspectsType = {
 
 const ProspectsBoardView = ({ id, setIsModalNewProspectsOpen }: BoardProps) => {
   const { user } = useAuth();
-  const userId = user?.id;
+  const userId = user?.userId?.toString(); 
   const {
     data: prospectsData,
     isLoading,
