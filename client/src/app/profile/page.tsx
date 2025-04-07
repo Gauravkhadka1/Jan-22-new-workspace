@@ -19,6 +19,13 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfYear, endOfDay, isSameDay } from "date-fns";
+import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 const WORK_START_HOUR = 10; // 10 AM
 const WORK_END_HOUR = 18; // 6 PM
@@ -98,9 +105,12 @@ const ProfilePage = () => {
   });
   const { data: projects } = useGetProjectsQuery({});
 
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [activeTab, setActiveTab] = useState("thisWeek");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
+  const [hoverRange, setHoverRange] = useState<DateRange | undefined>();
+  const [activeTab, setActiveTab] = useState("today");
 
   // State for change password
   const [currentPassword, setCurrentPassword] = useState("");
@@ -305,72 +315,143 @@ const ProfilePage = () => {
     );
   };
 
-  // Function to set the date range based on the selected tab
-  const setDateRange = (tab: string) => {
-    const today = new Date();
-    const lastSevenDays = new Date(today);
-    lastSevenDays.setDate(today.getDate() - 6); // 7 days ago (including today)
-
-    let startRange, endRange;
-
-    switch (tab) {
-      case "previousMonth":
-        startRange = new Date(NEPALI_MONTHS.previousMonth.startDate);
-        endRange = new Date(NEPALI_MONTHS.previousMonth.endDate);
-        break;
-      case "thisMonth":
-        startRange = new Date(NEPALI_MONTHS.thisMonth.startDate);
-        endRange = new Date(NEPALI_MONTHS.thisMonth.endDate);
-        break;
-      case "thisWeek":
-        startRange = lastSevenDays;
-        endRange = today;
-        break;
-      default:
-        startRange = new Date(fromDate);
-        endRange = new Date(toDate);
-        break;
+  const quickSelectOptions = [
+    {
+      label: "Today",
+      range: {
+        from: new Date(),
+        to: new Date()
+      }
+    },
+    {
+      label: "Yesterday",
+      range: {
+        from: subDays(new Date(), 1),
+        to: subDays(new Date(), 1)
+      }
+    },
+    {
+      label: "This Week",
+      range: {
+        from: subDays(new Date(), 6),
+        to: new Date()
+      }
+    },
+    {
+      label: "This Month",
+      range: {
+        from: new Date(NEPALI_MONTHS.thisMonth.startDate),
+        to: new Date(NEPALI_MONTHS.thisMonth.endDate)
+      }
+    },
+    {
+      label: "Previous Month",
+      range: {
+        from: new Date(NEPALI_MONTHS.previousMonth.startDate),
+        to: new Date(NEPALI_MONTHS.previousMonth.endDate)
+      }
     }
+  ];
 
-    // Normalize the start and end range to include the entire day
-    startRange.setHours(0, 0, 0, 0);
-    endRange.setHours(23, 59, 59, 999);
-
-    setFromDate(startRange.toISOString().split("T")[0]);
-    setToDate(endRange.toISOString().split("T")[0]);
-    setActiveTab(tab);
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (range) {
+      setDateRange(range);
+      setHoverRange(undefined); // Clear hover range after selection
+      setActiveTab("custom");
+    }
   };
 
-  // Set default date range to this week on component mount
+  const handleDayMouseEnter = (day: Date) => {
+    if (dateRange?.from && !dateRange.to) {
+      setHoverRange({
+        from: dateRange.from,
+        to: day,
+      });
+    }
+  };
+
+  // Define modifiers properly
+  const modifiers = {
+    ...(hoverRange?.from && hoverRange.to && { hoverRange: [hoverRange.from, hoverRange.to] }),
+    ...(dateRange?.from && { start: dateRange.from }),
+    ...(dateRange?.to && { end: dateRange.to }),
+    inRange: (day: Date) => {
+      if (!dateRange?.from || !dateRange?.to) return false;
+      return day >= dateRange.from && day <= dateRange.to;
+    },
+    inHoverRange: (day: Date) => {
+      if (!hoverRange?.from || !hoverRange?.to) return false;
+      return day >= hoverRange.from && day <= hoverRange.to;
+    },
+    isToday: (day: Date) => isSameDay(day, new Date()),
+  };
+
+  const modifiersStyles = {
+    selected: {
+      backgroundColor: 'hsl(var(--primary))',
+      color: 'hsl(var(--primary-foreground))',
+    },
+    hoverRange: {
+      backgroundColor: 'hsl(var(--primary)/0.2)',
+    },
+    inRange: {
+      backgroundColor: 'hsl(var(--primary)/0.2)',
+    },
+    start: {
+      backgroundColor: 'hsl(var(--primary))',
+      color: 'hsl(var(--primary-foreground))',
+      borderTopRightRadius: '0px',
+      borderBottomRightRadius: '0px',
+    },
+    end: {
+      backgroundColor: 'hsl(var(--primary))',
+      color: 'hsl(var(--primary-foreground))',
+      borderTopLeftRadius: '0px',
+      borderBottomLeftRadius: '0px',
+    },
+  };
+
+  // Set default date range to today on component mount
   useEffect(() => {
-    setDateRange("thisWeek");
+    setDateRange({
+      from: new Date(),
+      to: new Date()
+    });
+    setActiveTab("today");
   }, []);
 
   // Filter tasks based on the selected date range
   const filteredTasks = tasks?.filter((task) =>
-    isCompletedAndWithinRange(task, new Date(fromDate), new Date(toDate))
+    dateRange?.from && dateRange.to && isCompletedAndWithinRange(task, dateRange.from, dateRange.to)
   ) ?? [];
 
   // Sort tasks by time spent (descending order)
   const sortedTasks = filteredTasks.slice().sort((a, b) => {
-    const timeA = calculateTimeSpent(a, filteredTasks, new Date(fromDate), new Date(toDate));
-    const timeB = calculateTimeSpent(b, filteredTasks, new Date(fromDate), new Date(toDate));
+    const timeA = dateRange?.from && dateRange.to ? calculateTimeSpent(a, filteredTasks, dateRange.from, dateRange.to) : 0;
+    const timeB = dateRange?.from && dateRange.to ? calculateTimeSpent(b, filteredTasks, dateRange.from, dateRange.to) : 0;
     return timeB - timeA;
   });
 
   // Calculate total time spent on tasks
   const calculateTotalTimeSpent = () => {
+    // First check if we have both dates
+    if (!dateRange?.from || !dateRange?.to) return 0;
+    
+    // Now we know both dates exist, so we can safely use them
+    const fromDate = dateRange.from;
+    const toDate = dateRange.to;
+    
     return sortedTasks.reduce((total, task) => {
-      const timeSpent = calculateTimeSpent(task, filteredTasks, new Date(fromDate), new Date(toDate));
+      const timeSpent = calculateTimeSpent(task, filteredTasks, fromDate, toDate);
       return total + timeSpent;
     }, 0);
   };
 
   const calculateNumberOfDays = () => {
-    if (!fromDate || !toDate) return 0;
+    if (!dateRange?.from || !dateRange?.to) return 0;
 
-    const start = new Date(fromDate);
-    const end = new Date(toDate);
+    const start = new Date(dateRange.from);
+    const end = new Date(dateRange.to);
 
     // Calculate the difference in milliseconds
     const timeDiff = end.getTime() - start.getTime();
@@ -382,10 +463,10 @@ const ProfilePage = () => {
   };
 
   const calculateTotalWorkingHours = () => {
-    if (!fromDate || !toDate) return 0;
+    if (!dateRange?.from || !dateRange?.to) return 0;
   
-    let start = new Date(fromDate);
-    const end = new Date(toDate);
+    let start = new Date(dateRange.from);
+    const end = new Date(dateRange.to);
     let totalWorkingHours = 0;
   
     while (start <= end) {
@@ -465,103 +546,93 @@ const ProfilePage = () => {
         </div>
 
         <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-  <h2 className="text-lg font-bold mb-2 dark:text-gray-200">View</h2>
-  <div className="flex gap-4 mb-4">
-    <button
-      onClick={() => setDateRange("previousMonth")}
-      className={`px-4 py-2 rounded-lg ${
-        activeTab === "previousMonth"
-          ? "bg-blue-500 text-white"
-          : "bg-gray-200 text-gray-700 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
-      }`}
-    >
-      Previous Month
-    </button>
-    <button
-      onClick={() => setDateRange("thisMonth")}
-      className={`px-4 py-2 rounded-lg ${
-        activeTab === "thisMonth"
-          ? "bg-blue-500 text-white"
-          : "bg-gray-200 text-gray-700 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
-      }`}
-    >
-      This Month
-    </button>
-    <button
-      onClick={() => setDateRange("thisWeek")}
-      className={`px-4 py-2 rounded-lg ${
-        activeTab === "thisWeek"
-          ? "bg-blue-500 text-white"
-          : "bg-gray-200 text-gray-700 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
-      }`}
-    >
-      This Week
-    </button>
-  </div>
-  <div className="flex-col gap-4  dark:text-gray-200">
-            <h2 className="mb-2 text-lg font-bold">Select Date Range</h2>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="rounded-md border p-2 mr-5 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
-            />
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="rounded-md border p-2 dark:bg-dark-bg dark:text-gray-200 dark:border dark:border-gray-400"
-            />
+          <h2 className="text-lg font-bold mb-2 dark:text-gray-200">View</h2>
+          <div className="flex items-center space-x-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-[260px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 flex" align="start">
+                <div className="flex flex-col p-2 border-r">
+                  {quickSelectOptions.map((option) => (
+                    <Button
+                      key={option.label}
+                      variant="ghost"
+                      className="justify-start text-left text-sm"
+                      onClick={() => {
+                        setDateRange(option.range);
+                        setActiveTab(option.label.toLowerCase().replace(' ', ''));
+                      }}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                  <div className="border-t mt-2 pt-2">
+                    <Button
+                      variant="ghost"
+                      className="justify-start text-left text-sm"
+                      onClick={() => {
+                        setDateRange({
+                          from: subDays(new Date(), 7),
+                          to: new Date()
+                        });
+                        setActiveTab("last7days");
+                      }}
+                    >
+                      Last 7 days
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start text-left text-sm"
+                      onClick={() => {
+                        setDateRange({
+                          from: subDays(new Date(), 30),
+                          to: new Date()
+                        });
+                        setActiveTab("last30days");
+                      }}
+                    >
+                      Last 30 days
+                    </Button>
+                  </div>
+                </div>
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={handleDateRangeChange}
+                  numberOfMonths={2}
+                  className="border-0"
+                  modifiers={modifiers}
+                  modifiersStyles={modifiersStyles}
+                  onDayMouseEnter={handleDayMouseEnter}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-</div>
-
-        {/* Change Password Form */}
-        {/* {showChangePasswordForm && (
-          <div className="mt-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-            <h2 className="text-lg font-bold mb-2">Change Password</h2>
-            <form onSubmit={handleChangePassword}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Current Password</label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="rounded-md border p-2 w-full"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">New Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="rounded-md border p-2 w-full"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Confirm New Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="rounded-md border p-2 w-full"
-                  required
-                />
-              </div>
-              {passwordError && <p className="text-red-500 text-sm mb-4">{passwordError}</p>}
-              {passwordSuccess && <p className="text-green-500 text-sm mb-4">{passwordSuccess}</p>}
-              <button
-                type="submit"
-                disabled={isChangingPassword}
-                className="w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none"
-              >
-                {isChangingPassword ? "Changing Password..." : "Change Password"}
-              </button>
-            </form>
-          </div>
-        )} */}
+        </div>
 
         <div className="w-80 rounded-lg p-6 text-center dark:bg-gray-800">
           {user ? (
@@ -572,12 +643,6 @@ const ProfilePage = () => {
               >
                 Logout
               </button>
-              {/* <button
-              onClick={handleDelete}
-              className="mt-4 w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 focus:outline-none"
-            >
-              Delete Account
-            </button> */}
             </>
           ) : (
             <p className="mt-4 text-gray-600 dark:text-gray-400">
@@ -590,9 +655,9 @@ const ProfilePage = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold dark:text-gray-200">
             Completed Tasks{" "}
-            {fromDate && toDate ? (
+            {dateRange?.from && dateRange?.to ? (
               <span className="text-sm font-normal">
-                ({fromDate} to {toDate}, {calculateNumberOfDays()} days)
+                ({format(dateRange.from, "yyyy-MM-dd")} to {format(dateRange.to, "yyyy-MM-dd")}, {calculateNumberOfDays()} days)
               </span>
             ) : null}
           </h2>
@@ -607,29 +672,29 @@ const ProfilePage = () => {
             </tr>
           </thead>
           <tbody>
-  {sortedTasks?.length > 0 ? (
-    sortedTasks.map((task, index) => (
-      <tr key={task.id} className="border">
-        <td className="border p-2 text-center">{index + 1}</td>
-        <td className="border p-2">{task.title}</td>
-        <td className="border p-2">
-          {projectMap?.[task.projectId] || "N/A"}
-        </td>
-        <td className="border p-2">
-          {task.startDate && task.dueDate
-            ? calculateTimeSpent(task, filteredTasks, new Date(fromDate), new Date(toDate)).toFixed(2)
-            : "N/A"}
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan={4} className="border p-2 text-center">
-        No tasks found
-      </td>
-    </tr>
-  )}
-</tbody>
+            {sortedTasks?.length > 0 ? (
+              sortedTasks.map((task, index) => (
+                <tr key={task.id} className="border">
+                  <td className="border p-2 text-center">{index + 1}</td>
+                  <td className="border p-2">{task.title}</td>
+                  <td className="border p-2">
+                    {projectMap?.[task.projectId] || "N/A"}
+                  </td>
+                  <td className="border p-2">
+                    {task.startDate && task.dueDate && dateRange?.from && dateRange?.to
+                      ? calculateTimeSpent(task, filteredTasks, dateRange.from, dateRange.to).toFixed(2)
+                      : "N/A"}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="border p-2 text-center">
+                  No tasks found
+                </td>
+              </tr>
+            )}
+          </tbody>
         </table>
 
         {/* Display total working hours and total time spent */}

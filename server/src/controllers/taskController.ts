@@ -137,7 +137,7 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
       `;
 
       sendMail(assignedUser.email, emailSubject, assignedUserMessage);
-      sendMail('gaurav@webtech.com.np', emailSubject, gauravMessage);
+      sendMail('gaurav@webtech.com.np', 'sudeep@webtechnepal.com', emailSubject, gauravMessage);
     }
 
     res.status(201).json(newTask);
@@ -185,7 +185,7 @@ export const updateTaskStatus = async (req: Request, res: Response): Promise<voi
       <p>Status changed from <strong>${previousStatus}</strong> to <strong>${status}</strong>.</p>
     `;
 
-    sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
+    sendMail("gaurav@webtech.com.np", "gaurav@webtech.com.np", emailSubject, emailMessage);
 
     res.json(updatedTask);
   } catch (error: any) {
@@ -386,9 +386,9 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
       `;
 
       if (assignedUser.email) {
-        sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUser.email);
+        sendMail("gaurav@webtech.com.np",  emailSubject, emailMessage, assignedUser.email);
       } else {
-        sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage);
+        sendMail("gaurav@webtech.com.np","sudeep@webtech.com.np", emailSubject, emailMessage);
         console.error("Assigned user email is missing or invalid. Email sent only to Gaurav.");
       }
     }
@@ -447,7 +447,7 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
       taskToDelete.project?.name || "Unknown Project"
     );
 
-    sendMail("gaurav@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
+    sendMail("gaurav@webtech.com.np","sudeep@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
 
     res.status(200).json({ message: "Task successfully deleted" });
   } catch (error: any) {

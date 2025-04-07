@@ -44,4 +44,4 @@ const Project = ({ params }: Props) => {
   );
 };
 
-export default withRoleAuth(Project, ["ADMIN"], ["12", "9", "8", "7"]);
+export default withRoleAuth(Project, ["ADMIN", "MANAGER"], ["12", "9", "8", "7"]);
