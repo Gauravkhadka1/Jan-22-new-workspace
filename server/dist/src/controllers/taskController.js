@@ -123,7 +123,7 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         </div>
       `;
             sendMail(assignedUser.email, emailSubject, assignedUserMessage);
-            sendMail('gaurav@webtech.com.np', emailSubject, gauravMessage);
+            sendMail('gaurav@webtech.com.np', 'sudeep@webtechnepal.com', emailSubject, gauravMessage);
         }
         res.status(201).json(newTask);
     }
@@ -163,7 +163,7 @@ const updateTaskStatus = (req, res) => __awaiter(void 0, void 0, void 0, functio
       <p><strong>${updatingUser.username}</strong> updated the task <strong>${taskName}</strong> of project <strong>${projectName}</strong>.</p>
       <p>Status changed from <strong>${previousStatus}</strong> to <strong>${status}</strong>.</p>
     `;
-        sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
+        sendMail("gaurav@webtech.com.np", "sudeep@webtechnepal.com", emailSubject, emailMessage);
         res.json(updatedTask);
     }
     catch (error) {
@@ -337,10 +337,10 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         </div>
       `;
             if (assignedUser.email) {
-                sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage, assignedUser.email);
+                sendMail("gaurav@webtech.com.np", emailSubject, emailMessage, assignedUser.email);
             }
             else {
-                sendMail("testuser2@comeonnepal.com", emailSubject, emailMessage);
+                sendMail("gaurav@webtech.com.np", "sudeep@webtechnepal.com", emailSubject, emailMessage);
                 console.error("Assigned user email is missing or invalid. Email sent only to Gaurav.");
             }
         }
@@ -387,7 +387,7 @@ const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const gauravEmailSubject = `Task Deleted: ${taskToDelete.title}`;
         const gauravEmailMessage = (0, emailTemplates_1.taskDeletedEmailTemplate)(deletingUser.username || "Unknown User", // Fallback value if username is null
         taskToDelete.title, ((_b = taskToDelete.project) === null || _b === void 0 ? void 0 : _b.name) || "Unknown Project");
-        sendMail("gaurav@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
+        sendMail("gaurav@webtech.com.np", "sudeep@webtechnepal.com", gauravEmailSubject, gauravEmailMessage);
         res.status(200).json({ message: "Task successfully deleted" });
     }
     catch (error) {
