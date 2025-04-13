@@ -50,12 +50,12 @@ const SalesChart = () => {
 
   // Initial sales data
   const [salesData, setSalesData] = useState({
-    labels: ['Mangshir', 'Poush', 'Magh', 'Falgun'],
+    labels: ['Mangshir', 'Poush', 'Magh', 'Falgun', 'Chaitra'],
     datasets: [
       {
         type: 'bar' as const, // Bar chart for actual sales
         label: 'Total Sales',
-        data: [230182, 748010, 420000, 625417],
+        data: [230182, 748010, 420000, 625417, 721520],
         backgroundColor: isDarkMode ? 'rgba(75, 192, 192, 0.6)' : 'rgba(75, 192, 192, 0.6)', // Same color for both modes
         borderColor: isDarkMode ? 'rgba(75, 192, 192, 1)' : 'rgba(75, 192, 192, 1)', // Same color for both modes
         borderWidth: 1,
