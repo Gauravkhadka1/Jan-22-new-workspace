@@ -37,8 +37,8 @@ const Project = ({ params }: Props) => {
         onClose={() => setIsModalNewTaskOpen(false)}
         id={id}
       />
-      <div className="flex items-center text-lg mt-2 ">
-      <h1 className="pl-6 pr-2 text-lg font-semibold">{projectName}</h1> Task's
+      <div className="flex items-center text-lg mt-2 dark:text-gray-200">
+      <h1 className="pl-6 pr-2 text-lg font-semibold ">{projectName}</h1> Task's
       </div>
       
       {activeTab === "Board" && (

@@ -9,7 +9,8 @@ import {
   Users,
   LucideIcon,
   Landmark,
-  SquareUserRound
+  SquareUserRound,
+  ChartSpline,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -75,7 +76,7 @@ const Sidebar = () => {
             <>
               <SidebarLink icon={SquareUserRound} label="Prospects" href="/prospects" />
               <SidebarLink icon={Landmark} label="Sales" href="/sales" />
-              <SidebarLink icon={Landmark} label="Reports" href="/dashboard" />
+              <SidebarLink icon={ChartSpline} label="Reports" href="/reports" />
             </>
           )}
         </nav>
