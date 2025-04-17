@@ -75,6 +75,7 @@ const Sidebar = () => {
             <>
               <SidebarLink icon={SquareUserRound} label="Prospects" href="/prospects" />
               <SidebarLink icon={Landmark} label="Sales" href="/sales" />
+              <SidebarLink icon={Landmark} label="Reports" href="/dashboard" />
             </>
           )}
         </nav>
