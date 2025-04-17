@@ -40,7 +40,7 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
         <div className="relative mx-3">
             <input
               type="text"
-              placeholder="Search Project"
+              placeholder="Search Project.."
               className="rounded-md border py-2 pl-6 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-gray-200"
             />
             {/* <Grid3x3 className="absolute left-3 top-2 h-4 w-4 text-gray-400 dark:text-neutral-500" /> */}
