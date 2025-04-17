@@ -16,7 +16,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext"; // Assuming you have useAuth to fetch user
+import { useAuth } from "../../context/AuthContext"; 
 
 const Sidebar = () => {
   const [showProjects, setShowProjects] = useState(true);

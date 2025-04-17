@@ -57,3 +57,49 @@ export const updateProjectStatus = async (
     res.status(500).json({ message: `Error updating Project: ${error.message}` });
   }
 };
+
+// In your projectController.ts
+export const deleteProject = async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params;
+  try {
+    // First delete all tasks associated with this project
+    await prisma.task.deleteMany({
+      where: {
+        projectId: Number(projectId),
+      },
+    });
+
+    // Then delete the project
+    await prisma.project.delete({
+      where: {
+        id: Number(projectId),
+      },
+    });
+    res.status(204).send();
+  } catch (error: any) {
+    res.status(500).json({ message: `Error deleting project: ${error.message}` });
+  }
+};
+
+export const updateProject = async (req: Request, res: Response): Promise<void> => {
+  const { projectId } = req.params;
+  const { name, description, startDate, endDate } = req.body;
+  
+  try {
+    const updatedProject = await prisma.project.update({
+      where: {
+        id: Number(projectId),
+      },
+      data: {
+        name,
+        description,
+        // Convert string dates to DateTime objects
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+      },
+    });
+    res.json(updatedProject);
+  } catch (error: any) {
+    res.status(500).json({ message: `Error updating project: ${error.message}` });
+  }
+};

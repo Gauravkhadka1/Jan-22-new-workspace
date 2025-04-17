@@ -163,6 +163,24 @@ export const api = createApi({
       }),
       invalidatesTags: ["Projects"],
     }),
+
+    deleteProject: build.mutation<void, number>({
+      query: (projectId) => ({
+        url: `projects/${projectId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Projects'],
+    }),
+
+updateProject: build.mutation<ProjectType, { projectId: number; name?: string; description?: string; startDate?: string; endDate?: string }>({
+  query: ({ projectId, ...body }) => ({
+    url: `projects/${projectId}`,
+    method: 'PUT',
+    body,
+  }),
+  invalidatesTags: ['Projects'],
+}),
+
     createProspects: build.mutation<Prospects, Partial<Prospects>>({
       query: (prospects) => ({
         url: "prospects",
@@ -307,6 +325,8 @@ export const {
   useCreateProspectsMutation,
   useUpdateTaskMutation,  
   useDeleteProspectsMutation,
+  useDeleteProjectMutation,
+  useUpdateProjectMutation,
   useDeleteTaskMutation,
   useUpdateTaskStatusMutation,
   useUpdateProjectStatusMutation,

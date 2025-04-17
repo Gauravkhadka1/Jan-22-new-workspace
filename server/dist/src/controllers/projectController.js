@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProjectStatus = exports.createProject = exports.getProjects = void 0;
+exports.updateProject = exports.deleteProject = exports.updateProjectStatus = exports.createProject = exports.getProjects = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -63,3 +63,49 @@ const updateProjectStatus = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.updateProjectStatus = updateProjectStatus;
+// In your projectController.ts
+const deleteProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { projectId } = req.params;
+    try {
+        // First delete all tasks associated with this project
+        yield prisma.task.deleteMany({
+            where: {
+                projectId: Number(projectId),
+            },
+        });
+        // Then delete the project
+        yield prisma.project.delete({
+            where: {
+                id: Number(projectId),
+            },
+        });
+        res.status(204).send();
+    }
+    catch (error) {
+        res.status(500).json({ message: `Error deleting project: ${error.message}` });
+    }
+});
+exports.deleteProject = deleteProject;
+const updateProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { projectId } = req.params;
+    const { name, description, startDate, endDate } = req.body;
+    try {
+        const updatedProject = yield prisma.project.update({
+            where: {
+                id: Number(projectId),
+            },
+            data: {
+                name,
+                description,
+                // Convert string dates to DateTime objects
+                startDate: startDate ? new Date(startDate) : null,
+                endDate: endDate ? new Date(endDate) : null,
+            },
+        });
+        res.json(updatedProject);
+    }
+    catch (error) {
+        res.status(500).json({ message: `Error updating project: ${error.message}` });
+    }
+});
+exports.updateProject = updateProject;

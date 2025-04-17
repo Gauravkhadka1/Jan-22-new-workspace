@@ -1,19 +1,42 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   useGetProjectsQuery,
   useUpdateProjectStatusMutation,
+  useDeleteProjectMutation,
+  useUpdateProjectMutation,
 } from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { EllipsisVertical, Plus, Calendar } from "lucide-react"; // Import Calendar icon
-import { format, differenceInDays } from "date-fns"; // Import differenceInDays to calculate the difference
+import {
+  EllipsisVertical,
+  Plus,
+  Calendar,
+  Trash2,
+  Edit,
+  X,
+} from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 import Link from "next/link";
+import { useAuth } from "../../../context/AuthContext";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 type BoardProps = {
   id: string;
   setIsModalNewProjectOpen: (isOpen: boolean) => void;
   projectName: string;
 };
+
+interface ProjectType {
+  id: number;
+  name: string;
+  description?: string;
+  status: string;
+  startDate?: string;
+  endDate?: string;
+}
 
 const projectStatus: Array<
   "New" | "Design" | "Development" | "Content-Fillup" | "Completed"
@@ -25,18 +48,122 @@ const ProjectBoardView = ({
   projectName,
 }: BoardProps) => {
   const {
-    data: projects,
+    data: projects = [],
     isLoading,
     error,
     refetch,
   } = useGetProjectsQuery({ projectId: Number(id) });
+  const [deleteProject] = useDeleteProjectMutation();
+  const [updateProject] = useUpdateProjectMutation();
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
+
+  // State for dropdown menu
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // State for delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
+
+  // State for edit modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentProject, setCurrentProject] = useState<ProjectType | null>(
+    null,
+  );
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
+    startDate: "",
+    endDate: "",
+  });
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Handle edit click
+  const handleEditClick = (project: ProjectType) => {
+    setCurrentProject(project);
+    
+    // Format dates for input fields (YYYY-MM-DD)
+    const formatDateForInput = (dateString?: string) => {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    };
+  
+    setEditFormData({
+      name: project.name,
+      description: project.description || "",
+      startDate: formatDateForInput(project.startDate),
+      endDate: formatDateForInput(project.endDate),
+    });
+    setIsEditModalOpen(true);
+    setOpenDropdownId(null);
+  };
+
+  // Handle delete click
+  const handleDeleteClick = (projectId: number) => {
+    setProjectToDelete(projectId);
+    setShowDeleteConfirm(true);
+    setOpenDropdownId(null);
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!projectToDelete) return;
+
+    try {
+      await deleteProject(projectToDelete).unwrap();
+      toast.success("Project deleted successfully");
+      refetch();
+    } catch (error) {
+      toast.error("Failed to delete project");
+    }
+
+    setShowDeleteConfirm(false);
+    setProjectToDelete(null);
+  };
+
+  // Handle edit form submit
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentProject) return;
+  
+    try {
+      await updateProject({
+        projectId: currentProject.id,
+        name: editFormData.name,
+        description: editFormData.description,
+        // Send dates as strings in YYYY-MM-DD format
+        startDate: editFormData.startDate,
+        endDate: editFormData.endDate,
+      }).unwrap();
+      toast.success("Project updated successfully");
+      setIsEditModalOpen(false);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to update project");
+    }
+  };
 
   const moveProject = (projectId: number, toStatus: string) => {
     updateProjectStatus({ projectId, status: toStatus })
       .unwrap()
       .then(() => {
-        // Refetch the projects after the update
         refetch();
       });
   };
@@ -45,34 +172,160 @@ const ProjectBoardView = ({
   if (error) return <div>An error occurred while fetching projects.</div>;
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="flex p-4">
-        {" "}
-        {/* Flex layout for the columns */}
-        <h2>{projectName}</h2>
-        {projectStatus.map((status) => (
-          <ProjectColumn
-            key={status}
-            status={status}
-            projects={projects || []}
-            moveProject={moveProject}
-            setIsModalNewProjectOpen={setIsModalNewProjectOpen}
-          />
-        ))}
-      </div>
-    </DndProvider>
+    <div className="p-4">
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <h3 className="text-lg font-semibold">Delete Project</h3>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="mb-6">
+              Are you sure you want to delete this project? This action cannot
+              be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDelete}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Project Modal */}
+      {isEditModalOpen && currentProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 dark:bg-dark-secondary border dark:border-gray-400">
+            <div className="mb-4 flex items-start justify-between">
+              <h3 className="text-lg font-semibold dark:text-gray-200">Edit Project</h3>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5 dark:text-gray-200" />
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit}>
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Project Name<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-secondary dark:text-gray-200"
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="mb-4 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-secondary dark:text-gray-200"
+                    value={editFormData.startDate}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        startDate: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-secondary dark:text-gray-200"
+                    value={editFormData.endDate}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        endDate: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full">
+                Update Project
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <DndProvider backend={HTML5Backend}>
+        <div className="flex p-4">
+          <h2>{projectName}</h2>
+          {projectStatus.map((status) => (
+            <ProjectColumn
+              key={status}
+              status={status}
+              projects={projects}
+              moveProject={moveProject}
+              setIsModalNewProjectOpen={setIsModalNewProjectOpen}
+              handleEditClick={handleEditClick}
+              handleDeleteClick={handleDeleteClick}
+              openDropdownId={openDropdownId}
+              setOpenDropdownId={setOpenDropdownId}
+              dropdownRef={dropdownRef}
+            />
+          ))}
+        </div>
+      </DndProvider>
+    </div>
   );
 };
 
 type ProjectColumnProps = {
   status: "New" | "Design" | "Development" | "Content-Fillup" | "Completed";
-  projects: any[]; // Change to appropriate type if available
+  projects: ProjectType[];
   moveProject: (projectId: number, toStatus: string) => void;
   setIsModalNewProjectOpen: (isOpen: boolean) => void;
+  handleEditClick: (project: ProjectType) => void;
+  handleDeleteClick: (projectId: number) => void;
+  openDropdownId: number | null;
+  setOpenDropdownId: (id: number | null) => void;
+  dropdownRef: React.RefObject<HTMLDivElement>;
 };
 
 const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
-  ({ status, projects, moveProject, setIsModalNewProjectOpen }, ref) => {
+  (
+    {
+      status,
+      projects,
+      moveProject,
+      setIsModalNewProjectOpen,
+      handleEditClick,
+      handleDeleteClick,
+      openDropdownId,
+      setOpenDropdownId,
+      dropdownRef,
+    },
+    ref,
+  ) => {
     const [{ isOver }, drop] = useDrop(() => ({
       accept: "Project",
       drop: (item: { id: number }) => moveProject(item.id, status),
@@ -101,10 +354,10 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
     return (
       <div
         ref={(node) => {
-          drop(node); // Pass the node to react-dnd drop target
-          if (typeof ref === "function") ref(node); // Allow the ref forwarding
+          drop(node);
+          if (typeof ref === "function") ref(node);
         }}
-        className="-mt-10 h-[69vh] w-1/5 flex-1 rounded-lg py-4 xl:px-2" // Fixed width for equal distribution
+        className="-mt-10 h-[69vh] w-1/5 flex-1 rounded-lg py-4 xl:px-2"
       >
         <div className="mb-3 flex items-center justify-between rounded-md bg-white p-4 dark:bg-dark-secondary">
           <div className="flex items-center">
@@ -113,19 +366,21 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
               style={{ backgroundColor: color }}
             ></span>
             <h3 className="ml-2 text-sm font-semibold dark:text-gray-200">
-              {status} ({projectCount}) {/* Display the project count */}
+              {status} ({projectCount})
             </h3>
           </div>
-          {/* <button
-          className="rounded bg-gray-200 p-2 dark:bg-dark-tertiary"
-          onClick={() => setIsModalNewProjectOpen(true)}
-        >
-          <Plus size={16} />
-        </button> */}
         </div>
         <div className="custom-scrollbar h-[65vh] overflow-y-auto">
           {filteredProjects.map((project) => (
-            <Project key={project.id} projectData={project} />
+            <Project
+              key={project.id}
+              projectData={project}
+              handleEditClick={handleEditClick}
+              handleDeleteClick={handleDeleteClick}
+              openDropdownId={openDropdownId}
+              setOpenDropdownId={setOpenDropdownId}
+              dropdownRef={dropdownRef}
+            />
           ))}
         </div>
       </div>
@@ -134,11 +389,25 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
 );
 
 type ProjectProps = {
-  projectData: any; // Replace with appropriate type
+  projectData: ProjectType;
+  handleEditClick: (project: ProjectType) => void;
+  handleDeleteClick: (projectId: number) => void;
+  openDropdownId: number | null;
+  setOpenDropdownId: (id: number | null) => void;
+  dropdownRef: React.RefObject<HTMLDivElement>;
 };
 
-const Project = ({ projectData }: ProjectProps) => {
+const Project = ({
+  projectData,
+  handleEditClick,
+  handleDeleteClick,
+  openDropdownId,
+  setOpenDropdownId,
+  dropdownRef,
+}: ProjectProps) => {
   const dragRef = useRef(null);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "Project",
@@ -148,8 +417,34 @@ const Project = ({ projectData }: ProjectProps) => {
     }),
   }));
 
-  // Attach the drag source to the element ref
   drag(dragRef);
+
+  const formattedStartDate = projectData.startDate
+    ? format(new Date(projectData.startDate), "MMM d, y")
+    : "No start date";
+
+  const formattedEndDate = projectData.endDate
+    ? format(new Date(projectData.endDate), "MMM d, y")
+    : "No end date";
+
+  // Calculate days remaining/overdue only if we have both dates
+  let statusText = "";
+  let textColor = "";
+
+  if (projectData.startDate && projectData.endDate) {
+    const currentDate = new Date();
+    const endDate = new Date(projectData.endDate);
+    const daysRemaining = differenceInDays(endDate, currentDate);
+    const daysPast = differenceInDays(currentDate, endDate);
+
+    if (daysRemaining > 0) {
+      statusText = `${daysRemaining} days remaining`;
+      textColor = "text-green-600 dark:text-green-500";
+    } else if (daysPast > 0) {
+      statusText = `Overdue by ${daysPast} days`;
+      textColor = "text-red-600 dark:text-red-500";
+    }
+  }
 
   if (projectData.status === "Completed") {
     return (
@@ -164,71 +459,68 @@ const Project = ({ projectData }: ProjectProps) => {
     );
   }
 
-  const formattedStartDate = projectData.startDate
-    ? format(new Date(projectData.startDate), "MMM d, Y")
-    : "";
-  const formattedEndDate = projectData.endDate
-    ? format(new Date(projectData.endDate), "MMM d, Y")
-    : "";
-
-  // Calculate the days remaining or overdue
-  const currentDate = new Date();
-  const endDate = new Date(projectData.endDate);
-  const daysRemaining = differenceInDays(endDate, currentDate);
-  const daysPast = differenceInDays(currentDate, endDate);
-
-  // Determine the status text and color
-  let statusText = "";
-  let textColor = "";
-
-  if (daysRemaining > 0) {
-    statusText = `${daysRemaining} days remaining`;
-    textColor = "text-green-600 dark:text-green-500"; // Green color for remaining
-  } else if (daysPast > 0) {
-    statusText = `Overdue by ${daysPast} days`;
-    textColor = "text-red-600 dark:text-red-500"; // Red color for overdue
-  }
-
   return (
     <div
-      ref={dragRef} // Attach the drag ref here
-      className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} bg-white dark:bg-dark-secondary dark:border dark:border-gray-700 rounded-xl`}
+      ref={dragRef}
+      className={`mb-4 rounded-md p-4 shadow ${isDragging ? "opacity-50" : "opacity-100"} rounded-xl bg-white dark:border dark:border-gray-700 dark:bg-dark-secondary`}
     >
       <h4 className="flex items-center justify-between break-words text-sm font-bold dark:text-gray-200">
         <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
-          <button className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-gray-200">
-            <EllipsisVertical size={26} />
-          </button>
+        {isAdmin && (
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() =>
+                setOpenDropdownId(
+                  openDropdownId === projectData.id ? null : projectData.id,
+                )
+              }
+              className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-gray-200"
+            >
+              <EllipsisVertical size={26} />
+            </button>
+
+            {openDropdownId === projectData.id && (
+              <div className="absolute right-0 z-10 mt-2 w-15 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-dark-tertiary">
+                <div className="py-1">
+                  <button
+                    onClick={() => handleEditClick(projectData)}
+                    className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    {/* Edit Project */}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(projectData.id)}
+                    className="flex px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {/* Delete Project */}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </h4>
       <div className="flex-col py-2">
         <div className="flex items-center">
           <Calendar size={16} className="text-green-600 dark:text-gray-400" />
-          <p className="ml-2 text-green-600 dark:text-gray-400">{formattedStartDate}</p>
+          <p className="ml-2 text-green-600 dark:text-gray-400">
+            {formattedStartDate}
+          </p>
         </div>
         <div className="mt-2 flex items-center">
           <Calendar size={16} className="text-red-800 dark:text-gray-400" />
-          <p className="ml-2 text-red-800 dark:text-gray-400">{formattedEndDate}</p>
+          <p className="ml-2 text-red-800 dark:text-gray-400">
+            {formattedEndDate}
+          </p>
         </div>
       </div>
       <p className="text-gray-600 dark:text-gray-300">
         {statusText && (
-          <span className={`font-medium ${textColor}`}>
-            {statusText}
-          </span>
+          <span className={`font-medium ${textColor}`}>{statusText}</span>
         )}
       </p>
-      {/* <div>
-    no of TO DO tasks
-   </div>
-   <div>
-   no of IN PROGRESS tasks
-   </div>
-   <div>
-   no of UNDER REVIEW tasks
-   </div>
-   <div>
-   no of COMPLETED tasks
-   </div> */}
     </div>
   );
 };
