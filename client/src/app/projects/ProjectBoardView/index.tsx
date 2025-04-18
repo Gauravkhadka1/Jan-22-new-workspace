@@ -6,11 +6,12 @@ import {
   useUpdateProjectStatusMutation,
   useDeleteProjectMutation,
   useUpdateProjectMutation,
+  Task
 } from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import {
-  EllipsisVertical,
+  EllipsisVertical,   
   Plus,
   Calendar,
   Trash2,
@@ -36,7 +37,9 @@ interface ProjectType {
   status: string;
   startDate?: string;
   endDate?: string;
+  tasks?: Task[];
 }
+
 
 const projectStatus: Array<
   "New" | "Design" | "Development" | "Content-Fillup" | "Completed"
@@ -446,6 +449,10 @@ const Project = ({
     }
   }
 
+  const taskCount = projectData.tasks?.filter(task => task.status !== "Completed").length || 0;
+  // Determine text color based on task count
+  const taskCountColor = taskCount === 0 ? "text-red-600 dark:text-red-500" : "text-gray-600 dark:text-gray-400";
+
   if (projectData.status === "Completed") {
     return (
       <div
@@ -455,6 +462,9 @@ const Project = ({
         <h4 className="break-words text-sm font-bold dark:text-gray-200">
           <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
         </h4>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+        {taskCount} {taskCount === 1 ? 'active task' : 'active tasks'}
+        </p>
       </div>
     );
   }
@@ -502,6 +512,10 @@ const Project = ({
           </div>
         )}
       </h4>
+
+      <p className={`text-sm ${taskCountColor}`}>
+        {taskCount} {taskCount === 1 ? 'active task' : 'active tasks'}
+      </p>
       <div className="flex-col py-2">
         <div className="flex items-center">
           <Calendar size={16} className="text-green-600 dark:text-gray-400" />

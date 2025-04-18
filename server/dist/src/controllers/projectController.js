@@ -14,7 +14,11 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const projects = yield prisma.project.findMany();
+        const projects = yield prisma.project.findMany({
+            include: {
+                tasks: true, // Include tasks in the response
+            },
+        });
         res.json(projects);
     }
     catch (error) {

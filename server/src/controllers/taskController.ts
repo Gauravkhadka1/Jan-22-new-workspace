@@ -187,7 +187,7 @@ export const updateTaskStatus = async (req: Request, res: Response): Promise<voi
     `;
 
     sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
-    sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
+    // sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
 
     res.json(updatedTask);
   } catch (error: any) {

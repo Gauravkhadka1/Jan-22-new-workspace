@@ -9,6 +9,7 @@ export interface ProjectType {
   status: string;
   startDate?: string;
   endDate?: string;
+  tasks?: Task[];
 }
 export interface Prospects {
   id: number;

@@ -165,7 +165,7 @@ const updateTaskStatus = (req, res) => __awaiter(void 0, void 0, void 0, functio
       <p>Status changed from <strong>${previousStatus}</strong> to <strong>${status}</strong>.</p>
     `;
         sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
-        sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
+        // sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
         res.json(updatedTask);
     }
     catch (error) {

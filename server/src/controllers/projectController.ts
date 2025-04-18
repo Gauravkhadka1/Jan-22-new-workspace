@@ -8,7 +8,11 @@ export const getProjects = async (
   res: Response
 ): Promise<void> => {
   try {
-    const projects = await prisma.project.findMany();
+    const projects = await prisma.project.findMany({
+      include: {
+        tasks: true, // Include tasks in the response
+      },
+    });
     res.json(projects);
   } catch (error: any) {
     res
