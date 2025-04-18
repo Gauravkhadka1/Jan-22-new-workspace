@@ -217,7 +217,7 @@ updateProject: build.mutation<ProjectType, { projectId: number; name?: string; d
         method: "POST",
         body: task,
       }),
-      invalidatesTags: ["Tasks"],
+      invalidatesTags: ["Tasks", "Projects"],
     }),
     updateTask: build.mutation<Task, { taskId: number; taskData: Partial<Task> }>({
       query: ({ taskId, taskData }) => ({
@@ -225,7 +225,9 @@ updateProject: build.mutation<ProjectType, { projectId: number; name?: string; d
         method: "PUT",
         body: taskData, // taskData can still include assignedBy if needed
       }),
-      invalidatesTags: (result, error, { taskId }) => [{ type: "Tasks", id: taskId }],
+      invalidatesTags: (result, error, { taskId }) => [{ type: "Tasks", id: taskId },
+        { type: "Projects" },
+      ],
     }),
     deleteTask: build.mutation<void, number>({
       query: (taskId) => ({

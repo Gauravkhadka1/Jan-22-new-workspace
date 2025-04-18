@@ -46,26 +46,28 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
     data: tasks,
     isLoading,
     error,
-    refetch,
+    refetch: refetchTasks,
   } = useGetTasksQuery({ projectId: Number(id) });
+
+  const { refetch: refetchProjects } = useGetProjectsQuery({ projectId: Number(id) });
 
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
   const [createTask] = useCreateTaskMutation();
 
-  const moveTask = (taskId: number, toStatus: Status) => {
+const moveTask = async (taskId: number, toStatus: Status) => {
     if (!userId) {
       console.error("No authenticated user found");
       return;
     }
 
-    updateTaskStatus({ taskId, status: toStatus, updatedBy: userId })
-      .unwrap()
-      .then(() => {
-        toast.success(`Task status updated to ${toStatus}`);
-      })
-      .catch(() => {
-        toast.error("Failed to update task status");
-      });
+    try {
+      await updateTaskStatus({ taskId, status: toStatus, updatedBy: userId }).unwrap();
+      toast.success(`Task status updated to ${toStatus}`);
+      // Refetch both tasks and projects after status update
+      await Promise.all([refetchTasks(), refetchProjects()]);
+    } catch (error) {
+      toast.error("Failed to update task status");
+    }
   };
 
   if (isLoading) return <div>Loading...</div>;

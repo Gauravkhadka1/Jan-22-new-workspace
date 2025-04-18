@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
   port: 465,
   auth: {
     user: "gauravkhadka111111@gmail.com",
-    pass: "catgfxsmwkqrdknh", // Use environment variables for sensitive data
+    pass: "catgfxsmwkqrdknh", 
   },
 });
 
@@ -138,10 +138,18 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
 
       sendMail(assignedUser.email, emailSubject, assignedUserMessage);
       sendMail('gaurav@webtech.com.np', emailSubject, gauravMessage);
-      sendMail('sudeep@webtechnepal.com', emailSubject, gauravMessage);
+      // sendMail('sudeep@webtechnepal.com', emailSubject, gauravMessage);
     }
 
-    res.status(201).json(newTask);
+    const updatedProject = await prisma.project.findUnique({
+      where: { id: Number(projectId) },
+      include: { tasks: true },
+    });
+
+    res.status(201).json({
+      ...newTask,
+      project: updatedProject, // Include the updated project in response
+    });
   } catch (error: any) {
     res.status(500).json({ message: `Error creating a task: ${error.message}` });
   }
@@ -392,7 +400,7 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
         sendMail(assignedUser.email, emailSubject, emailMessage);
       } 
         sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
-        sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
+        // sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
         console.error("Assigned user email is missing or invalid. Email sent only to admins.");
 
     }
@@ -452,7 +460,7 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
     );
 
     sendMail("gaurav@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
-    sendMail("sudeep@webtechnepal.com", gauravEmailSubject, gauravEmailMessage);
+    // sendMail("sudeep@webtechnepal.com", gauravEmailSubject, gauravEmailMessage);
 
     res.status(200).json({ message: "Task successfully deleted" });
   } catch (error: any) {

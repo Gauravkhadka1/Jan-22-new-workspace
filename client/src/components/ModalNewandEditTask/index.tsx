@@ -15,9 +15,10 @@ type Props = {
   onClose: () => void;
   id?: string | null; // Project ID
   task?: any; // Task data for editing
+  onTaskCreatedOrUpdated?: () => void; // Add this prop
 };
 
-const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
+const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOrUpdated }: Props) => {
   const { user } = useAuth();
   const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
@@ -88,6 +89,12 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null }: Props) => {
         await createTask(taskData).unwrap();
         toast.success("Task created successfully!");
       }
+      
+      // Call the callback function to trigger refetch in parent component
+      if (onTaskCreatedOrUpdated) {
+        onTaskCreatedOrUpdated();
+      }
+      
       onClose();
     } catch (error) {
       toast.error("An error occurred while saving the task.");

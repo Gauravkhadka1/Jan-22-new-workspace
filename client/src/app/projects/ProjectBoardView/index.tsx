@@ -54,8 +54,11 @@ const ProjectBoardView = ({
     data: projects = [],
     isLoading,
     error,
-    refetch,
+    refetch: refetchProjects, 
   } = useGetProjectsQuery({ projectId: Number(id) });
+  useEffect(() => {
+    console.log("Projects data updated:", projects);
+  }, [projects]);
   const [deleteProject] = useDeleteProjectMutation();
   const [updateProject] = useUpdateProjectMutation();
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
@@ -132,7 +135,7 @@ const ProjectBoardView = ({
     try {
       await deleteProject(projectToDelete).unwrap();
       toast.success("Project deleted successfully");
-      refetch();
+      refetchProjects();
     } catch (error) {
       toast.error("Failed to delete project");
     }
@@ -157,7 +160,7 @@ const ProjectBoardView = ({
       }).unwrap();
       toast.success("Project updated successfully");
       setIsEditModalOpen(false);
-      refetch();
+      refetchProjects();
     } catch (error) {
       toast.error("Failed to update project");
     }
@@ -167,7 +170,7 @@ const ProjectBoardView = ({
     updateProjectStatus({ projectId, status: toStatus })
       .unwrap()
       .then(() => {
-        refetch();
+        refetchProjects();
       });
   };
 
