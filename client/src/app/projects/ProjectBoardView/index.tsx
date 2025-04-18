@@ -451,7 +451,7 @@ const Project = ({
 
   const taskCount = projectData.tasks?.filter(task => task.status !== "Completed").length || 0;
   // Determine text color based on task count
-  const taskCountColor = taskCount === 0 ? "text-red-600 dark:text-red-500" : "text-gray-600 dark:text-gray-400";
+  const taskCountColor = taskCount === 0 ? "text-red-600 dark:text-red-500" : "text-green-600 dark:text-green-600";
 
   if (projectData.status === "Completed") {
     return (
