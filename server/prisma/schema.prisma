@@ -20,7 +20,7 @@ model User {
   email             String  @unique
   profilePictureUrl String?
   password          String?
-  role              Role    @default(INTERN) // New column with default role
+  role              Role    @default(ADMIN) // New column with default role
   activityLogs      ActivityLog[]
 }
 
