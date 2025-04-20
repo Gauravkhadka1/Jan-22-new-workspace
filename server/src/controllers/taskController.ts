@@ -91,15 +91,6 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
       },
     });
 
-    await prisma.activityLog.create({
-      data: {
-        action: 'CREATE',
-        details: null,
-        userId: Number(assignedTo), // Or use the creator's ID if different
-        taskId: newTask.id,
-      },
-    });
-
     const assignedUser = await prisma.user.findUnique({
       where: { userId: Number(assignedTo) },
     });
@@ -180,14 +171,6 @@ export const updateTaskStatus = async (req: Request, res: Response): Promise<voi
     }
 
     const previousStatus = existingTask.status;
-    await prisma.activityLog.create({
-      data: {
-        action: 'STATUS_UPDATE',
-        details: `${previousStatus}|${status}`,
-        userId: Number(updatedBy),
-        taskId: Number(taskId),
-      },
-    });
     const taskName = existingTask.title;
     const projectName = existingTask.project ? existingTask.project.name : "Unknown Project";
 
@@ -227,16 +210,6 @@ export const getTasksByUser = async (req: Request, res: Response): Promise<void>
     const tasks = await prisma.task.findMany({
       where: {
         assignedTo: userId,
-      },
-      include: {
-        activityLogs: {
-          include: {
-            user: true,
-          },
-          orderBy: {
-            timestamp: 'desc',
-          },
-        },
       },
     });
 
