@@ -12,7 +12,7 @@ import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType, ProjectType } from "@/state/api";
-import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
+import { ArrowRight, EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format, differenceInDays, differenceInHours, differenceInMinutes } from "date-fns";
 import Image from "next/image";
 import { toast } from "sonner"
@@ -358,14 +358,13 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             </div>
           )}
         </div>
-        <div className="mb-2 mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+        <div className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
           in {getProjectName(task.projectId)}
         </div>
-        <div className="text-sm mb-1 text-gray-500 dark:text-gray-400">
-          <b>Start:</b> {formattedStartDate && <span>{formattedStartDate}</span>}
-        </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          <b>Due:</b> {formattedDueDate && <span>{formattedDueDate}</span>}
+        <div className="flex items-center mb-1 text-gray-500 dark:text-gray-400 text-xs">
+        {formattedStartDate && <span>{formattedStartDate}</span>}
+      <ArrowRight size={16} className="mx-2" />
+          {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {timeLeft && (
           <div className={`mt-2 text-sm font-semibold ${timeLeft.color}`}>
