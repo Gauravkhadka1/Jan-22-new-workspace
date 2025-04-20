@@ -12,10 +12,21 @@ import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType, ProjectType } from "@/state/api";
-import { ArrowRight, EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
-import { format, differenceInDays, differenceInHours, differenceInMinutes } from "date-fns";
+import {
+  Activity,
+  ArrowRight,
+  EllipsisVertical,
+  MessageSquareMore,
+  Plus,
+} from "lucide-react";
+import {
+  format,
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+} from "date-fns";
 import Image from "next/image";
-import { toast } from "sonner"
+import { toast } from "sonner";
 import ModalNewTask from "@/components/ModalNewandEditTask";
 
 type Status = "To Do" | "Work In Progress" | "Under Review" | "Completed";
@@ -34,19 +45,18 @@ const taskStatus: Status[] = [
 
 const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
   const { user } = useAuth();
-  const userId = user?.userId?.toString(); 
-  const { 
-    data: tasks, 
-    isLoading, 
-    error 
+  const userId = user?.userId?.toString();
+  const {
+    data: tasks,
+    isLoading,
+    error,
   } = useGetTasksByUserQuery(userId, {
-    skip: !userId // Skip query if userId is not available
+    skip: !userId, // Skip query if userId is not available
   });
 
   // Filter tasks for the current user
-  const userTasks = tasks?.filter(task => 
-    String(task.assignedTo) === String(userId)
-  ) || [];
+  const userTasks =
+    tasks?.filter((task) => String(task.assignedTo) === String(userId)) || [];
 
   const { data: projects } = useGetProjectsQuery({});
 
@@ -158,9 +168,7 @@ const TaskColumn = ({
             </span>
           </h3>
           <div className="flex items-center gap-1">
-            <button
-              className="flex h-6 w-5 items-center justify-center dark:text-neutral-500"
-            >
+            <button className="flex h-6 w-5 items-center justify-center dark:text-neutral-500">
               {/* <EllipsisVertical size={26} /> */}
             </button>
             <button
@@ -172,7 +180,7 @@ const TaskColumn = ({
           </div>
         </div>
       </div>
-      <div className="h-[65vh] overflow-y-auto custom-scrollbar">
+      <div className="custom-scrollbar h-[65vh] overflow-y-auto">
         {tasks
           .filter((task) => task.status === status)
           .map((task) => (
@@ -209,66 +217,66 @@ const Task = ({ task, getProjectName }: TaskProps) => {
     ? format(new Date(task.dueDate), "MMM d, h:mm a")
     : "";
 
-    const getTimeLeft = () => {
-      if (
-        !task.dueDate ||
-        task.status === "Under Review" ||
-        task.status === "Completed"
-      )
-        return null;
-    
-      const now = new Date();
-      const dueDate = new Date(task.dueDate);
-      const diffMs = dueDate.getTime() - now.getTime();
-    
-      if (diffMs < 0) {
-        // Overdue
-        const overdueMinutes = Math.abs(Math.floor(diffMs / (1000 * 60)));
-        const overdueHours = Math.abs(Math.floor(diffMs / (1000 * 60 * 60)));
-        const overdueDays = Math.floor(overdueHours / 24);
-        const overdueRemainingHours = overdueHours % 24;
-    
-        if (overdueMinutes < 60) {
-          return {
-            text: `${overdueMinutes} minute${overdueMinutes !== 1 ? "s" : ""} overdue`,
-            color: "text-red-600 dark:text-red-500"
-          };
-        } else if (overdueHours < 24) {
-          return {
-            text: `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`,
-            color: "text-red-600 dark:text-red-500"
-          };
-        } else {
-          return {
-            text: `${overdueDays} day${overdueDays !== 1 ? "s" : ""} ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""} overdue`,
-            color: "text-red-600 dark:text-red-500"
-          };
-        }
+  const getTimeLeft = () => {
+    if (
+      !task.dueDate ||
+      task.status === "Under Review" ||
+      task.status === "Completed"
+    )
+      return null;
+
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    const diffMs = dueDate.getTime() - now.getTime();
+
+    if (diffMs < 0) {
+      // Overdue
+      const overdueMinutes = Math.abs(Math.floor(diffMs / (1000 * 60)));
+      const overdueHours = Math.abs(Math.floor(diffMs / (1000 * 60 * 60)));
+      const overdueDays = Math.floor(overdueHours / 24);
+      const overdueRemainingHours = overdueHours % 24;
+
+      if (overdueMinutes < 60) {
+        return {
+          text: `${overdueMinutes} minute${overdueMinutes !== 1 ? "s" : ""} overdue`,
+          color: "text-red-600 dark:text-red-500",
+        };
+      } else if (overdueHours < 24) {
+        return {
+          text: `${overdueHours} hour${overdueHours !== 1 ? "s" : ""} overdue`,
+          color: "text-red-600 dark:text-red-500",
+        };
       } else {
-        // Time left
-        const minutesLeft = Math.floor(diffMs / (1000 * 60));
-        const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
-        const daysLeft = Math.floor(hoursLeft / 24);
-        const remainingHours = hoursLeft % 24;
-    
-        if (minutesLeft < 60) {
-          return {
-            text: `${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""} left`,
-            color: "text-green-600 dark:text-green-500"
-          };
-        } else if (hoursLeft < 24) {
-          return {
-            text: `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`,
-            color: "text-green-600 dark:text-green-500"
-          };
-        } else {
-          return {
-            text: `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`,
-            color: "text-green-600 dark:text-green-500"
-          };
-        }
+        return {
+          text: `${overdueDays} day${overdueDays !== 1 ? "s" : ""} ${overdueRemainingHours} hour${overdueRemainingHours !== 1 ? "s" : ""} overdue`,
+          color: "text-red-600 dark:text-red-500",
+        };
       }
-    };
+    } else {
+      // Time left
+      const minutesLeft = Math.floor(diffMs / (1000 * 60));
+      const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+      const daysLeft = Math.floor(hoursLeft / 24);
+      const remainingHours = hoursLeft % 24;
+
+      if (minutesLeft < 60) {
+        return {
+          text: `${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""} left`,
+          color: "text-green-600 dark:text-green-500",
+        };
+      } else if (hoursLeft < 24) {
+        return {
+          text: `${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""} left`,
+          color: "text-green-600 dark:text-green-500",
+        };
+      } else {
+        return {
+          text: `${daysLeft} day${daysLeft !== 1 ? "s" : ""} ${remainingHours} hour${remainingHours !== 1 ? "s" : ""} left`,
+          color: "text-green-600 dark:text-green-500",
+        };
+      }
+    }
+  };
 
   const timeLeft = getTimeLeft();
 
@@ -317,10 +325,12 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           className="h-auto w-full rounded-t-md"
         />
       )}
-      <div className="p-2 md:pt-1 md:pr-5 md:pl-5 md:pb-4 dark:border dark:border-gray-700 rounded-xl">
+      <div className="rounded-xl p-2 dark:border dark:border-gray-700 md:pb-4 md:pl-5 md:pr-5 md:pt-1">
         <div className="flex items-center justify-between">
           <div className="my-3 flex justify-between">
-            <h4 className="text-md font-bold dark:text-gray-200">{task.title}</h4>
+            <h4 className="text-md font-bold dark:text-gray-200">
+              {task.title}
+            </h4>
           </div>
           <button
             className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
@@ -332,10 +342,10 @@ const Task = ({ task, getProjectName }: TaskProps) => {
               }));
             }}
           >
-            <EllipsisVertical size={26} className="dark:text-gray-200"/>
+            <EllipsisVertical size={26} className="dark:text-gray-200" />
           </button>
           {taskOptionsVisible[task.id] && (
-            <div className="absolute right-10 mt-12 bg-white shadow-lg rounded z-50">
+            <div className="absolute right-10 z-50 mt-12 rounded bg-white shadow-lg">
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {
@@ -361,9 +371,9 @@ const Task = ({ task, getProjectName }: TaskProps) => {
         <div className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
           in {getProjectName(task.projectId)}
         </div>
-        <div className="flex items-center mb-1 text-gray-500 dark:text-gray-400 text-xs">
-        {formattedStartDate && <span>{formattedStartDate}</span>}
-      <ArrowRight size={16} className="mx-2" />
+        <div className="mb-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
+          {formattedStartDate && <span>{formattedStartDate}</span>}
+          <ArrowRight size={16} className="mx-2" />
           {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
         {timeLeft && (
@@ -371,6 +381,24 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             {timeLeft.text}
           </div>
         )}
+        <div className="my-3 border-b border-gray-500"></div>
+        <div className="flex items-center justify-between dark:text-gray-200"> 
+  <div className="group relative flex items-center">
+    <Activity size={16} className="mr-2" />0
+    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+      Activity
+    </span>
+  </div>
+
+  <div className="group relative flex items-center">
+    <MessageSquareMore size={16} className="mr-2" /> 0
+    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+      Comments
+    </span>
+  </div>
+</div>
+
+
         {isEditModalOpen && (
           <ModalNewTask
             isOpen={isEditModalOpen}
