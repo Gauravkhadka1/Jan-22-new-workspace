@@ -17,6 +17,7 @@ import {
   Trash2,
   Edit,
   X,
+  ArrowRight,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import Link from "next/link";
@@ -521,14 +522,12 @@ const Project = ({
       </p>
       <div className="flex-col py-2">
         <div className="flex items-center">
-          <Calendar size={16} className="text-green-600 dark:text-gray-400" />
-          <p className="ml-2 text-green-600 dark:text-gray-400">
+          {/* <Calendar size={16} className="text-green-600 dark:text-gray-400" /> */}
+          <p className="mr-1 text-green-600 dark:text-gray-400 text-xs">
             {formattedStartDate}
           </p>
-        </div>
-        <div className="mt-2 flex items-center">
-          <Calendar size={16} className="text-red-800 dark:text-gray-400" />
-          <p className="ml-2 text-red-800 dark:text-gray-400">
+       <ArrowRight size={14} className="text-green-600 dark:text-gray-400" />
+          <p className="ml-2 text-red-800 dark:text-gray-400 text-xs">
             {formattedEndDate}
           </p>
         </div>
