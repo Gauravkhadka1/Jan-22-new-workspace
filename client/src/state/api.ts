@@ -58,6 +58,14 @@ export interface Attachment {
   taskId: number;
   uploadedById: number;
 }
+export interface ActivityLog {
+  id: number;
+  action: string;
+  details: string;
+  timestamp: string;
+  userId: number;
+  user?: User;
+}
 
 export interface Task {
   id: number;
@@ -76,6 +84,7 @@ export interface Task {
   assignee?: User;
   comments?: Comment[];
   attachments?: Attachment[];
+  activityLogs?: ActivityLog[];
 }
 
 export interface SearchResults {

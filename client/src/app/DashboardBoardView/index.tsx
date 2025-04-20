@@ -36,6 +36,19 @@ type BoardProps = {
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
 };
 
+interface ActivityLog {
+  id: number;
+  action: string;
+  details: string | null;
+  timestamp: string;
+  userId: number;
+  user?: {
+    username?: string;
+    // Add other user properties you might need
+  };
+}
+
+
 const taskStatus: Status[] = [
   "To Do",
   "Work In Progress",
@@ -194,7 +207,9 @@ const TaskColumn = ({
 };
 
 type TaskProps = {
-  task: TaskType;
+  task: TaskType & {
+    activityLogs?: ActivityLog[];
+  };
   getProjectName: (projectId: number) => string;
 };
 
@@ -307,6 +322,31 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
+  const [showActivityPopup, setShowActivityPopup] = useState(false);
+  
+  // Function to format activity log messages
+  const formatActivityMessage = (log: ActivityLog) => {
+    const { action, details, timestamp, user } = log;
+    const formattedTime = format(new Date(timestamp), "MMM d, h:mm a");
+    
+    switch (action) {
+      case 'CREATE':
+        return `${user?.username || 'Someone'} created the task on ${formattedTime}`;
+      case 'STATUS_UPDATE':
+        if (!details) return `${user?.username || 'Someone'} updated the task status on ${formattedTime}`;
+        const [fromStatus, toStatus] = details.split('|');
+        return `${user?.username || 'Someone'} updated status from ${fromStatus} to ${toStatus} on ${formattedTime}`;
+      case 'DUE_DATE_UPDATE':
+        if (!details) return `${user?.username || 'Someone'} updated the due date on ${formattedTime}`;
+        const [oldDate, newDate] = details.split('|');
+        return `${user?.username || 'Someone'} changed due date from ${format(new Date(oldDate), "MMM d, h:mm a")} to ${format(new Date(newDate), "MMM d, h:mm a")} on ${formattedTime}`;
+      case 'ASSIGNEE_UPDATE':
+        return `${user?.username || 'Someone'} reassigned the task on ${formattedTime}`;
+      default:
+        return `${user?.username || 'Someone'} modified the task on ${formattedTime}`;
+    }
+  };
+
   return (
     <div
       ref={(instance) => {
@@ -382,22 +422,49 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           </div>
         )}
         <div className="my-3 border-b border-gray-500"></div>
-        <div className="flex items-center justify-between dark:text-gray-200"> 
-  <div className="group relative flex items-center">
-    <Activity size={16} className="mr-2" />0
-    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-      Activity
-    </span>
-  </div>
+        <div className="flex items-center justify-between dark:text-gray-200">
+        <div className="group relative flex items-center">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActivityPopup(!showActivityPopup);
+            }}
+            className="flex items-center"
+          >
+            <Activity size={16} className="mr-2" />
+            {task.activityLogs?.length || 0}
+          </button>
+          
+          {showActivityPopup && (
+            <div className="absolute left-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3">
+              <h4 className="font-semibold mb-2 dark:text-gray-200">Activity Logs</h4>
+              <div className="max-h-60 overflow-y-auto">
+                {task.activityLogs && task.activityLogs.length > 0 ? (
+                  task.activityLogs.map((log, index) => (
+                    <div key={index} className="mb-2 text-sm dark:text-gray-300">
+                      <p>{formatActivityMessage(log)}</p>
+                      <div className="border-t border-gray-200 dark:border-gray-600 mt-1 pt-1"></div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm dark:text-gray-400">No activity yet</p>
+                )}
+              </div>
+            </div>
+          )}
 
-  <div className="group relative flex items-center">
-    <MessageSquareMore size={16} className="mr-2" /> 0
-    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-      Comments
-    </span>
-  </div>
-</div>
+          <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+            Activity
+          </span>
+        </div>
 
+          <div className="group relative flex items-center">
+            <MessageSquareMore size={16} className="mr-2" /> 0
+            <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+              Comments
+            </span>
+          </div>
+        </div>
 
         {isEditModalOpen && (
           <ModalNewTask
