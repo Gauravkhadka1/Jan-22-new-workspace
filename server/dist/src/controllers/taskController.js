@@ -83,14 +83,6 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 assignedBy,
             },
         });
-        yield prisma.activityLog.create({
-            data: {
-                action: 'CREATE',
-                details: null,
-                userId: Number(assignedTo), // Or use the creator's ID if different
-                taskId: newTask.id,
-            },
-        });
         const assignedUser = yield prisma.user.findUnique({
             where: { userId: Number(assignedTo) },
         });
@@ -158,14 +150,6 @@ const updateTaskStatus = (req, res) => __awaiter(void 0, void 0, void 0, functio
             return;
         }
         const previousStatus = existingTask.status;
-        yield prisma.activityLog.create({
-            data: {
-                action: 'STATUS_UPDATE',
-                details: `${previousStatus}|${status}`,
-                userId: Number(updatedBy),
-                taskId: Number(taskId),
-            },
-        });
         const taskName = existingTask.title;
         const projectName = existingTask.project ? existingTask.project.name : "Unknown Project";
         const updatingUser = yield prisma.user.findUnique({
@@ -199,16 +183,6 @@ const getTasksByUser = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const tasks = yield prisma.task.findMany({
             where: {
                 assignedTo: userId,
-            },
-            include: {
-                activityLogs: {
-                    include: {
-                        user: true,
-                    },
-                    orderBy: {
-                        timestamp: 'desc',
-                    },
-                },
             },
         });
         res.json(tasks);

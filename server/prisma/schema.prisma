@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -20,8 +20,7 @@ model User {
   email             String  @unique
   profilePictureUrl String?
   password          String?
-  role              Role    @default(ADMIN) // New column with default role
-  activityLogs      ActivityLog[]
+  role              Role    @default(INTERN) // New column with default role
 }
 
 enum Role {
@@ -29,7 +28,6 @@ enum Role {
   MANAGER
   INTERN
 }
-
 
 model Project {
   id           Int           @id @default(autoincrement())
@@ -61,17 +59,6 @@ model Task {
   assignedBy  String
   assignedTo String
   project         Project          @relation(fields: [projectId], references: [id])
-  activityLogs    ActivityLog[]
 }
 
-model ActivityLog {
-  id        Int      @id @default(autoincrement())
-  action    String
-  details   String?
-  timestamp DateTime @default(now())
-  userId    Int
-  taskId    Int
-  user      User     @relation(fields: [userId], references: [userId])
-  task      Task     @relation(fields: [taskId], references: [id])
-}
 
