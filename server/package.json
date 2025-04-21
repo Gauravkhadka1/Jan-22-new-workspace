@@ -6,7 +6,7 @@
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js",
-    "dev": "npm run build && concurrently \"npx tsc -w\" \"nodemon --exec ts-node src/index.ts\"",
+    "dev": "npm run build && concurrently \"npx tsc -w\" \"ts-node src/index.ts\"",
     "seed": "ts-node prisma/seed.ts"
   },
   "keywords": [],
