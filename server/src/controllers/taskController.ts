@@ -485,3 +485,38 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ message: `Error deleting task: ${error.message}` });
   }
 };
+
+export const getTaskComments = async (req: Request, res: Response): Promise<void> => {
+  const { taskId } = req.params;
+
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { taskId: Number(taskId) },
+      include: { user: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(comments);
+  } catch (error: any) {
+    res.status(500).json({ message: `Error retrieving comments: ${error.message}` });
+  }
+};
+
+export const addCommentToTask = async (req: Request, res: Response): Promise<void> => {
+  const { taskId } = req.params;
+  const { content, userId } = req.body;
+
+  try {
+    const newComment = await prisma.comment.create({
+      data: {
+        content,
+        userId: Number(userId),
+        taskId: Number(taskId),
+      },
+      include: { user: true },
+    });
+
+    res.status(201).json(newComment);
+  } catch (error: any) {
+    res.status(500).json({ message: `Error adding comment: ${error.message}` });
+  }
+};

@@ -5,9 +5,11 @@ import {
   updateTask,
   getTasks,
   getTasksByUser,
-  getTasksByUserIdForUserTasks, // Import the new function
+  getTasksByUserIdForUserTasks, 
   getTasksByUserIdForProfile, 
   updateTaskStatus,
+  getTaskComments,          
+  addCommentToTask,
 } from "../controllers/taskController";
 
 const router = Router();
@@ -20,5 +22,8 @@ router.post("/", createTask);
 router.put("/:taskId", updateTask); 
 router.delete("/:taskId", deleteTask); 
 router.patch("/:taskId/status", updateTaskStatus);
+
+router.get("/:taskId/comments", getTaskComments);        // GET comments for a task
+router.post("/:taskId/comments", addCommentToTask);      // POST a new comment
 
 export default router;

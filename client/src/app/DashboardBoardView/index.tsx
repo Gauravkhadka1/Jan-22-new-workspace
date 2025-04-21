@@ -7,11 +7,12 @@ import {
   useCreateTaskMutation,
   useGetProjectsQuery,
   useDeleteTaskMutation,
+  useAddCommentToTaskMutation,
 } from "@/state/api";
 import React from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { Task as TaskType, ProjectType } from "@/state/api";
+import { Task as TaskType, ProjectType, Comment } from "@/state/api";
 import {
   Activity,
   ArrowRight,
@@ -209,11 +210,13 @@ const TaskColumn = ({
 type TaskProps = {
   task: TaskType & {
     activityLogs?: ActivityLog[];
+    comments?: Comment[]; 
   };
   getProjectName: (projectId: number) => string;
 };
 
 const Task = ({ task, getProjectName }: TaskProps) => {
+  const { user } = useAuth(); 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
     item: { id: task.id },
@@ -223,6 +226,34 @@ const Task = ({ task, getProjectName }: TaskProps) => {
   }));
 
   const taskTagsSplit = task.tags ? task.tags.split(",") : [];
+
+  const [showCommentsPopup, setShowCommentsPopup] = useState(false);
+  const [comments, setComments] = useState<Comment[]>(task.comments || []);
+  const [newComment, setNewComment] = useState("");
+  const [addCommentToTask] = useAddCommentToTaskMutation(); 
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+  
+    try {
+      if (!user?.userId) {
+        toast.error("You must be logged in to comment");
+        return;
+      }
+  
+      const response = await addCommentToTask({
+        taskId: task.id,
+        content: newComment,
+        userId: Number(user.userId),
+      }).unwrap();
+  
+      setComments([...comments, response]);
+      setNewComment("");
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      toast.error("Failed to add comment");
+    }
+  };
 
   const formattedStartDate = task.startDate
     ? format(new Date(task.startDate), "MMM d, h:mm a")
@@ -458,12 +489,60 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           </span>
         </div>
 
-          <div className="group relative flex items-center">
-            <MessageSquareMore size={16} className="mr-2" /> 0
-            <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-              Comments
-            </span>
-          </div>
+        <div className="group relative flex items-center">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCommentsPopup(!showCommentsPopup);
+            }}
+            className="flex items-center"
+          >
+            <MessageSquareMore size={16} className="mr-2" />
+            {comments.length}
+          </button>
+          
+          {showCommentsPopup && (
+            <div className="absolute right-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3">
+              <h4 className="font-semibold mb-2 dark:text-gray-200">Comments ({comments.length})</h4>
+              <div className="max-h-60 overflow-y-auto mb-3">
+                {comments.length > 0 ? (
+                  comments.map((comment, index) => (
+                    <div key={index} className="mb-2 text-sm dark:text-gray-300">
+                      <p className="font-semibold">{comment.user?.username || 'Anonymous'}</p>
+                      <p>{comment.content}</p>
+                      <p className="text-xs text-gray-500">
+                        {format(new Date(comment.createdAt), "MMM d, h:mm a")}
+                      </p>
+                      <div className="border-t border-gray-200 dark:border-gray-600 mt-1 pt-1"></div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm dark:text-gray-400">No comments yet</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm dark:bg-dark-secondary dark:border-gray-600"
+                />
+                <button
+                  onClick={handleAddComment}
+                  className="rounded bg-blue-500 px-2 py-1 text-sm text-white hover:bg-blue-600"
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+          )}
+
+          <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+            Comments
+          </span>
+        </div>
+      </div>
         </div>
 
         {isEditModalOpen && (
@@ -475,7 +554,6 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           />
         )}
       </div>
-    </div>
   );
 };
 

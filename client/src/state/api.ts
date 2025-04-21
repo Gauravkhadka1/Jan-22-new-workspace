@@ -67,6 +67,15 @@ export interface ActivityLog {
   user?: User;
 }
 
+export interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  userId: number;
+  user?: User;
+  taskId: number;
+}
+
 export interface Task {
   id: number;
   title: string;
@@ -113,7 +122,7 @@ export const api = createApi({
   },
   }),
   reducerPath: "api",
-  tagTypes: ["Projects", "Prospects", "Tasks", "Users", "Teams"],
+  tagTypes: ["Projects", "Prospects", "Tasks", "Users", "Teams", "Comments"],
   endpoints: (build) => ({
     registerUser: build.mutation<{ message: string }, Partial<User>>({
       query: (userData) => ({
@@ -248,6 +257,24 @@ updateProject: build.mutation<ProjectType, { projectId: number; name?: string; d
       ],
     }),
 
+    // Add to your endpoints in api.ts
+getTaskComments: build.query<Comment[], number>({
+  query: (taskId) => `tasks/${taskId}/comments`,
+  providesTags: (result, error, taskId) => [
+    { type: 'Comments', id: taskId }
+  ],
+}),
+addCommentToTask: build.mutation<Comment, { taskId: number; content: string; userId: number }>({
+  query: ({ taskId, content, userId }) => ({
+    url: `tasks/${taskId}/comments`,
+    method: 'POST',
+    body: { content, userId },
+  }),
+  invalidatesTags: (result, error, { taskId }) => [
+    { type: 'Comments', id: taskId }
+  ],
+}),
+
     deleteProspects: build.mutation<void, number>({
       query: (prospectId) => ({
         url: `prospects/${prospectId}`,
@@ -353,4 +380,5 @@ export const {
   useRegisterUserMutation,
   useGetTasksByUserIdForProfileQuery,
   useChangePasswordMutation,
+  useAddCommentToTaskMutation,
 } = api;
