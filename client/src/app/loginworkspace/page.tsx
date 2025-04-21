@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "sonner";
 
 const StarBackground = () => {
   const [stars, setStars] = useState<
@@ -185,6 +186,7 @@ const LoginForm = () => {
   
       const data = await response.json();
       login(data.token); // Only pass the token now
+      toast.success(`Logged in Succesfully`);
     } catch (err) {
       setError("Failed to connect to the server.");
     } finally {
