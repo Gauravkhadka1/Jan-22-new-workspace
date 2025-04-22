@@ -456,10 +456,10 @@ const Task = ({ task, getProjectName }: TaskProps) => {
         <div className="flex items-center justify-between dark:text-gray-200">
         <div className="group relative flex items-center">
           <button 
-            // onClick={(e) => {
-            //   e.stopPropagation();
-            //   setShowActivityPopup(!showActivityPopup);
-            // }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActivityPopup(!showActivityPopup);
+            }}
             className="flex items-center"
           >
             <Activity size={16} className="mr-2" />
@@ -491,10 +491,10 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
         <div className="group relative flex items-center mx-2">
           <button 
-            // onClick={(e) => {
-            //   e.stopPropagation();
-            //   setShowCommentsPopup(!showCommentsPopup);
-            // }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCommentsPopup(!showCommentsPopup);
+            }}
             className="flex items-center"
           >
             <MessageSquareMore size={16} className="mr-2" />

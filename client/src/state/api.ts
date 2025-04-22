@@ -178,49 +178,6 @@ export const api = createApi({
       query: () => "prospects",
       providesTags: ["Prospects"],
     }),
-
-
-    createCategory: build.mutation<Category, Partial<Category>>({
-      query: (category) => ({
-        url: "categories",
-        method: "POST",
-        body: category,
-      }),
-      invalidatesTags: ["Categories"],
-    }),
-    getCategories: build.query<Category[], void>({
-      query: () => "categories",
-      providesTags: ["Categories"],
-    }),
-    updateCategory: build.mutation<
-      Category,
-      { id: number; categoryData: Partial<Category> }
-    >({
-      query: ({ id, categoryData }) => ({
-        url: `categories/${id}`,
-        method: "PUT",
-        body: categoryData,
-      }),
-      invalidatesTags: ["Categories"],
-    }),
-    deleteCategory: build.mutation<void, number>({
-      query: (id) => ({
-        url: `categories/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Categories"],
-    }),
-    deleteMultipleCategories: build.mutation<void, number[]>({
-      query: (ids) => ({
-        url: "categories",
-        method: "DELETE",
-        body: { ids },
-      }),
-      invalidatesTags: ["Categories"],
-    }),
-
-
-
      
     createProject: build.mutation<ProjectType, Partial<ProjectType>>({
       query: (project) => ({
@@ -429,10 +386,4 @@ export const {
   useGetTasksByUserIdForProfileQuery,
   useChangePasswordMutation,
   useAddCommentToTaskMutation,
-
-    useGetCategoriesQuery,
-    useUpdateCategoryMutation,
-    useCreateCategoryMutation,
-    useDeleteCategoryMutation,
-    useDeleteMultipleCategoriesMutation,
 } = api;
