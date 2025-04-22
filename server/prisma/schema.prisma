@@ -86,3 +86,9 @@ model Comment {
   taskId    Int
   task      Task     @relation(fields: [taskId], references: [id])
 }
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  categoryName         String
+  categoryCode  String?
+}

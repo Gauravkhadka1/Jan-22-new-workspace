@@ -186,7 +186,7 @@ const LoginForm = () => {
   
       const data = await response.json();
       login(data.token); // Only pass the token now
-      toast.success(`Logged in Succesfully`);
+      toast.success(`Logged in Succesfully, Redirecting..`);
     } catch (err) {
       setError("Failed to connect to the server.");
     } finally {
