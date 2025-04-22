@@ -64,9 +64,7 @@ const ProjectBoardView = ({
   const [updateProject] = useUpdateProjectMutation();
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
 
-  // State for dropdown menu
-  const [openDropdowns, setOpenDropdowns] = useState<Record<number, boolean>>({});
-  const dropdownRef = useRef<HTMLDivElement>(null);
+
 
   // State for delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -94,13 +92,12 @@ const ProjectBoardView = ({
       endDate: project.endDate ? format(new Date(project.endDate), 'yyyy-MM-dd') : "",
     });
     setIsEditModalOpen(true);
-    setOpenDropdowns({}); // Close all dropdowns
   };
   
   const handleDeleteClick = (projectId: number) => {
     setProjectToDelete(projectId);
     setShowDeleteConfirm(true);
-    setOpenDropdowns({}); // Close all dropdowns
+
   };
   const confirmDelete = async () => {
     if (!projectToDelete) return;
@@ -116,21 +113,6 @@ const ProjectBoardView = ({
     setShowDeleteConfirm(false);
     setProjectToDelete(null);
   };
-
-  
-  // Update the click outside handler:
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setOpenDropdowns({});
-      }
-    };
-  
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   // Handle edit form submit
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -184,7 +166,7 @@ const ProjectBoardView = ({
               Are you sure you want to delete this project? This action cannot
               be undone.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 text-gray-200">
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteConfirm(false)}
@@ -282,9 +264,6 @@ const ProjectBoardView = ({
               setIsModalNewProjectOpen={setIsModalNewProjectOpen}
               handleEditClick={handleEditClick}
               handleDeleteClick={handleDeleteClick}
-              openDropdowns={openDropdowns}
-              setOpenDropdowns={setOpenDropdowns}
-              dropdownRef={dropdownRef}
             />
           ))}
         </div>
@@ -300,9 +279,6 @@ type ProjectColumnProps = {
   setIsModalNewProjectOpen: (isOpen: boolean) => void;
   handleEditClick: (project: ProjectType) => void;
   handleDeleteClick: (projectId: number) => void;
-  openDropdowns: Record<number, boolean>;
-  setOpenDropdowns: (state: Record<number, boolean>) => void;
-  dropdownRef: React.RefObject<HTMLDivElement>;
 };
 
 const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
@@ -314,9 +290,6 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
       setIsModalNewProjectOpen,
       handleEditClick,
       handleDeleteClick,
-      openDropdowns,
-      setOpenDropdowns,
-      dropdownRef,
     },
     ref,
   ) => {
@@ -371,9 +344,6 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
               projectData={project}
               handleEditClick={handleEditClick}
               handleDeleteClick={handleDeleteClick}
-              openDropdowns={openDropdowns}
-              setOpenDropdowns={setOpenDropdowns}
-              dropdownRef={dropdownRef}
             />
           ))}
         </div>
@@ -386,22 +356,18 @@ type ProjectProps = {
   projectData: ProjectType;
   handleEditClick: (project: ProjectType) => void;
   handleDeleteClick: (projectId: number) => void;
-  openDropdowns: Record<number, boolean>;  
-  setOpenDropdowns: (state: Record<number, boolean>) => void; 
-  dropdownRef: React.RefObject<HTMLDivElement>;
 };
 
 const Project = ({
   projectData,
   handleEditClick,
   handleDeleteClick,
-  openDropdowns,
-  setOpenDropdowns,
-  dropdownRef,
 }: ProjectProps) => {
   const dragRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "Project",
@@ -412,6 +378,19 @@ const Project = ({
   }));
 
   drag(dragRef);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const formattedStartDate = projectData.startDate
     ? format(new Date(projectData.startDate), "MMM d, y")
@@ -470,29 +449,35 @@ const Project = ({
         {isAdmin && (
           <div className="relative" ref={dropdownRef}>
             <button
-               onClick={() =>
-                setOpenDropdowns({
-                  ...openDropdowns,
-                  [projectData.id]: !openDropdowns[projectData.id]
-                })
-              }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsDropdownOpen(!isDropdownOpen);
+                    }}
               className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-gray-200"
             >
               <EllipsisVertical size={26} />
             </button>
 
-            {openDropdowns[projectData.id] && (
+            {isDropdownOpen && (
               <div className="absolute right-0 z-10 mt-2 w-15 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-dark-tertiary">
                 <div className="py-1">
                   <button
-                    onClick={() => handleEditClick(projectData)}
+                 onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditClick(projectData);
+                  setIsDropdownOpen(false);
+                }}
                     className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     {/* Edit Project */}
                   </button>
                   <button
-                    onClick={() => handleDeleteClick(projectData.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(projectData.id);
+                      setIsDropdownOpen(false);
+                    }}
                     className="flex px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
