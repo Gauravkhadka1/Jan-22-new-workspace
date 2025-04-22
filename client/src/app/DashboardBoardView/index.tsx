@@ -86,6 +86,8 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
     }
   }, [tasks, userId]);
 
+  
+
   const moveTask = (taskId: number, toStatus: Status) => {
     if (!userId) {
       console.error("No authenticated user found");
@@ -331,6 +333,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
   >({});
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [showActivityPopup, setShowActivityPopup] = useState(false);
 
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
 
@@ -338,6 +341,39 @@ const Task = ({ task, getProjectName }: TaskProps) => {
     setSelectedTask(task);
     setIsEditModalOpen(true);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Close task options
+      if (taskOptionsVisible[task.id]) {
+        const optionsMenu = document.querySelector('.task-options-menu');
+        if (optionsMenu && !optionsMenu.contains(event.target as Node)) {
+          setTaskOptionsVisible((prev) => ({ ...prev, [task.id]: false }));
+        }
+      }
+      
+      // Close activity popup
+      if (showActivityPopup) {
+        const activityPopup = document.querySelector('.activity-popup');
+        if (activityPopup && !activityPopup.contains(event.target as Node)) {
+          setShowActivityPopup(false);
+        }
+      }
+      
+      // Close comments popup
+      if (showCommentsPopup) {
+        const commentsPopup = document.querySelector('.comments-popup');
+        if (commentsPopup && !commentsPopup.contains(event.target as Node)) {
+          setShowCommentsPopup(false);
+        }
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [taskOptionsVisible, showActivityPopup, showCommentsPopup, task.id]);
 
   const handleDeleteClick = async (task: any) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
@@ -353,7 +389,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
-  const [showActivityPopup, setShowActivityPopup] = useState(false);
+ 
   
   // Function to format activity log messages
   const formatActivityMessage = (log: ActivityLog) => {
@@ -416,7 +452,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             <EllipsisVertical size={26} className="dark:text-gray-200" />
           </button>
           {taskOptionsVisible[task.id] && (
-            <div className="absolute right-10 z-50 mt-12 rounded bg-white shadow-lg">
+            <div className="absolute right-10 z-50 mt-12 rounded bg-white shadow-lg task-options-menu">
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {
@@ -467,7 +503,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           </button>
           
           {showActivityPopup && (
-            <div className="absolute left-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3">
+            <div className="absolute left-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3 activity-popup">
               <h4 className="font-semibold mb-2 dark:text-gray-200">Activity Logs</h4>
               <div className="max-h-60 overflow-y-auto">
                 {task.activityLogs && task.activityLogs.length > 0 ? (
@@ -502,7 +538,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
           </button>
           
           {showCommentsPopup && (
-            <div className="absolute right-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3">
+            <div className="absolute right-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3 comments-popup">
               <h4 className="font-semibold mb-2 dark:text-gray-200">Comments ({comments.length})</h4>
               <div className="max-h-60 overflow-y-auto mb-3">
                 {comments.length > 0 ? (
