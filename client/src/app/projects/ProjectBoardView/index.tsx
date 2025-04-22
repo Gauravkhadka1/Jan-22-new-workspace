@@ -65,7 +65,7 @@ const ProjectBoardView = ({
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
 
   // State for dropdown menu
-  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<number, boolean>>({});
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // State for delete confirmation
@@ -85,51 +85,23 @@ const ProjectBoardView = ({
   });
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpenDropdownId(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Handle edit click
   const handleEditClick = (project: ProjectType) => {
     setCurrentProject(project);
-    
-    // Format dates for input fields (YYYY-MM-DD)
-    const formatDateForInput = (dateString?: string) => {
-      if (!dateString) return "";
-      const date = new Date(dateString);
-      return date.toISOString().split('T')[0];
-    };
-  
     setEditFormData({
       name: project.name,
       description: project.description || "",
-      startDate: formatDateForInput(project.startDate),
-      endDate: formatDateForInput(project.endDate),
+      startDate: project.startDate ? format(new Date(project.startDate), 'yyyy-MM-dd') : "",
+      endDate: project.endDate ? format(new Date(project.endDate), 'yyyy-MM-dd') : "",
     });
     setIsEditModalOpen(true);
-    setOpenDropdownId(null);
+    setOpenDropdowns({}); // Close all dropdowns
   };
-
-  // Handle delete click
+  
   const handleDeleteClick = (projectId: number) => {
     setProjectToDelete(projectId);
     setShowDeleteConfirm(true);
-    setOpenDropdownId(null);
+    setOpenDropdowns({}); // Close all dropdowns
   };
-
-  // Confirm delete
   const confirmDelete = async () => {
     if (!projectToDelete) return;
 
@@ -144,6 +116,21 @@ const ProjectBoardView = ({
     setShowDeleteConfirm(false);
     setProjectToDelete(null);
   };
+
+  
+  // Update the click outside handler:
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdowns({});
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Handle edit form submit
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -295,8 +282,8 @@ const ProjectBoardView = ({
               setIsModalNewProjectOpen={setIsModalNewProjectOpen}
               handleEditClick={handleEditClick}
               handleDeleteClick={handleDeleteClick}
-              openDropdownId={openDropdownId}
-              setOpenDropdownId={setOpenDropdownId}
+              openDropdowns={openDropdowns}
+              setOpenDropdowns={setOpenDropdowns}
               dropdownRef={dropdownRef}
             />
           ))}
@@ -313,8 +300,8 @@ type ProjectColumnProps = {
   setIsModalNewProjectOpen: (isOpen: boolean) => void;
   handleEditClick: (project: ProjectType) => void;
   handleDeleteClick: (projectId: number) => void;
-  openDropdownId: number | null;
-  setOpenDropdownId: (id: number | null) => void;
+  openDropdowns: Record<number, boolean>;
+  setOpenDropdowns: (state: Record<number, boolean>) => void;
   dropdownRef: React.RefObject<HTMLDivElement>;
 };
 
@@ -327,8 +314,8 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
       setIsModalNewProjectOpen,
       handleEditClick,
       handleDeleteClick,
-      openDropdownId,
-      setOpenDropdownId,
+      openDropdowns,
+      setOpenDropdowns,
       dropdownRef,
     },
     ref,
@@ -384,8 +371,8 @@ const ProjectColumn = React.forwardRef<HTMLDivElement, ProjectColumnProps>(
               projectData={project}
               handleEditClick={handleEditClick}
               handleDeleteClick={handleDeleteClick}
-              openDropdownId={openDropdownId}
-              setOpenDropdownId={setOpenDropdownId}
+              openDropdowns={openDropdowns}
+              setOpenDropdowns={setOpenDropdowns}
               dropdownRef={dropdownRef}
             />
           ))}
@@ -399,8 +386,8 @@ type ProjectProps = {
   projectData: ProjectType;
   handleEditClick: (project: ProjectType) => void;
   handleDeleteClick: (projectId: number) => void;
-  openDropdownId: number | null;
-  setOpenDropdownId: (id: number | null) => void;
+  openDropdowns: Record<number, boolean>;  
+  setOpenDropdowns: (state: Record<number, boolean>) => void; 
   dropdownRef: React.RefObject<HTMLDivElement>;
 };
 
@@ -408,8 +395,8 @@ const Project = ({
   projectData,
   handleEditClick,
   handleDeleteClick,
-  openDropdownId,
-  setOpenDropdownId,
+  openDropdowns,
+  setOpenDropdowns,
   dropdownRef,
 }: ProjectProps) => {
   const dragRef = useRef(null);
@@ -483,17 +470,18 @@ const Project = ({
         {isAdmin && (
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() =>
-                setOpenDropdownId(
-                  openDropdownId === projectData.id ? null : projectData.id,
-                )
+               onClick={() =>
+                setOpenDropdowns({
+                  ...openDropdowns,
+                  [projectData.id]: !openDropdowns[projectData.id]
+                })
               }
               className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-gray-200"
             >
               <EllipsisVertical size={26} />
             </button>
 
-            {openDropdownId === projectData.id && (
+            {openDropdowns[projectData.id] && (
               <div className="absolute right-0 z-10 mt-2 w-15 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-dark-tertiary">
                 <div className="py-1">
                   <button
