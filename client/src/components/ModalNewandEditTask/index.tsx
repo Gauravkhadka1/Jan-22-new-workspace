@@ -384,52 +384,81 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOr
       {showCommentModal && (
         <Modal isOpen={showCommentModal} onClose={() => setShowCommentModal(false)} name="Date Change Reason">
           <div className="mt-4 space-y-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded-md">
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
-              <p className="font-semibold mb-2">You're about to update this task with the following date changes:</p>
+            <div className="space-y-4">
+              <p className="font-semibold">You're updating the following dates:</p>
               
               {dateChanges.start && (
-                <div className="mb-2">
-                  <p className="font-medium">Start Date:</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    From: {formatDateForDisplay(dateChanges.start.previous)}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    To: {formatDateForDisplay(dateChanges.start.new)}
-                  </p>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-1 bg-blue-500 rounded-full h-full min-h-[40px]"></div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Previous Start Date
+                      </p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {formatDateForDisplay(dateChanges.start.previous)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="ml-4 pl-3 border-l-2 border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      New Start Date
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-400 font-medium">
+                      {formatDateForDisplay(dateChanges.start.new)}
+                    </p>
+                  </div>
                 </div>
               )}
               
               {dateChanges.due && (
-                <div className="mb-2">
-                  <p className="font-medium">Due Date:</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    From: {formatDateForDisplay(dateChanges.due.previous)}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    To: {formatDateForDisplay(dateChanges.due.new)}
-                  </p>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-3">
+                    <div className="w-1 bg-blue-500 rounded-full h-full min-h-[40px]"></div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Previous Due Date
+                      </p>
+                      <p className="text-gray-700 dark:text-gray-300">
+                        {formatDateForDisplay(dateChanges.due.previous)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="ml-4 pl-3 border-l-2 border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      New Due Date
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-400 font-medium">
+                      {formatDateForDisplay(dateChanges.due.new)}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 pt-4">
               <label htmlFor="dateChangeComment" className="block text-sm font-medium">
-                Reason for change (required):
+                Reason for change <span className="text-red-500">*</span>
               </label>
-              <textarea
-                id="dateChangeComment"
-                className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                rows={4}
-                value={dateChangeComment}
-                onChange={(e) => setDateChangeComment(e.target.value)}
-                placeholder="Explain why you're changing the date(s)..."
-              />
+              <div className="relative">
+                <textarea
+                  id="dateChangeComment"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  rows={4}
+                  value={dateChangeComment}
+                  onChange={(e) => setDateChangeComment(e.target.value)}
+                  placeholder="Please explain why you're changing these dates..."
+                />
+                <div className="absolute bottom-2 right-2 text-xs text-gray-500">
+                  {dateChangeComment.length}/500
+                </div>
+              </div>
             </div>
             
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
-                className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   setShowCommentModal(false);
                   setDateChangeComment("");
@@ -440,11 +469,15 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOr
               </button>
               <button
                 type="button"
-                className="px-4 py-2 rounded-md bg-blue-600 dark:bg-blue-500 text-white dark:text-gray-100 hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
+                className={`px-4 py-2 rounded-md text-white dark:text-gray-100 transition-colors ${
+                  dateChangeComment.trim()
+                    ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                    : "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
+                }`}
                 onClick={confirmDateChange}
                 disabled={!dateChangeComment.trim()}
               >
-                Confirm Update
+                Confirm Changes
               </button>
             </div>
           </div>

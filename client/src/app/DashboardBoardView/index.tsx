@@ -19,6 +19,7 @@ import {
   EllipsisVertical,
   MessageSquareMore,
   Plus,
+  User,
 } from "lucide-react";
 import {
   format,
@@ -418,6 +419,21 @@ const Task = ({ task, getProjectName }: TaskProps) => {
     }
   };
 
+  const getActivityIcon = (action: string) => {
+    switch (action) {
+      case "CREATE":
+        return <Plus size={16} className="text-blue-500" />;
+      case "STATUS_UPDATE":
+        return <Activity size={16} className="text-purple-500" />;
+      case "DUE_DATE_UPDATE":
+        return <ArrowRight size={16} className="text-orange-500" />;
+      case "ASSIGNEE_UPDATE":
+        return <User size={16} className="text-green-500" />;
+      default:
+        return <Activity size={16} className="text-gray-500" />;
+    }
+  };
+
   // const numberOfComments = (task.comments && task.comments.length) || 0;
 
   // Function to format activity log messages
@@ -444,6 +460,27 @@ const Task = ({ task, getProjectName }: TaskProps) => {
         return `${user?.username || "Someone"} modified the task on ${formattedTime}`;
     }
   };
+
+  const parseDateChangeComment = (content: string) => {
+    const lines = content.split('\n');
+    const dateChangeMatch = lines[0].match(/(changed the (start|due) date from (.+) to (.+))/);
+    
+    if (dateChangeMatch) {
+      const [_, changeText, dateType, oldDate, newDate] = dateChangeMatch;
+      const reason = lines.slice(2).join('\n'); // Get everything after the first two lines as reason
+      
+      return {
+        isDateChange: true,
+        dateType,
+        oldDate,
+        newDate,
+        reason,
+        originalContent: content
+      };
+    }
+    return { isDateChange: false, originalContent: content };
+  };
+
 
   return (
     <div
@@ -521,112 +558,206 @@ const Task = ({ task, getProjectName }: TaskProps) => {
         )}
         <div className="my-3 border-b border-gray-500"></div>
         <div className="flex items-center justify-between dark:text-gray-200">
-          <div className="group relative flex items-center">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowActivityPopup(!showActivityPopup);
-              }}
-              className="flex items-center"
-            >
-              <Activity size={16} className="mr-2" />
-              {task.activityLogs?.length || 0}
-            </button>
+        {/* Activity Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowActivityPopup(true);
+          }}
+          className="flex items-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+        >
+          <Activity size={18} className="mr-2 text-blue-500" />
+          <span className="text-sm font-medium">
+            {task.activityLogs?.length || 0}
+          </span>
+        </button>
 
-            {showActivityPopup && (
-              <div className="activity-popup absolute bottom-full left-0 z-50 mb-2 w-64 rounded-md bg-white p-3 shadow-lg dark:bg-dark-tertiary">
-                <h4 className="mb-2 font-semibold dark:text-gray-200">
-                  Activity Logs
+        {/* Comments Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowCommentsPopup(true);
+          }}
+          className="flex items-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+        >
+          <MessageSquareMore size={18} className="mr-2 text-green-500" />
+          <span className="text-sm font-medium">{comments.length}</span>
+        </button>
+      </div>
+
+      {/* Activity Modal */}
+      {showActivityPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="relative max-h-[90vh] w-full max-w-4xl rounded-lg bg-white shadow-xl dark:bg-dark-tertiary">
+            <div className="sticky top-0 rounded-t-lg bg-gray-50 px-6 py-4 dark:bg-gray-800">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xl font-semibold dark:text-gray-200">
+                  Activity History
                 </h4>
-                <div className="max-h-60 overflow-y-auto">
-                  {task.activityLogs && task.activityLogs.length > 0 ? (
-                    task.activityLogs.map((log, index) => (
-                      <div
-                        key={index}
-                        className="mb-2 text-sm dark:text-gray-300"
-                      >
-                        <p>{formatActivityMessage(log)}</p>
-                        <div className="mt-1 border-t border-gray-200 pt-1 dark:border-gray-600"></div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm dark:text-gray-400">
-                      No activity yet
-                    </p>
-                  )}
-                </div>
+                <button
+                  onClick={() => setShowActivityPopup(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
-            )}
-
-            <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-              Activity
-            </span>
-          </div>
-
-          <div className="group relative mx-2 flex items-center">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowCommentsPopup(!showCommentsPopup);
-              }}
-              className="flex items-center"
-            >
-              <MessageSquareMore size={16} className="mr-2" />
-              {comments.length}
-            </button>
-
-            {showCommentsPopup && (
-              <div className="comments-popup absolute bottom-full right-0 z-50 mb-2 w-64 rounded-md bg-white p-3 shadow-lg dark:bg-dark-tertiary">
-                <h4 className="mb-2 font-semibold dark:text-gray-200">
-                  Comments ({numberOfComments})
-                </h4>
-                <div className="mb-3 max-h-60 overflow-y-auto">
-                  {comments.length > 0 ? (
-                    comments.map((comment) => (
-                      <div
-                        key={comment.id}
-                        className="mb-2 text-sm dark:text-gray-300"
-                      >
-                        <p className="font-semibold">
-                          {comment.user?.username || "Anonymous"}
-                        </p>
-                        <p>{comment.content}</p>
-                        <p className="text-xs text-gray-500">
-                          {format(new Date(comment.createdAt), "MMM d, h:mm a")}
-                        </p>
-                        <div className="mt-1 border-t border-gray-200 pt-1 dark:border-gray-600"></div>
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto p-6">
+              {task.activityLogs && task.activityLogs.length > 0 ? (
+                <div className="space-y-4">
+                  {task.activityLogs.map((log, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-4 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-600">
+                        {getActivityIcon(log.action)}
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-sm dark:text-gray-400">
-                      No comments yet
-                    </p>
-                  )}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-lg font-medium dark:text-gray-200">
+                            {log.user?.username || "Anonymous"}
+                          </p>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {format(new Date(log.timestamp), "MMM d, yyyy 'at' h:mm a")}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-gray-600 dark:text-gray-300">
+                          {formatActivityMessage(log)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex gap-2">
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Activity size={48} className="mb-4 text-gray-400" />
+                  <p className="text-lg text-gray-500 dark:text-gray-400">
+                    No activity yet
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Comments Modal */}
+      {showCommentsPopup && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="relative max-h-[90vh] w-full max-w-4xl rounded-lg bg-white shadow-xl dark:bg-dark-tertiary">
+      <div className="sticky top-0 rounded-t-lg bg-gray-50 px-6 py-4 dark:bg-gray-800">
+        {/* ... (modal header remains the same) */}
+      </div>
+      <div className="max-h-[60vh] overflow-y-auto p-6">
+        {comments.length > 0 ? (
+          <div className="space-y-6">
+            {comments.map((comment) => {
+              const parsedComment = parseDateChangeComment(comment.content);
+              
+              return (
+                <div
+                  key={comment.id}
+                  className="flex items-start gap-4 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-600">
+                    <User size={24} className="text-gray-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-medium dark:text-gray-200">
+                        {comment.user?.username || "Anonymous"}
+                      </p>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {format(
+                          new Date(comment.createdAt),
+                          "MMM d, yyyy 'at' h:mm a"
+                        )}
+                      </span>
+                    </div>
+                    
+                    {parsedComment.isDateChange ? (
+                      <div className="mt-3 space-y-3">
+                        <div className="border-l-4 border-blue-500 pl-3 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-r">
+                          <p className="text-gray-700 dark:text-gray-300">
+                            {comment.user?.username || "Someone"} {parsedComment.dateType === 'due' ? 'changed the due date' : 'changed the start date'} from {parsedComment.oldDate} to {parsedComment.newDate}
+                          </p>
+                        </div>
+                        {parsedComment.reason && (
+                          <div className="mt-2 pl-2">
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                              Reason:
+                            </p>
+                            <p className="text-gray-700 dark:text-gray-300">
+                              {parsedComment.reason}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-gray-600 dark:text-gray-300">
+                        {comment.content}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12">
+            <MessageSquareMore size={48} className="mb-4 text-gray-400" />
+            <p className="text-lg text-gray-500 dark:text-gray-400">
+              No comments yet
+            </p>
+          </div>
+        )}
+      </div>
+            <div className="sticky bottom-0 border-t border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-dark-tertiary">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-600">
+                  <User size={24} className="text-gray-500" />
+                </div>
+                <div className="flex-1">
                   <input
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment..."
-                    className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-dark-secondary"
+                    placeholder="Write a comment..."
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-dark-secondary dark:text-gray-200"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddComment();
+                      }
+                    }}
                   />
-                  <button
-                    onClick={handleAddComment}
-                    className="rounded bg-blue-500 px-2 py-1 text-sm text-white hover:bg-blue-600"
-                  >
-                    Post
-                  </button>
                 </div>
+                <button
+                  onClick={handleAddComment}
+                  className="rounded-lg bg-blue-500 px-6 py-3 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={!newComment.trim()}
+                >
+                  Post
+                </button>
               </div>
-            )}
-
-            <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-              Comments
-            </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+    </div>
 
       {isEditModalOpen && (
         <ModalNewTask
