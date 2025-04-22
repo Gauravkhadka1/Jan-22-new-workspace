@@ -49,7 +49,6 @@ interface ActivityLog {
   };
 }
 
-
 const taskStatus: Status[] = [
   "To Do",
   "Work In Progress",
@@ -86,33 +85,31 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
     }
   }, [tasks, userId]);
 
-  
-
   const moveTask = (taskId: number, toStatus: Status) => {
     if (!userId) {
       console.error("No authenticated user found");
       return;
     }
 
-    
-  // Find the task being moved
-  const taskToMove = userTasks.find((task) => task.id === taskId);
-  if (!taskToMove) {
-    toast.error("Task not found");
-    return;
-  }
+    // Find the task being moved
+    const taskToMove = userTasks.find((task) => task.id === taskId);
+    if (!taskToMove) {
+      toast.error("Task not found");
+      return;
+    }
 
-  // Check if task is overdue
-  const isOverdue = taskToMove.dueDate && new Date(taskToMove.dueDate) < new Date();
+    // Check if task is overdue
+    const isOverdue =
+      taskToMove.dueDate && new Date(taskToMove.dueDate) < new Date();
 
-  // Special case: Allow moving from Under Review to Completed even if overdue
-  const isUnderReviewToCompleted = 
-    taskToMove.status === "Under Review" && toStatus === "Completed";
+    // Special case: Allow moving from Under Review to Completed even if overdue
+    const isUnderReviewToCompleted =
+      taskToMove.status === "Under Review" && toStatus === "Completed";
 
-  if (isOverdue && !isUnderReviewToCompleted) {
-    toast.error("Task is overdue. Please edit the due date.");
-    return;
-  }
+    if (isOverdue && !isUnderReviewToCompleted) {
+      toast.error("Task is overdue. Please edit the due date.");
+      return;
+    }
 
     updateTaskStatus({ taskId, status: toStatus, updatedBy: userId })
       .unwrap()
@@ -168,7 +165,7 @@ const TaskColumn = ({
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "task",
     drop: (item: { id: number }) => {
-      const task = tasks.find(t => t.id === item.id);
+      const task = tasks.find((t) => t.id === item.id);
       if (task) {
         moveTask(task.id, status);
       }
@@ -237,7 +234,7 @@ const TaskColumn = ({
 type TaskProps = {
   task: TaskType & {
     activityLogs?: ActivityLog[];
-    comments?: Comment[]; 
+    comments?: Comment[];
   };
   getProjectName: (projectId: number) => string;
 };
@@ -256,31 +253,40 @@ const Task = ({ task, getProjectName }: TaskProps) => {
   const [showCommentsPopup, setShowCommentsPopup] = useState(false);
   const [comments, setComments] = useState<Comment[]>(task.comments || []);
   const [newComment, setNewComment] = useState("");
-  const [addCommentToTask] = useAddCommentToTaskMutation(); 
+  const [addCommentToTask] = useAddCommentToTaskMutation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (task.comments) {
+      setComments(task.comments);
+    }
+  }, [task.comments]);
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
-  
+
     try {
       if (!user?.userId) {
         toast.error("You must be logged in to comment");
         return;
       }
-  
+
       const response = await addCommentToTask({
         taskId: task.id,
         content: newComment,
         userId: Number(user.userId),
       }).unwrap();
-  
-      setComments([...comments, response]);
+
+      setComments([response, ...comments]); // Add new comment at the beginning
       setNewComment("");
     } catch (error) {
       console.error("Failed to add comment:", error);
       toast.error("Failed to add comment");
     }
   };
+
+  // Update the numberOfComments calculation
+  const numberOfComments = comments.length;
 
   const formattedStartDate = task.startDate
     ? format(new Date(task.startDate), "MMM d, h:mm a")
@@ -371,32 +377,32 @@ const Task = ({ task, getProjectName }: TaskProps) => {
     const handleClickOutside = (event: MouseEvent) => {
       // Close task options
       if (taskOptionsVisible[task.id]) {
-        const optionsMenu = document.querySelector('.task-options-menu');
+        const optionsMenu = document.querySelector(".task-options-menu");
         if (optionsMenu && !optionsMenu.contains(event.target as Node)) {
           setTaskOptionsVisible((prev) => ({ ...prev, [task.id]: false }));
         }
       }
-      
+
       // Close activity popup
       if (showActivityPopup) {
-        const activityPopup = document.querySelector('.activity-popup');
+        const activityPopup = document.querySelector(".activity-popup");
         if (activityPopup && !activityPopup.contains(event.target as Node)) {
           setShowActivityPopup(false);
         }
       }
-      
+
       // Close comments popup
       if (showCommentsPopup) {
-        const commentsPopup = document.querySelector('.comments-popup');
+        const commentsPopup = document.querySelector(".comments-popup");
         if (commentsPopup && !commentsPopup.contains(event.target as Node)) {
           setShowCommentsPopup(false);
         }
       }
     };
-  
-    document.addEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [taskOptionsVisible, showActivityPopup, showCommentsPopup, task.id]);
 
@@ -412,30 +418,30 @@ const Task = ({ task, getProjectName }: TaskProps) => {
     }
   };
 
-  const numberOfComments = (task.comments && task.comments.length) || 0;
+  // const numberOfComments = (task.comments && task.comments.length) || 0;
 
- 
-  
   // Function to format activity log messages
   const formatActivityMessage = (log: ActivityLog) => {
     const { action, details, timestamp, user } = log;
     const formattedTime = format(new Date(timestamp), "MMM d, h:mm a");
-    
+
     switch (action) {
-      case 'CREATE':
-        return `${user?.username || 'Someone'} created the task on ${formattedTime}`;
-      case 'STATUS_UPDATE':
-        if (!details) return `${user?.username || 'Someone'} updated the task status on ${formattedTime}`;
-        const [fromStatus, toStatus] = details.split('|');
-        return `${user?.username || 'Someone'} updated status from ${fromStatus} to ${toStatus} on ${formattedTime}`;
-      case 'DUE_DATE_UPDATE':
-        if (!details) return `${user?.username || 'Someone'} updated the due date on ${formattedTime}`;
-        const [oldDate, newDate] = details.split('|');
-        return `${user?.username || 'Someone'} changed due date from ${format(new Date(oldDate), "MMM d, h:mm a")} to ${format(new Date(newDate), "MMM d, h:mm a")} on ${formattedTime}`;
-      case 'ASSIGNEE_UPDATE':
-        return `${user?.username || 'Someone'} reassigned the task on ${formattedTime}`;
+      case "CREATE":
+        return `${user?.username || "Someone"} created the task on ${formattedTime}`;
+      case "STATUS_UPDATE":
+        if (!details)
+          return `${user?.username || "Someone"} updated the task status on ${formattedTime}`;
+        const [fromStatus, toStatus] = details.split("|");
+        return `${user?.username || "Someone"} updated status from ${fromStatus} to ${toStatus} on ${formattedTime}`;
+      case "DUE_DATE_UPDATE":
+        if (!details)
+          return `${user?.username || "Someone"} updated the due date on ${formattedTime}`;
+        const [oldDate, newDate] = details.split("|");
+        return `${user?.username || "Someone"} changed due date from ${format(new Date(oldDate), "MMM d, h:mm a")} to ${format(new Date(newDate), "MMM d, h:mm a")} on ${formattedTime}`;
+      case "ASSIGNEE_UPDATE":
+        return `${user?.username || "Someone"} reassigned the task on ${formattedTime}`;
       default:
-        return `${user?.username || 'Someone'} modified the task on ${formattedTime}`;
+        return `${user?.username || "Someone"} modified the task on ${formattedTime}`;
     }
   };
 
@@ -477,7 +483,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             <EllipsisVertical size={26} className="dark:text-gray-200" />
           </button>
           {taskOptionsVisible[task.id] && (
-            <div className="absolute right-10 z-50 mt-12 rounded bg-white shadow-lg task-options-menu">
+            <div className="task-options-menu absolute right-10 z-50 mt-12 rounded bg-white shadow-lg">
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 onClick={(e) => {
@@ -515,106 +521,122 @@ const Task = ({ task, getProjectName }: TaskProps) => {
         )}
         <div className="my-3 border-b border-gray-500"></div>
         <div className="flex items-center justify-between dark:text-gray-200">
-        <div className="group relative flex items-center">
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowActivityPopup(!showActivityPopup);
-            }}
-            className="flex items-center"
-          >
-            <Activity size={16} className="mr-2" />
-            {task.activityLogs?.length || 0}
-          </button>
-          
-          {showActivityPopup && (
-            <div className="absolute left-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3 activity-popup">
-              <h4 className="font-semibold mb-2 dark:text-gray-200">Activity Logs</h4>
-              <div className="max-h-60 overflow-y-auto">
-                {task.activityLogs && task.activityLogs.length > 0 ? (
-                  task.activityLogs.map((log, index) => (
-                    <div key={index} className="mb-2 text-sm dark:text-gray-300">
-                      <p>{formatActivityMessage(log)}</p>
-                      <div className="border-t border-gray-200 dark:border-gray-600 mt-1 pt-1"></div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm dark:text-gray-400">No activity yet</p>
-                )}
-              </div>
-            </div>
-          )}
+          <div className="group relative flex items-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowActivityPopup(!showActivityPopup);
+              }}
+              className="flex items-center"
+            >
+              <Activity size={16} className="mr-2" />
+              {task.activityLogs?.length || 0}
+            </button>
 
-          <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-            Activity
-          </span>
-        </div>
-
-        <div className="group relative flex items-center mx-2">
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCommentsPopup(!showCommentsPopup);
-            }}
-            className="flex items-center"
-          >
-            <MessageSquareMore size={16} className="mr-2" />
-            {comments.length}
-          </button>
-          
-          {showCommentsPopup && (
-            <div className="absolute right-0 bottom-full mb-2 z-50 w-64 rounded-md bg-white shadow-lg dark:bg-dark-tertiary p-3 comments-popup">
-              <h4 className="font-semibold mb-2 dark:text-gray-200">Comments ({comments.length})</h4>
-              <div className="max-h-60 overflow-y-auto mb-3">
-                {comments.length > 0 ? (
-                  comments.map((comment, index) => (
-                    <div key={index} className="mb-2 text-sm dark:text-gray-300">
-                      <p className="font-semibold">{comment.user?.username || 'Anonymous'}</p>
-                      <p>{comment.content}</p>
-                      <p className="text-xs text-gray-500">
-                        {format(new Date(comment.createdAt), "MMM d, h:mm a")}
-                      </p>
-                      <div className="border-t border-gray-200 dark:border-gray-600 mt-1 pt-1"></div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm dark:text-gray-400">No comments yet</p>
-                )}
+            {showActivityPopup && (
+              <div className="activity-popup absolute bottom-full left-0 z-50 mb-2 w-64 rounded-md bg-white p-3 shadow-lg dark:bg-dark-tertiary">
+                <h4 className="mb-2 font-semibold dark:text-gray-200">
+                  Activity Logs
+                </h4>
+                <div className="max-h-60 overflow-y-auto">
+                  {task.activityLogs && task.activityLogs.length > 0 ? (
+                    task.activityLogs.map((log, index) => (
+                      <div
+                        key={index}
+                        className="mb-2 text-sm dark:text-gray-300"
+                      >
+                        <p>{formatActivityMessage(log)}</p>
+                        <div className="mt-1 border-t border-gray-200 pt-1 dark:border-gray-600"></div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm dark:text-gray-400">
+                      No activity yet
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm dark:bg-dark-secondary dark:border-gray-600"
-                />
-                <button
-                  onClick={handleAddComment}
-                  className="rounded bg-blue-500 px-2 py-1 text-sm text-white hover:bg-blue-600"
-                >
-                  Post
-                </button>
-              </div>
-            </div>
-          )}
+            )}
 
-          <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-10 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-            Comments
-          </span>
+            <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+              Activity
+            </span>
+          </div>
+
+          <div className="group relative mx-2 flex items-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCommentsPopup(!showCommentsPopup);
+              }}
+              className="flex items-center"
+            >
+              <MessageSquareMore size={16} className="mr-2" />
+              {comments.length}
+            </button>
+
+            {showCommentsPopup && (
+              <div className="comments-popup absolute bottom-full right-0 z-50 mb-2 w-64 rounded-md bg-white p-3 shadow-lg dark:bg-dark-tertiary">
+                <h4 className="mb-2 font-semibold dark:text-gray-200">
+                  Comments ({numberOfComments})
+                </h4>
+                <div className="mb-3 max-h-60 overflow-y-auto">
+                  {comments.length > 0 ? (
+                    comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="mb-2 text-sm dark:text-gray-300"
+                      >
+                        <p className="font-semibold">
+                          {comment.user?.username || "Anonymous"}
+                        </p>
+                        <p>{comment.content}</p>
+                        <p className="text-xs text-gray-500">
+                          {format(new Date(comment.createdAt), "MMM d, h:mm a")}
+                        </p>
+                        <div className="mt-1 border-t border-gray-200 pt-1 dark:border-gray-600"></div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm dark:text-gray-400">
+                      No comments yet
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-dark-secondary"
+                  />
+                  <button
+                    onClick={handleAddComment}
+                    className="rounded bg-blue-500 px-2 py-1 text-sm text-white hover:bg-blue-600"
+                  >
+                    Post
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+              Comments
+            </span>
+          </div>
         </div>
       </div>
-        </div>
 
-        {isEditModalOpen && (
-          <ModalNewTask
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            id={selectedTask?.projectId?.toString()}
-            task={selectedTask}
-          />
-        )}
-      </div>
+      {isEditModalOpen && (
+        <ModalNewTask
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          id={selectedTask?.projectId?.toString()}
+          task={selectedTask}
+        />
+      )}
+    </div>
   );
 };
 
