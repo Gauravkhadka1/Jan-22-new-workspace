@@ -86,3 +86,4 @@ model Comment {
   taskId    Int
   task      Task     @relation(fields: [taskId], references: [id])
 }
+
