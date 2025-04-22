@@ -10,7 +10,7 @@ import { Clock } from "lucide-react";
 import DashboardCalendarView from "../DashboardCalendarView";
 import withAuth from "../../hoc/withAuth";
 import { toast } from "sonner"
-import { Toaster } from "@/components/ui/sonner"
+
 
 
 type Props = {
@@ -34,7 +34,7 @@ const Project = ({ params }: Props) => {
   return (
     <div>
       {/* Add ToastContainer here */}
-      <Toaster/>
+    
 
       {/* Modal for creating/editing tasks */}
       <ModalNewTask

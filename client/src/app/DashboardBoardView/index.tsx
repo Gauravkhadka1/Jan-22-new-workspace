@@ -94,6 +94,26 @@ const Dashboard = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
       return;
     }
 
+    
+  // Find the task being moved
+  const taskToMove = userTasks.find((task) => task.id === taskId);
+  if (!taskToMove) {
+    toast.error("Task not found");
+    return;
+  }
+
+  // Check if task is overdue
+  const isOverdue = taskToMove.dueDate && new Date(taskToMove.dueDate) < new Date();
+
+  // Special case: Allow moving from Under Review to Completed even if overdue
+  const isUnderReviewToCompleted = 
+    taskToMove.status === "Under Review" && toStatus === "Completed";
+
+  if (isOverdue && !isUnderReviewToCompleted) {
+    toast.error("Task is overdue. Please edit the due date.");
+    return;
+  }
+
     updateTaskStatus({ taskId, status: toStatus, updatedBy: userId })
       .unwrap()
       .then(() => {
@@ -147,7 +167,12 @@ const TaskColumn = ({
 }: TaskColumnProps) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "task",
-    drop: (item: { id: number }) => moveTask(item.id, status),
+    drop: (item: { id: number }) => {
+      const task = tasks.find(t => t.id === item.id);
+      if (task) {
+        moveTask(task.id, status);
+      }
+    },
     collect: (monitor: any) => ({
       isOver: !!monitor.isOver(),
     }),
@@ -218,10 +243,9 @@ type TaskProps = {
 };
 
 const Task = ({ task, getProjectName }: TaskProps) => {
-  const { user } = useAuth(); 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
-    item: { id: task.id },
+    item: { id: task.id }, // We still only pass the ID for DnD compatibility
     collect: (monitor: any) => ({
       isDragging: !!monitor.isDragging(),
     }),
@@ -233,6 +257,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
   const [comments, setComments] = useState<Comment[]>(task.comments || []);
   const [newComment, setNewComment] = useState("");
   const [addCommentToTask] = useAddCommentToTaskMutation(); 
+  const { user } = useAuth();
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;

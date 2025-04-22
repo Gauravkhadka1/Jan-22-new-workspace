@@ -65,6 +65,17 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOr
   const handleSubmit = async () => {
     if (!title || !assignedBy || !projectId || !startDate || !dueDate) return;
 
+    if (task) {
+      const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
+      const isUnderReviewToCompleted = 
+        task.status === "Under Review" && status === "Completed";
+
+      if (isOverdue && !isUnderReviewToCompleted && status !== task.status) {
+        toast.error("Task is overdue. Please edit the due date before changing status.");
+        return;
+      }
+    }
+
     const taskData = {
       title,
       description,
