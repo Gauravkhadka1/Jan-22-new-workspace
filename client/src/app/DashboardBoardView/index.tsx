@@ -564,7 +564,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             e.stopPropagation();
             setShowActivityPopup(true);
           }}
-          className="flex items-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+          className="flex items-center rounded-md hover:bg-gray-100 dark:hover:bg-dark-tertiary"
         >
           <Activity size={18} className="mr-2 text-blue-500" />
           <span className="text-sm font-medium">
@@ -578,7 +578,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
             e.stopPropagation();
             setShowCommentsPopup(true);
           }}
-          className="flex items-center rounded-md p-2 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+          className="flex items-center rounded-md hover:bg-gray-100 dark:hover:bg-dark-tertiary"
         >
           <MessageSquareMore size={18} className="mr-2 text-green-500" />
           <span className="text-sm font-medium">{comments.length}</span>
