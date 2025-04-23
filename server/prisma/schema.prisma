@@ -74,7 +74,7 @@ model ActivityLog {
   userId    Int
   taskId    Int
   user      User     @relation(fields: [userId], references: [userId])
-  task      Task     @relation(fields: [taskId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 model Comment {
@@ -82,8 +82,8 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   userId    Int
-  user      User     @relation(fields: [userId], references: [userId])
+ user      User     @relation(fields: [userId], references: [userId])
   taskId    Int
-  task      Task     @relation(fields: [taskId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
