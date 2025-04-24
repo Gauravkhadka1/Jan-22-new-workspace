@@ -87,7 +87,7 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
 
 export const updateProject = async (req: Request, res: Response): Promise<void> => {
   const { projectId } = req.params;
-  const { name, description, startDate, endDate } = req.body;
+  const { name, description, startDate, endDate, googleDriveLink } = req.body;
   
   try {
     const updatedProject = await prisma.project.update({
@@ -100,6 +100,7 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
         // Convert string dates to DateTime objects
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
+        googleDriveLink,
       },
     });
     res.json(updatedProject);

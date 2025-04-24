@@ -9,6 +9,7 @@ export interface ProjectType {
   status: string;
   startDate?: string;
   endDate?: string;
+  googleDriveLink?: string;
   tasks?: Task[];
 }
 export interface Prospects {
@@ -196,7 +197,7 @@ export const api = createApi({
       invalidatesTags: ['Projects'],
     }),
 
-updateProject: build.mutation<ProjectType, { projectId: number; name?: string; description?: string; startDate?: string; endDate?: string }>({
+updateProject: build.mutation<ProjectType, { projectId: number; name?: string; description?: string; startDate?: string; endDate?: string; googleDriveLink?: string;  }>({
   query: ({ projectId, ...body }) => ({
     url: `projects/${projectId}`,
     method: 'PUT',

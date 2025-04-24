@@ -39,6 +39,7 @@ model Project {
   description  String?
   startDate    DateTime?
   endDate      DateTime?
+    googleDriveLink String? 
   tasks        Task[]
 }
 

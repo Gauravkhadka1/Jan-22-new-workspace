@@ -38,6 +38,7 @@ interface ProjectType {
   status: string;
   startDate?: string;
   endDate?: string;
+  googleDriveLink?: string;
   tasks?: Task[];
 }
 
@@ -77,6 +78,7 @@ const ProjectBoardView = ({
     description: "",
     startDate: "",
     endDate: "",
+    googleDriveLink: "",
   });
 
   // Close dropdown when clicking outside
@@ -91,6 +93,7 @@ const ProjectBoardView = ({
       endDate: project.endDate
         ? format(new Date(project.endDate), "yyyy-MM-dd")
         : "",
+      googleDriveLink: project.googleDriveLink || "",
     });
     setIsEditModalOpen(true);
   };
@@ -127,6 +130,7 @@ const ProjectBoardView = ({
         // Send dates as strings in YYYY-MM-DD format
         startDate: editFormData.startDate,
         endDate: editFormData.endDate,
+        googleDriveLink: editFormData.googleDriveLink,
       }).unwrap();
       toast.success("Project updated successfully");
       setIsEditModalOpen(false);
@@ -244,6 +248,23 @@ const ProjectBoardView = ({
                     }
                   />
                 </div>
+              </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Google Drive Link
+                </label>
+                <input
+                  type="url"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-secondary dark:text-gray-200"
+                  value={editFormData.googleDriveLink}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      googleDriveLink: e.target.value,
+                    })
+                  }
+                  placeholder="https://drive.google.com/..."
+                />
               </div>
 
               <Button type="submit" className="w-full">
@@ -458,11 +479,21 @@ const Project = ({
         <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
         {isAdmin && (
           <div className="relative flex items-center" ref={dropdownRef}>
-            <img
-              src="/google-drive.png"
-              alt="Project"
-              className="h-4 w-4 mr-1 rounded-full"
-            />
+            {projectData.googleDriveLink && (
+              <a
+                href={projectData.googleDriveLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="mr-1"
+              >
+                <img
+                  src="/google-drive.png"
+                  alt="Google Drive"
+                  className="h-4 w-4 rounded-full"
+                />
+              </a>
+            )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
