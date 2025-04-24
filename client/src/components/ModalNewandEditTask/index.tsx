@@ -54,7 +54,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOr
     if (task) {
       setTitle(task.title || "");
       setDescription(task.description || "");
-      setStatus(task.status || Status.ToDo);
+      setStatus(Status.ToDo); 
       setPriority(task.priority || "Backlog");
       setTags(task.tags || "");
       setStartDate(task.startDate ? new Date(task.startDate) : null);
@@ -109,16 +109,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOr
     if (!title || !assignedBy || !projectId || !startDate || !dueDate) return;
 
     if (task) {
-      const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
-      const isUnderReviewToCompleted = 
-        task.status === "Under Review" && status === "Completed";
-
-      if (isOverdue && !isUnderReviewToCompleted && status !== task.status) {
-        toast.error("Task is overdue. Please edit the due date before changing status.");
-        return;
-      }
-
-      // Check for date changes
+         // Check for date changes
       const hasDateChanges = checkForDateChanges();
       
       if (hasDateChanges) {
@@ -126,7 +117,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOr
         formDataRef.current = {
           title,
           description,
-          status,
+          status: Status.ToDo,
           priority,
           tags,
           startDate,
@@ -282,17 +273,6 @@ const ModalNewTask = ({ isOpen, onClose, id = null, task = null, onTaskCreatedOr
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-
-          <select
-            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-200"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as Status)}
-          >
-            <option value={Status.ToDo}>{Status.ToDo}</option>
-            <option value={Status.WorkInProgress}>{Status.WorkInProgress}</option>
-            <option value={Status.UnderReview}>{Status.UnderReview}</option>
-            <option value={Status.Completed}>{Status.Completed}</option>
-          </select>
 
           <div className="relative">
             <div
