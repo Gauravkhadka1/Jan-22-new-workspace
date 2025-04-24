@@ -6,12 +6,12 @@ import {
   useUpdateProjectStatusMutation,
   useDeleteProjectMutation,
   useUpdateProjectMutation,
-  Task
+  Task,
 } from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import {
-  EllipsisVertical,   
+  EllipsisVertical,
   Plus,
   Calendar,
   Trash2,
@@ -41,7 +41,6 @@ interface ProjectType {
   tasks?: Task[];
 }
 
-
 const projectStatus: Array<
   "New" | "Design" | "Development" | "Content-Fillup" | "Completed"
 > = ["New", "Design", "Development", "Content-Fillup", "Completed"];
@@ -55,7 +54,7 @@ const ProjectBoardView = ({
     data: projects = [],
     isLoading,
     error,
-    refetch: refetchProjects, 
+    refetch: refetchProjects,
   } = useGetProjectsQuery({ projectId: Number(id) });
   useEffect(() => {
     console.log("Projects data updated:", projects);
@@ -63,8 +62,6 @@ const ProjectBoardView = ({
   const [deleteProject] = useDeleteProjectMutation();
   const [updateProject] = useUpdateProjectMutation();
   const [updateProjectStatus] = useUpdateProjectStatusMutation();
-
-
 
   // State for delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -88,16 +85,19 @@ const ProjectBoardView = ({
     setEditFormData({
       name: project.name,
       description: project.description || "",
-      startDate: project.startDate ? format(new Date(project.startDate), 'yyyy-MM-dd') : "",
-      endDate: project.endDate ? format(new Date(project.endDate), 'yyyy-MM-dd') : "",
+      startDate: project.startDate
+        ? format(new Date(project.startDate), "yyyy-MM-dd")
+        : "",
+      endDate: project.endDate
+        ? format(new Date(project.endDate), "yyyy-MM-dd")
+        : "",
     });
     setIsEditModalOpen(true);
   };
-  
+
   const handleDeleteClick = (projectId: number) => {
     setProjectToDelete(projectId);
     setShowDeleteConfirm(true);
-
   };
   const confirmDelete = async () => {
     if (!projectToDelete) return;
@@ -118,7 +118,7 @@ const ProjectBoardView = ({
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentProject) return;
-  
+
     try {
       await updateProject({
         projectId: currentProject.id,
@@ -184,9 +184,11 @@ const ProjectBoardView = ({
       {/* Edit Project Modal */}
       {isEditModalOpen && currentProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 dark:bg-dark-secondary border dark:border-gray-400">
+          <div className="w-full max-w-md rounded-lg border bg-white p-6 dark:border-gray-400 dark:bg-dark-secondary">
             <div className="mb-4 flex items-start justify-between">
-              <h3 className="text-lg font-semibold dark:text-gray-200">Edit Project</h3>
+              <h3 className="text-lg font-semibold dark:text-gray-200">
+                Edit Project
+              </h3>
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -381,7 +383,10 @@ const Project = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -419,9 +424,14 @@ const Project = ({
     }
   }
 
-  const taskCount = projectData.tasks?.filter(task => task.status !== "Completed").length || 0;
+  const taskCount =
+    projectData.tasks?.filter((task) => task.status !== "Completed").length ||
+    0;
   // Determine text color based on task count
-  const taskCountColor = taskCount === 0 ? "text-red-600 dark:text-red-500" : "text-green-600 dark:text-green-600";
+  const taskCountColor =
+    taskCount === 0
+      ? "text-red-600 dark:text-red-500"
+      : "text-green-600 dark:text-green-600";
 
   if (projectData.status === "Completed") {
     return (
@@ -433,7 +443,7 @@ const Project = ({
           <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
         </h4>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-        {taskCount} {taskCount === 1 ? 'active task' : 'active tasks'}
+          {taskCount} {taskCount === 1 ? "active task" : "active tasks"}
         </p>
       </div>
     );
@@ -447,26 +457,31 @@ const Project = ({
       <h4 className="flex items-center justify-between break-words text-sm font-bold dark:text-gray-200">
         <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
         {isAdmin && (
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative flex items-center" ref={dropdownRef}>
+            <img
+              src="/google-drive.png"
+              alt="Project"
+              className="h-4 w-4 mr-1 rounded-full"
+            />
             <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsDropdownOpen(!isDropdownOpen);
-                    }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDropdownOpen(!isDropdownOpen);
+              }}
               className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-gray-200"
             >
               <EllipsisVertical size={26} />
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 z-10 mt-2 w-15 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-dark-tertiary">
+              <div className="w-15 absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-dark-tertiary">
                 <div className="py-1">
                   <button
-                 onClick={(e) => {
-                  e.stopPropagation();
-                  handleEditClick(projectData);
-                  setIsDropdownOpen(false);
-                }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditClick(projectData);
+                      setIsDropdownOpen(false);
+                    }}
                     className="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                   >
                     <Edit className="mr-2 h-4 w-4" />
@@ -491,16 +506,16 @@ const Project = ({
       </h4>
 
       <p className={`text-sm ${taskCountColor}`}>
-        {taskCount} {taskCount === 1 ? 'active task' : 'active tasks'}
+        {taskCount} {taskCount === 1 ? "active task" : "active tasks"}
       </p>
       <div className="flex-col py-2">
         <div className="flex items-center">
           {/* <Calendar size={16} className="text-green-600 dark:text-gray-400" /> */}
-          <p className="mr-1 text-green-600 dark:text-gray-400 text-xs">
+          <p className="mr-1 text-xs text-green-600 dark:text-gray-400">
             {formattedStartDate}
           </p>
-       <ArrowRight size={14} className="text-green-600 dark:text-gray-400" />
-          <p className="ml-2 text-red-800 dark:text-gray-400 text-xs">
+          <ArrowRight size={14} className="text-green-600 dark:text-gray-400" />
+          <p className="ml-2 text-xs text-red-800 dark:text-gray-400">
             {formattedEndDate}
           </p>
         </div>
