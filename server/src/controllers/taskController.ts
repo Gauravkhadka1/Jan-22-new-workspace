@@ -145,9 +145,9 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
         </div>
       `;
 
-      sendMail(assignedUser.email, emailSubject, assignedUserMessage);
-      sendMail('gaurav@webtech.com.np', emailSubject, gauravMessage);
-      sendMail('sudeep@webtechnepal.com', emailSubject, gauravMessage);
+      // sendMail(assignedUser.email, emailSubject, assignedUserMessage);
+      // sendMail('gaurav@webtech.com.np', emailSubject, gauravMessage);
+      // sendMail('sudeep@webtechnepal.com', emailSubject, gauravMessage);
     }
 
     const updatedProject = await prisma.project.findUnique({
@@ -211,8 +211,8 @@ export const updateTaskStatus = async (req: Request, res: Response): Promise<voi
       <p>Status changed from <strong>${previousStatus}</strong> to <strong>${status}</strong>.</p>
     `;
 
-    sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
-    sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
+    // sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
+    // sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
 
     res.json(updatedTask);
   } catch (error: any) {
@@ -422,8 +422,8 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
         // Send to assigned user and both admin emails
         sendMail(assignedUser.email, emailSubject, emailMessage);
       } 
-        sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
-        sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
+        // sendMail("gaurav@webtech.com.np", emailSubject, emailMessage);
+        // sendMail("sudeep@webtechnepal.com", emailSubject, emailMessage);
         console.error("Assigned user email is missing or invalid. Email sent only to admins.");
 
     }
@@ -482,8 +482,8 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
       taskToDelete.project?.name || "Unknown Project"
     );
 
-    sendMail("gaurav@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
-    sendMail("sudeep@webtechnepal.com", gauravEmailSubject, gauravEmailMessage);
+    // sendMail("gaurav@webtech.com.np", gauravEmailSubject, gauravEmailMessage);
+    // sendMail("sudeep@webtechnepal.com", gauravEmailSubject, gauravEmailMessage);
 
     res.status(200).json({ message: "Task successfully deleted" });
   } catch (error: any) {
