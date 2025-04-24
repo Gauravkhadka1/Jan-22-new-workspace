@@ -477,23 +477,24 @@ const Project = ({
     >
       <h4 className="flex items-center justify-between break-words text-sm font-bold dark:text-gray-200">
         <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
-        {isAdmin && (
+        <div className="flex items-center">
+          {projectData.googleDriveLink && (
+            <a
+              href={projectData.googleDriveLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mr-1"
+            >
+              <img
+                src="/google-drive.png"
+                alt="Google Drive"
+                className="h-4 w-4 rounded-full"
+              />
+            </a>
+          )}
+          {isAdmin && (
           <div className="relative flex items-center" ref={dropdownRef}>
-            {projectData.googleDriveLink && (
-              <a
-                href={projectData.googleDriveLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="mr-1"
-              >
-                <img
-                  src="/google-drive.png"
-                  alt="Google Drive"
-                  className="h-4 w-4 rounded-full"
-                />
-              </a>
-            )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -534,6 +535,8 @@ const Project = ({
             )}
           </div>
         )}
+        </div>
+        
       </h4>
 
       <p className={`text-sm ${taskCountColor}`}>
