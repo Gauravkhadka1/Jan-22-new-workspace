@@ -256,6 +256,8 @@ const Task = ({ task, getProjectName }: TaskProps) => {
   const [newComment, setNewComment] = useState("");
   const [addCommentToTask] = useAddCommentToTaskMutation();
   const { user } = useAuth();
+  const { data: projects } = useGetProjectsQuery({});
+const projectData = projects?.find((project) => project.id === task.projectId);
 
   useEffect(() => {
     if (task.comments) {
@@ -507,6 +509,22 @@ const Task = ({ task, getProjectName }: TaskProps) => {
               {task.title}
             </h4>
           </div>
+          <div className="flex items-center justify-end gap-1">
+          {projectData?.googleDriveLink && (
+            <a
+              href={projectData?.googleDriveLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mr-1"
+            >
+              <img
+                src="/google-drive.png"
+                alt="Google Drive"
+                className="h-4 w-4 rounded-full"
+              />
+            </a>
+          )}
           <button
             className="flex h-6 w-4 flex-shrink-0 items-center justify-center dark:text-neutral-500"
             onClick={(e) => {
@@ -542,6 +560,7 @@ const Task = ({ task, getProjectName }: TaskProps) => {
               </button>
             </div>
           )}
+          </div>
         </div>
         <div className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
           in {getProjectName(task.projectId)}
